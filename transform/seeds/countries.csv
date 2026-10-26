@@ -1,0 +1,31 @@
+country_code,name,kind,euro_since
+AT,Áustria,country,2002-01-01
+BE,Bélgica,country,2002-01-01
+BG,Bulgária,country,2026-01-01
+CY,Chipre,country,2008-01-01
+CZ,Chéquia,country,
+DE,Alemanha,country,2002-01-01
+DK,Dinamarca,country,
+EE,Estónia,country,2011-01-01
+ES,Espanha,country,2002-01-01
+FI,Finlândia,country,2002-01-01
+FR,França,country,2002-01-01
+GR,Grécia,country,2002-01-01
+HR,Croácia,country,2023-01-01
+HU,Hungria,country,
+IE,Irlanda,country,2002-01-01
+IT,Itália,country,2002-01-01
+LT,Lituânia,country,2015-01-01
+LU,Luxemburgo,country,2002-01-01
+LV,Letónia,country,2014-01-01
+MT,Malta,country,2008-01-01
+NL,Países Baixos,country,2002-01-01
+PL,Polónia,country,
+PT,Portugal,country,2002-01-01
+RO,Roménia,country,
+SE,Suécia,country,
+SI,Eslovénia,country,2007-01-01
+SK,Eslováquia,country,2009-01-01
+UK,Reino Unido,country,
+EU,União Europeia (média),aggregate,
+EUR,Zona euro (média),aggregate,

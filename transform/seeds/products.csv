@@ -1,0 +1,7 @@
+product,name,unit,is_road_fuel
+euro95,Gasolina 95,1000 L,true
+diesel,Gasóleo,1000 L,true
+lpg,GPL auto,1000 L,true
+heating_oil,Gasóleo de aquecimento,1000 L,false
+fuel_oil_1,Fuelóleo (enxofre até 1 %),t,false
+fuel_oil_2,Fuelóleo (enxofre acima de 1 %),t,false

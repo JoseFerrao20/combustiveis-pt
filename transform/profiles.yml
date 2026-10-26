@@ -1,0 +1,8 @@
+# Corre-se da raiz do repositório: uv run dbt build --project-dir transform --profiles-dir transform
+combustiveis:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', 'data/warehouse.duckdb') }}"
+      threads: 4

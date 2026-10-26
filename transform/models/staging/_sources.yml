@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: bulletin
+    description: >
+      Camada landing escrita por `combustiveis ingest`: o histórico do Weekly Oil Bulletin da
+      Comissão Europeia em Parquet, tal como veio.
+    meta:
+      external_location: "{{ env_var('LANDING_DIR', 'data/landing') }}/{name}.parquet"
+    tables:
+      - name: prices
+        description: Uma linha por semana, país, produto e com ou sem impostos.
+      - name: taxes
+        description: IVA, ISP e outros impostos indiretos, por data de entrada em vigor.

@@ -16,8 +16,12 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
-      - run: uv sync --locked
+      - run: uv sync --locked --all-groups
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
       - run: uv run pytest
+      - name: dbt build (com a amostra)
+        run: |
+          uv run combustiveis ingest --ficheiro tests/fixtures/oil_bulletin_sample.xlsx
+          uv run dbt build --project-dir transform --profiles-dir transform

@@ -5,3 +5,8 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 /data/
+/transform/target/
+/transform/logs/
+/transform/dbt_packages/
+/transform/.user.yml
+logs/

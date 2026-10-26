@@ -1,0 +1,30 @@
+version: 2
+
+seeds:
+  - name: countries
+    description: >
+      Os "países" do boletim: os 27, o Reino Unido (até sair da UE) e as médias da UE e da zona
+      euro. `euro_since` é a data em que o país passou a usar o euro em notas e moedas: a partir
+      daí, os impostos do boletim (em moeda nacional) estão em euros e comparam-se com os preços.
+    columns:
+      - name: country_code
+        data_tests: [unique, not_null]
+      - name: kind
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["country", "aggregate"]
+  - name: products
+    description: Produtos do boletim; os fuelóleos são por tonelada, o resto por 1000 litros.
+    columns:
+      - name: product
+        data_tests: [unique, not_null]
+  - name: known_source_errors
+    description: >
+      Erros conhecidos no próprio boletim (valores de uma semana que saltam e voltam na
+      seguinte). Não se corrigem os dados: os testes ignoram estas semanas, e cada uma tem a
+      explicação. Um erro novo faz falhar o teste, e só entra aqui depois de visto.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [country_code, product, week]

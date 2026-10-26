@@ -1,0 +1,89 @@
+version: 2
+
+models:
+  - name: fct_fuel_prices
+    description: >
+      Preço de cada semana, país e produto (euros por 1000 L, ou por tonelada nos fuelóleos),
+      com a parte que é imposto. A decomposição em IVA e em "ISP e outros impostos" usa só os
+      preços publicados e a taxa do IVA, e soma sempre o preço. `tax_tables_gap` é o que as
+      tabelas de ISP e de outros impostos do boletim não explicam (só para países no euro).
+    columns:
+      - name: week
+        description: Segunda-feira da semana do boletim.
+        data_tests: [not_null]
+      - name: country_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('countries')
+                field: country_code
+      - name: product
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('products')
+                field: product
+      - name: tax_share
+        description: Parte do preço que é imposto (0 a 1).
+      - name: tax_tables_gap
+        description: >
+          ISP e outros impostos calculados a partir dos preços, menos os das tabelas do
+          boletim. Perto de zero quando as tabelas estão certas.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [week, country_code, product]
+
+unit_tests:
+  - name: decomposes_the_portuguese_price
+    description: Gasolina 95 em Portugal, semana de 19/10/2026, com os valores reais do boletim.
+    model: fct_fuel_prices
+    given:
+      - input: ref('int_prices_pivoted')
+        rows:
+          - {week: 2026-10-19, country_code: PT, product: euro95, price_with_tax: 2099.0, price_without_tax: 1121.7762830536503}
+      - input: ref('int_taxes_in_force')
+        rows:
+          - {week: 2026-10-19, country_code: PT, product: euro95, vat_rate: 23, excise: 425.62, other_taxes: 159.11}
+      - input: ref('countries')
+        rows:
+          - {country_code: PT, name: Portugal, kind: country, euro_since: 2002-01-01}
+    expect:
+      rows:
+        # 2099 ÷ 1,23 = 1706,50 sem IVA; 1706,50 − 1121,78 = 584,73 de ISP e outros impostos, e as
+        # tabelas do boletim (425,62 + 159,11) explicam-nos a menos de um cêntimo por 1000 L.
+        - {country_code: PT, vat_amount: 392.4959349593496, excise_and_other_taxes: 584.7277819870001, tax_tables_gap: -0.00221801299994695}
+  - name: decomposition_adds_up_to_the_price
+    description: Números redondos, para se ver a conta (IVA a 25 %).
+    model: fct_fuel_prices
+    given:
+      - input: ref('int_prices_pivoted')
+        rows:
+          - {week: 2026-01-05, country_code: ES, product: diesel, price_with_tax: 125.0, price_without_tax: 60.0}
+      - input: ref('int_taxes_in_force')
+        rows:
+          - {week: 2026-01-05, country_code: ES, product: diesel, vat_rate: 25, excise: 30.0, other_taxes: 5.0}
+      - input: ref('countries')
+        rows:
+          - {country_code: ES, name: Espanha, kind: country, euro_since: 2002-01-01}
+    expect:
+      rows:
+        - {taxes_total: 65.0, vat_amount: 25.0, excise_and_other_taxes: 40.0, tax_tables_gap: 5.0, tax_share: 0.52}
+  - name: taxes_in_national_currency_are_not_compared
+    description: Antes do euro, o ISP vinha em moeda nacional e não se subtrai a preços em euros.
+    model: fct_fuel_prices
+    given:
+      - input: ref('int_prices_pivoted')
+        rows:
+          - {week: 2014-06-02, country_code: HR, product: diesel, price_with_tax: 1400.0, price_without_tax: 800.0}
+      - input: ref('int_taxes_in_force')
+        rows:
+          - {week: 2014-06-02, country_code: HR, product: diesel, vat_rate: 25, excise: 3060.0, other_taxes: 0}
+      - input: ref('countries')
+        rows:
+          - {country_code: HR, name: Croácia, kind: country, euro_since: 2023-01-01}
+    expect:
+      rows:
+        - {country_code: HR, reported_excise: null, tax_tables_gap: null, vat_amount: 280.0}
