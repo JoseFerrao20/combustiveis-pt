@@ -1,0 +1,5 @@
+# Sem base de dados: as consultas leem o Parquet que o dbt exporta (rpt_road_fuel_prices).
+name: combustiveis
+type: duckdb
+options:
+  filename: ":memory:"

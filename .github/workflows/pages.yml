@@ -1,0 +1,56 @@
+name: Painel
+
+# Descarrega o boletim, corre o dbt e publica o painel (dashboard/) no GitHub Pages. Em
+# Settings → Pages, a origem tem de ser "GitHub Actions".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: uv sync --locked --all-groups
+      - run: uv run combustiveis ingest
+      - run: uv run dbt build --project-dir transform --profiles-dir transform
+      - name: Painel (Evidence)
+        working-directory: dashboard
+        run: |
+          npm ci
+          npm run sources:strict
+          npm run build:strict
+      # O GitHub Pages serve o artefacto em /combustiveis-pt/, o deployment.basePath do
+      # evidence.config.yaml: os ficheiros vão na raiz do artefacto.
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dashboard/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

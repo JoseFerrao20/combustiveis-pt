@@ -1,0 +1,12 @@
+appearance:
+  default: system
+  switcher: true
+
+deployment:
+  basePath: /combustiveis-pt
+
+plugins:
+  components:
+    "@evidence-dev/core-components": {}
+  datasources:
+    "@evidence-dev/duckdb": {}

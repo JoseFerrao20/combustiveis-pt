@@ -37,9 +37,10 @@ flowchart LR
 |---|---|
 | **Ingestão**: descarrega o histórico, passa as folhas "largas" (uma coluna por país) a tabelas "longas" e escreve Parquet, com um manifesto (origem, data, SHA-256) | ✅ |
 | **Transformação**: modelos dbt em DuckDB (staging, imposto em vigor em cada semana com `ASOF JOIN`, decomposição do preço), testes de dados e testes unitários do dbt | ✅ |
-| **Painel**: site estático com Evidence no GitHub Pages, atualizado todas as semanas pelo GitHub Actions | a seguir |
+| **Painel**: site estático com o Evidence no GitHub Pages ([joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/)): a divisão do preço, a evolução desde 2005 e a comparação com a Europa | ✅ |
+| **Agendamento**: o GitHub Actions corre tudo todas as semanas, quando sai o boletim | a seguir |
 
-A escolha da fonte está em [`docs/adr/0001-fonte-weekly-oil-bulletin.md`](docs/adr/0001-fonte-weekly-oil-bulletin.md).
+Decisões: a fonte em [`docs/adr/0001-fonte-weekly-oil-bulletin.md`](docs/adr/0001-fonte-weekly-oil-bulletin.md) e o painel em [`docs/adr/0002-painel-evidence.md`](docs/adr/0002-painel-evidence.md).
 
 ## Correr
 
@@ -72,6 +73,17 @@ O resultado é a tabela `fct_fuel_prices`, uma linha por semana, país e produto
 
 A decomposição soma sempre o preço; quando as tabelas de impostos do boletim não a explicam, a diferença fica à vista em `tax_tables_gap`, em vez de escondida.
 
+O dbt exporta também `data/road_fuel_prices.parquet` (gasolina 95, gasóleo e GPL, em € por litro) para o painel. O painel (`dashboard/`, com o [Evidence](https://github.com/evidence-dev/evidence)) corre com o Node 22:
+
+```bash
+cd dashboard
+npm ci
+npm run sources                                    # lê o Parquet (precisa de acesso a extensions.duckdb.org)
+npm run dev                                        # abre o painel no browser
+```
+
+O workflow `pages.yml` faz tudo a cada push na `main`: descarrega o boletim, corre o dbt e publica o painel no GitHub Pages.
+
 ## Desenvolvimento
 
 ```bash
@@ -79,7 +91,7 @@ uv run pytest                                      # testes, cobertura ≥ 90 %
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
 
-Os testes usam uma amostra do ficheiro real (`tests/fixtures/oil_bulletin_sample.xlsx`, gerada com `scripts/make_sample.py`), com o mesmo formato: se a Comissão mudar o ficheiro, é aí que se vê. O CI corre também o `dbt build` com essa amostra.
+Os testes usam uma amostra do ficheiro real (`tests/fixtures/oil_bulletin_sample.xlsx`, gerada com `scripts/make_sample.py`), com o mesmo formato: se a Comissão mudar o ficheiro, é aí que se vê. O CI corre também o `dbt build` e o build do painel com essa amostra.
 
 No dbt (`transform/`):
 

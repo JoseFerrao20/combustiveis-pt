@@ -1,0 +1,18 @@
+models:
+  - name: rpt_road_fuel_prices
+    description: >
+      Gasolina 95, gasóleo e GPL em euros por litro, para o painel (dashboard/). É exportada
+      para Parquet (EXPORT_PATH, por omissão data/road_fuel_prices.parquet) porque o Evidence
+      traz um DuckDB mais antigo, que não abre a base de dados do dbt.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [week, country_code, product]
+    columns:
+      - name: price
+        description: Preço com impostos, em € por litro.
+        data_tests:
+          - not_null
+      - name: tax_share
+        data_tests:
+          - not_null

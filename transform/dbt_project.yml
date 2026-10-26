@@ -8,6 +8,9 @@ seed-paths: ["seeds"]
 test-paths: ["tests"]
 macro-paths: ["macros"]
 
+flags:
+  send_anonymous_usage_stats: false
+
 models:
   combustiveis:
     staging:

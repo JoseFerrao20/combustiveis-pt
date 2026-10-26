@@ -22,8 +22,19 @@
     - o dbt 1.10+ avisa que `target-path` e `log-path` no `dbt_project.yml` estão obsoletos;
     - no DuckDB, `count(*) weeks` sem `as` dá erro de sintaxe.
 
+- **2026-10-26 (sessão cloud do Claude Code):** painel com o Evidence.
+  - **Feito:** `dashboard/` com três páginas. "Quanto do preço é imposto?" mostra a última semana em Portugal, a divisão em produto, ISP e outros impostos, e IVA, e a evolução desde 2005. "Portugal e a Europa" compara Portugal com Espanha e com a UE, e mostra todos os países na última semana. "Como se calcula" explica o método e as limitações. Tem um filtro por combustível. O dbt exporta `rpt_road_fuel_prices` para Parquet; o CI constrói o painel com a amostra e o `pages.yml` publica-o com os dados reais a cada push na `main`.
+  - **Decisões ([ADR 0002](docs/adr/0002-painel-evidence.md)):**
+    - o Evidence passou para um serviço com conta (Evidence Studio), e o template deixou de usar a versão open source. Fica a versão open source (40.1.8, MIT), fixada;
+    - o painel lê um Parquet e não a base de dados do dbt, porque o Evidence traz o DuckDB 1.4, que não abre ficheiros do DuckDB 2.
+  - **Lições:**
+    - o `npm install` falhava porque o npm escolhia o TypeScript 7 e o Evidence pede a 5.4.2: ficou fixado;
+    - nesta sessão, o `npm run sources` ficava parado sem erro. O DuckDB-WASM tenta descarregar a extensão de Parquet de `extensions.duckdb.org`, e o proxy bloqueia esse domínio. No GitHub Actions funciona; aqui o build ficou por ver;
+    - antes de escrever uma frase no painel, confirmar nos dados: "o preço antes de impostos é parecido em toda a UE" era falso (vai de 0,59 a 1,37 € por litro na gasolina 95);
+    - uma semana de Espanha (8/4/2013) tem o preço sem impostos mas não o preço com impostos; o modelo do painel deixa de fora as semanas sem os dois.
+
 ## Plano
 
-1. **Painel:** Evidence (SQL e markdown, site estático) no GitHub Pages, sobre o `data/warehouse.duckdb`: a decomposição da última semana, a evolução desde 2005 e a comparação com Espanha e a média da UE.
-2. **Agendamento:** GitHub Actions toda a semana (o boletim sai à segunda): ingestão, `dbt build` e o site novo.
+1. **Agendamento:** correr o `pages.yml` toda a semana (o boletim sai à segunda; um `schedule` à terça de manhã) e avisar quando a ingestão ou os testes falharem.
+2. **Painel:** ver o site publicado e afinar o aspeto (formato dos números em português, cores); voltar a gerar as contas do README com os dados novos.
 3. **Por investigar:** as tabelas de impostos da Lituânia (unidade ou moeda?) e dos Países Baixos.
