@@ -8,7 +8,8 @@
     "dev": "evidence dev --open /",
     "sources": "evidence sources",
     "sources:strict": "evidence sources --strict",
-    "preview": "evidence preview"
+    "preview": "evidence preview",
+    "postinstall": "patch-package"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -20,6 +21,7 @@
     "@evidence-dev/evidence": "40.1.8"
   },
   "devDependencies": {
+    "patch-package": "8.0.1",
     "typescript": "5.4.2"
   }
 }

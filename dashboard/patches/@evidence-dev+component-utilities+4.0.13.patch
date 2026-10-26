@@ -1,0 +1,16 @@
+diff --git a/node_modules/@evidence-dev/component-utilities/src/formatting.js b/node_modules/@evidence-dev/component-utilities/src/formatting.js
+index ce867a9..76d7bcf 100644
+--- a/node_modules/@evidence-dev/component-utilities/src/formatting.js
++++ b/node_modules/@evidence-dev/component-utilities/src/formatting.js
+@@ -209,6 +209,11 @@ function applyFormatting(
+ 	if (result === undefined) {
+ 		result = fallbackFormat(value, columnUnitSummary);
+ 	}
++	// combustiveis-pt: números à portuguesa (1 234,5 em vez de 1,234.5). O ssf não tem
++	// locales; troca-se o separador decimal e o dos milhares, só nos números.
++	if (typeof result === 'string' && (typeof value === 'number' || typeof value === 'bigint')) {
++		result = result.replace(/[.,]/g, (c) => (c === '.' ? ',' : '\u00a0'));
++	}
+ 	return result;
+ }
+ function getEffectiveFormattingCode(columnFormat, formattingContext = VALUE_FORMATTING_CONTEXT) {
