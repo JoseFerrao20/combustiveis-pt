@@ -32,16 +32,15 @@ jobs:
       - run: uv run dbt build --project-dir transform --profiles-dir transform
       - name: Painel (Evidence)
         working-directory: dashboard
-        env:
-          # O caminho do site no GitHub Pages (deployment.basePath no evidence.config.yaml).
-          EVIDENCE_BUILD_DIR: ./build/combustiveis-pt
         run: |
           npm ci
           npm run sources:strict
           npm run build:strict
+      # O GitHub Pages serve o artefacto em /combustiveis-pt/, o deployment.basePath do
+      # evidence.config.yaml: os ficheiros vão na raiz do artefacto.
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: dashboard/build/combustiveis-pt
+          path: dashboard/build
 
   deploy:
     needs: build
