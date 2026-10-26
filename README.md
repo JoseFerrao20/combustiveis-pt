@@ -38,7 +38,7 @@ flowchart LR
 | **Ingestão**: descarrega o histórico, passa as folhas "largas" (uma coluna por país) a tabelas "longas" e escreve Parquet, com um manifesto (origem, data, SHA-256) | ✅ |
 | **Transformação**: modelos dbt em DuckDB (staging, imposto em vigor em cada semana com `ASOF JOIN`, decomposição do preço), testes de dados e testes unitários do dbt | ✅ |
 | **Painel**: site estático com o Evidence no GitHub Pages ([joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/)): a divisão do preço, a evolução desde 2005 e a comparação com a Europa | ✅ |
-| **Agendamento**: o GitHub Actions corre tudo todas as semanas, quando sai o boletim | a seguir |
+| **Agendamento**: o GitHub Actions corre tudo à terça e à quinta, e falha (com email) se o boletim deixar de ser atualizado | ✅ |
 
 Decisões: a fonte em [`docs/adr/0001-fonte-weekly-oil-bulletin.md`](docs/adr/0001-fonte-weekly-oil-bulletin.md) e o painel em [`docs/adr/0002-painel-evidence.md`](docs/adr/0002-painel-evidence.md).
 
@@ -50,6 +50,7 @@ Com o [uv](https://docs.astral.sh/uv/):
 uv sync
 uv run combustiveis ingest                         # descarrega e escreve data/landing/
 uv run combustiveis ingest --ficheiro historico.xlsx   # a partir de um ficheiro já descarregado
+uv run combustiveis ingest --idade-maxima 15          # falha se a última semana tiver mais de 15 dias
 ```
 
 A camada landing fica em `data/landing/`: `prices.parquet` (semana, país, produto, com ou sem impostos, valor por 1000 L), `taxes.parquet` (IVA, ISP e outros impostos, com a data de entrada em vigor) e `manifest.json`.
@@ -82,7 +83,7 @@ npm run sources                                    # lê o Parquet (precisa de a
 npm run dev                                        # abre o painel no browser
 ```
 
-O workflow `pages.yml` faz tudo a cada push na `main`: descarrega o boletim, corre o dbt e publica o painel no GitHub Pages.
+O workflow `pages.yml` faz tudo a cada push na `main` e duas vezes por semana (terça e quinta de manhã, depois de o boletim sair): descarrega o boletim, corre o dbt e publica o painel no GitHub Pages. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa.
 
 ## Desenvolvimento
 

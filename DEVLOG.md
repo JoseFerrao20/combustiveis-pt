@@ -33,8 +33,15 @@
     - antes de escrever uma frase no painel, confirmar nos dados: "o preço antes de impostos é parecido em toda a UE" era falso (vai de 0,59 a 1,37 € por litro na gasolina 95);
     - uma semana de Espanha (8/4/2013) tem o preço sem impostos mas não o preço com impostos; o modelo do painel deixa de fora as semanas sem os dois.
 
+- **2026-10-26 (sessão cloud do Claude Code):** agendamento.
+  - **Feito:** o `pages.yml` passa a correr também à terça e à quinta às 5h53 UTC. O boletim traz os preços de segunda e sai nos dias seguintes; duas execuções por semana apanham-no mesmo com atraso. Opção nova `combustiveis ingest --idade-maxima DIAS`, que falha se a última semana do boletim for mais antiga do que isso; a execução agendada usa 15 dias. 18 testes.
+  - **Decisões:**
+    - **Avisos pelo próprio GitHub**, sem serviços novos: uma execução agendada que falha manda um email a quem mudou o cron por último. Uma falha na ingestão, no dbt (os testes de dados são erros) ou no build não publica nada, e o site fica com a última versão boa;
+    - **Uma fonte parada também é uma falha:** o ficheiro pode continuar a descarregar-se sem ter semanas novas (a Comissão parou, ou o link aponta para um ficheiro antigo), e é isso que a idade máxima apanha. Com 15 dias, uma publicação em falta passa e duas não; no Natal pode falhar uma vez.
+  - **Lição:** o GitHub desliga os agendamentos de um repositório público sem commits há 60 dias. Ficou escrito no workflow onde se voltam a ligar.
+
 ## Plano
 
-1. **Agendamento:** correr o `pages.yml` toda a semana (o boletim sai à segunda; um `schedule` à terça de manhã) e avisar quando a ingestão ou os testes falharem.
-2. **Painel:** ver o site publicado e afinar o aspeto (formato dos números em português, cores); voltar a gerar as contas do README com os dados novos.
-3. **Por investigar:** as tabelas de impostos da Lituânia (unidade ou moeda?) e dos Países Baixos.
+1. **Painel:** ver o site publicado e afinar o aspeto (números em português, cores, data da última atualização); voltar a gerar as contas do README com os dados novos.
+2. **Por investigar:** as tabelas de impostos da Lituânia (unidade ou moeda?) e dos Países Baixos.
+3. **Talvez:** guardar o histórico das descargas (cada ficheiro tem um SHA-256 no manifesto) para ver quando a Comissão corrige semanas antigas.
