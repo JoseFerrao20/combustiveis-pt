@@ -23,6 +23,7 @@ order by week
     x=week
     y=price
     series=country
+    seriesColors={{'Portugal': '#15803d', 'Espanha': '#d97706', 'União Europeia (média)': '#2563eb'}}
     title="Preço por litro: Portugal, Espanha e a média da UE"
     yFmt='0.00 "€"'
     xAxisTitle=false
@@ -57,6 +58,7 @@ order by price desc
     x=country
     y={['price_without_tax', 'taxes_total']}
     seriesLabels={{price_without_tax: 'Produto', taxes_total: 'Impostos'}}
+    colorPalette={['#64748b', '#d97706']}
     swapXY=true
     sort=false
     title="Preço por litro em cada país, dividido em produto e impostos"

@@ -40,8 +40,17 @@
     - **Uma fonte parada também é uma falha:** o ficheiro pode continuar a descarregar-se sem ter semanas novas (a Comissão parou, ou o link aponta para um ficheiro antigo), e é isso que a idade máxima apanha. Com 15 dias, uma publicação em falta passa e duas não; no Natal pode falhar uma vez.
   - **Lição:** o GitHub desliga os agendamentos de um repositório público sem commits há 60 dias. Ficou escrito no workflow onde se voltam a ligar.
 
+- **2026-10-26 (sessão cloud do Claude Code):** aspeto do painel.
+  - **Feito:**
+    - números em português (`2,099 €`, `58,8%`, `1 137`) nos valores, nas tabelas, nos eixos e nas dicas dos gráficos;
+    - título "Combustíveis em Portugal", "Início" em vez de "Home" e um link para o repositório (`pages/+layout.svelte`);
+    - cores fixas: produto a cinzento, ISP e outros a âmbar, IVA a vermelho; Portugal a verde, Espanha a âmbar e a UE a azul;
+    - data da última descarga no fim da página inicial, lida do manifesto da ingestão.
+  - **Decisão:** o Evidence formata os números com o `ssf`, que não tem locales. Em vez de formatar os números em texto no SQL (os gráficos ficavam sem eixo numérico), um patch de cinco linhas troca os separadores, só nos números (as datas ficam iguais). Fica em `dashboard/patches/`, aplicado pelo `patch-package`; com as versões fixadas, não muda sem se dar por isso.
+  - **Lição:** o `patch-package` ficou parado a criar o patch (corre um `npm i` numa pasta temporária). O patch foi escrito com `git diff --no-index` no mesmo formato, e o `patch-package` aplica-o sem problemas.
+
 ## Plano
 
-1. **Painel:** ver o site publicado e afinar o aspeto (números em português, cores, data da última atualização); voltar a gerar as contas do README com os dados novos.
+1. **Ver o painel publicado** (daqui não abre: o proxy bloqueia `extensions.duckdb.org` e `joseferrao20.github.io`) e afinar o que ficar mal; capturas para o README.
 2. **Por investigar:** as tabelas de impostos da Lituânia (unidade ou moeda?) e dos Países Baixos.
 3. **Talvez:** guardar o histórico das descargas (cada ficheiro tem um SHA-256 no manifesto) para ver quando a Comissão corrige semanas antigas.

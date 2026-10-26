@@ -64,6 +64,7 @@ order by week
     y=valor
     series=parte
     seriesOrder={['Produto', 'ISP e outros impostos', 'IVA']}
+    seriesColors={{'Produto': '#64748b', 'ISP e outros impostos': '#d97706', 'IVA': '#b91c1c'}}
     title="Preço por litro, dividido em produto e impostos"
     yFmt='0.00 "€"'
     xAxisTitle=false
@@ -81,6 +82,7 @@ order by week
     data={peso}
     x=week
     y=tax_share
+    colorPalette={['#b45309']}
     title="Parte do preço que é imposto"
     yFmt=pct0
     yMin=0
@@ -88,5 +90,10 @@ order by week
     yAxisTitle=false
 />
 
+```sql atualizacao
+select downloaded_at from combustiveis.atualizacao
+```
+
 Quando o petróleo fica mais barato, os impostos pesam mais, porque o ISP é um valor fixo por litro e não uma percentagem. As descidas do ISP de 2022 notam-se no gráfico de cima.
 
+<p class="text-sm text-base-content-muted">Dados descarregados do boletim a <Value data={atualizacao} column=downloaded_at fmt="dd/mm/yyyy" />; o painel atualiza-se à terça e à quinta.</p>
