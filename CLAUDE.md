@@ -1,6 +1,6 @@
 # combustiveis-pt
 
-Pipeline de dados com os preços semanais dos combustíveis em Portugal e na UE (Weekly Oil Bulletin da Comissão Europeia, desde 2005): ingestão em Python para Parquet (`src/combustiveis/`), depois dbt com DuckDB e um painel com Evidence. Projeto de portfólio de José Ferrão. A escolha da fonte está em `docs/adr/0001-fonte-weekly-oil-bulletin.md`; o histórico e o plano em `DEVLOG.md`.
+Pipeline de dados com os preços semanais dos combustíveis em Portugal e na UE (Weekly Oil Bulletin da Comissão Europeia, desde 2005): ingestão em Python para Parquet (`src/combustiveis/`), depois dbt com DuckDB e um painel com Evidence (`dashboard/`, publicado no GitHub Pages pelo `pages.yml`). Projeto de portfólio de José Ferrão. A escolha da fonte está em `docs/adr/0001-fonte-weekly-oil-bulletin.md`; o histórico e o plano em `DEVLOG.md`.
 
 ## Comandos
 
@@ -10,7 +10,8 @@ uv run pytest                                  # cobertura ≥ 90 %
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv run combustiveis ingest                     # precisa de acesso a energy.ec.europa.eu
 uv run combustiveis ingest --ficheiro tests/fixtures/oil_bulletin_sample.xlsx   # sem rede
-uv run dbt build --project-dir transform --profiles-dir transform   # da raiz; LANDING_DIR e DUCKDB_PATH mudam as pastas
+uv run dbt build --project-dir transform --profiles-dir transform   # da raiz; LANDING_DIR, DUCKDB_PATH e EXPORT_PATH mudam os caminhos
+cd dashboard && npm ci && npm run sources && npm run build   # painel (Evidence, Node 22), depois do dbt
 ```
 
 ## Convenções
@@ -25,3 +26,5 @@ uv run dbt build --project-dir transform --profiles-dir transform   # da raiz; L
 - dbt (`transform/`): staging e intermediate são views, marts são tabelas. Testes com a sintaxe `arguments:` do dbt 1.10+. Os testes guardam as linhas que falham (`store_failures`), para se verem no DuckDB. Um erro na fonte não se corrige nos dados: entra no seed `known_source_errors` com a explicação, depois de visto.
 - As tabelas de ISP e outros impostos só se comparam com o preço a partir de `countries.euro_since` (antes, estão na moeda nacional). A decomposição (`fct_fuel_prices`) vem dos preços e do IVA; as tabelas só dão o `tax_tables_gap`.
 - DuckDB: um alias de coluna precisa de `as` quando o nome é uma palavra-chave (`count(*) as weeks`).
+- Painel (`dashboard/`, ADR 0002): Evidence open source 40.1.8, versões fixadas; já não recebe novidades (a empresa passou para o Evidence Studio). Lê só `data/road_fuel_prices.parquet`, que o dbt exporta (`rpt_road_fuel_prices`), porque o DuckDB do Evidence (1.4) não abre a base de dados do DuckDB 2. Uma coluna nova para o painel entra nesse modelo. O `npm run sources` precisa de `extensions.duckdb.org` (o DuckDB-WASM descarrega aí a extensão de Parquet): sem acesso, fica parado em vez de falhar. O `typescript` fica na 5.4.2, a versão que o Evidence pede.
+- O site está em `/combustiveis-pt` (`deployment.basePath`): os links entre páginas passam pela barra lateral do Evidence, não por links escritos à mão.
