@@ -1,0 +1,43 @@
+name: combustiveis
+version: "0.1.0"
+profile: combustiveis
+config-version: 2
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+models:
+  combustiveis:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table
+
+seeds:
+  combustiveis:
+    countries:
+      +column_types:
+        country_code: varchar
+        name: varchar
+        kind: varchar
+        euro_since: date
+    known_source_errors:
+      +column_types:
+        country_code: varchar
+        product: varchar
+        week: date
+        description: varchar
+    products:
+      +column_types:
+        product: varchar
+        name: varchar
+        unit: varchar
+        is_road_fuel: boolean
+
+tests:
+  combustiveis:
+    +store_failures: true

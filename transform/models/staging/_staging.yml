@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: stg_bulletin__prices
+    columns:
+      - name: tax_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["with_tax", "without_tax"]
+      - name: price
+        data_tests: [not_null]
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [week, country_code, product, tax_status]
+  - name: stg_bulletin__taxes
+    columns:
+      - name: tax
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["vat", "excise", "other"]
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [tax, country_code, product, valid_from]

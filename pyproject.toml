@@ -15,6 +15,9 @@ dependencies = [
 combustiveis = "combustiveis.__main__:main"
 
 [dependency-groups]
+transform = [
+    "dbt-duckdb>=1.9",
+]
 dev = [
     "mypy>=1.11",
     "pytest>=8",

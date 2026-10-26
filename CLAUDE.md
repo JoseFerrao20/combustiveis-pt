@@ -5,10 +5,12 @@ Pipeline de dados com os preços semanais dos combustíveis em Portugal e na UE 
 ## Comandos
 
 ```bash
-uv sync
+uv sync --all-groups                           # o grupo transform traz o dbt
 uv run pytest                                  # cobertura ≥ 90 %
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 uv run combustiveis ingest                     # precisa de acesso a energy.ec.europa.eu
+uv run combustiveis ingest --ficheiro tests/fixtures/oil_bulletin_sample.xlsx   # sem rede
+uv run dbt build --project-dir transform --profiles-dir transform   # da raiz; LANDING_DIR e DUCKDB_PATH mudam as pastas
 ```
 
 ## Convenções
@@ -20,3 +22,6 @@ uv run combustiveis ingest                     # precisa de acesso a energy.ec.e
 - O link do ficheiro muda quando a Comissão o substitui: procurar sempre na página (`source.find_history_url`), nunca fixar o endereço.
 - `data/` não entra no Git.
 - DuckDB 2: as relações já não têm `fetchone()`; usar `fetchall()`.
+- dbt (`transform/`): staging e intermediate são views, marts são tabelas. Testes com a sintaxe `arguments:` do dbt 1.10+. Os testes guardam as linhas que falham (`store_failures`), para se verem no DuckDB. Um erro na fonte não se corrige nos dados: entra no seed `known_source_errors` com a explicação, depois de visto.
+- As tabelas de ISP e outros impostos só se comparam com o preço a partir de `countries.euro_since` (antes, estão na moeda nacional). A decomposição (`fct_fuel_prices`) vem dos preços e do IVA; as tabelas só dão o `tax_tables_gap`.
+- DuckDB: um alias de coluna precisa de `as` quando o nome é uma palavra-chave (`count(*) as weeks`).
