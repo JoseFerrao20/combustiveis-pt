@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from pathlib import Path
 
 import duckdb
@@ -50,3 +51,21 @@ def test_errors_exit_with_one(tmp_path: Path, capsys: pytest.CaptureFixture[str]
     assert cli.main(["ingest", "--ficheiro", str(bad), "--destino", str(tmp_path)]) == 1
     assert "erro: Não é um ficheiro Excel válido" in capsys.readouterr().err
     assert not (tmp_path / "prices.parquet").exists()
+
+
+@pytest.mark.parametrize(("today", "ok"), [(date(2026, 11, 2), True), (date(2026, 11, 3), False)])
+def test_max_age_fails_when_the_bulletin_is_stale(tmp_path: Path, today: date, ok: bool) -> None:
+    # A amostra acaba na semana de 2026-10-19: 14 dias depois ainda passa, 15 já não.
+    if ok:
+        assert cli.ingest(SAMPLE, tmp_path, max_age_days=14, today=today) == 0
+    else:
+        with pytest.raises(cli.StaleError, match="há 15 dias"):
+            cli.ingest(SAMPLE, tmp_path, max_age_days=14, today=today)
+        assert not (tmp_path / "prices.parquet").exists()
+
+
+def test_max_age_on_the_command_line(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    args = ["ingest", "--ficheiro", str(SAMPLE), "--destino", str(tmp_path)]
+    assert cli.main([*args, "--idade-maxima", "100000"]) == 0
+    assert cli.main([*args, "--idade-maxima", "0"]) == 1
+    assert "erro: A última semana do boletim é 2026-10-19" in capsys.readouterr().err

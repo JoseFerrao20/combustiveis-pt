@@ -2,9 +2,16 @@ name: Painel
 
 # Descarrega o boletim, corre o dbt e publica o painel (dashboard/) no GitHub Pages. Em
 # Settings → Pages, a origem tem de ser "GitHub Actions".
+#
+# Corre a cada push na main e duas vezes por semana (terça e quinta, de manhã em UTC): o
+# boletim traz os preços de segunda e sai nos dias seguintes. Uma execução agendada que falhe
+# chega por email a quem mudou o cron por último. O GitHub desliga os agendamentos de um
+# repositório público sem atividade há 60 dias; volta-se a ligá-los em Actions → Painel.
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "53 5 * * 2,4"
   workflow_dispatch:
 
 permissions:
@@ -28,7 +35,9 @@ jobs:
           cache: npm
           cache-dependency-path: dashboard/package-lock.json
       - run: uv sync --locked --all-groups
-      - run: uv run combustiveis ingest
+      # Falha se o boletim não tiver uma semana dos últimos 15 dias (falta mais de uma
+      # publicação): é a forma de dar conta de uma fonte parada ou de um link que mudou.
+      - run: uv run combustiveis ingest --idade-maxima 15
       - run: uv run dbt build --project-dir transform --profiles-dir transform
       - name: Painel (Evidence)
         working-directory: dashboard
