@@ -20,4 +20,4 @@ Há ainda outra limitação: o Evidence traz o DuckDB 1.4, que não abre uma bas
 
 - O painel só depende de um ficheiro Parquet com colunas conhecidas. Se for preciso trocar de ferramenta (o Observable Framework, por exemplo), as páginas mudam, mas o dbt não.
 - Sem atualizações do Evidence, as dependências vão ficando antigas. Como o site é estático e não tem dados pessoais, o risco é baixo. O `typescript` está fixado na 5.4.2, a versão que o Evidence pede, porque o npm escolhia a 7 e a instalação falhava.
-- O `npm run sources` precisa de acesso a `extensions.duckdb.org`: o DuckDB-WASM descarrega aí a extensão de Parquet. Sem acesso, o comando fica parado em vez de falhar.
+- O `npm run sources` precisa de acesso a `extensions.duckdb.org`: o DuckDB-WASM descarrega aí a extensão de Parquet. Sem acesso, o comando fica parado em vez de falhar. Atrás de um proxy, o Node só o usa com `NODE_USE_ENV_PROXY=1`.
