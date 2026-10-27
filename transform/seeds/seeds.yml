@@ -28,3 +28,13 @@ seeds:
       - unique_combination:
           arguments:
             columns: [country_code, product, week]
+  - name: known_tax_table_issues
+    description: >
+      Períodos em que as tabelas de ISP e de outros impostos do boletim não explicam os preços,
+      já investigados (docs/analises/impostos-lituania-paises-baixos.md). Os dados não mudam: a
+      explicação passa para `fct_fuel_prices.tax_tables_issue`, e o aviso sobre as tabelas
+      ignora estes períodos.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [country_code, product, valid_from]

@@ -5,12 +5,14 @@
 --   ISP e outros impostos  = preço ÷ (1 + taxa) − preço sem impostos
 -- As tabelas de ISP e de outros impostos do boletim nem sempre explicam essa parte (há
 -- períodos com valores em falta ou trocados entre as duas): a diferença fica em
--- tax_tables_gap, para se ver em vez de se esconder.
+-- tax_tables_gap, para se ver em vez de se esconder. Os períodos já investigados têm a
+-- explicação em tax_tables_issue (seed known_tax_table_issues).
 with
 
 prices as (select * from {{ ref('int_prices_pivoted') }}),
 taxes as (select * from {{ ref('int_taxes_in_force') }}),
 countries as (select * from {{ ref('countries') }}),
+issues as (select * from {{ ref('known_tax_table_issues') }}),
 
 decomposed as (
     select
@@ -38,10 +40,17 @@ decomposed as (
 )
 
 select
-    *,
-    taxes_total / nullif(price_with_tax, 0) as tax_share,
+    decomposed.*,
+    decomposed.taxes_total / nullif(decomposed.price_with_tax, 0) as tax_share,
     case
-        when reported_excise is not null
-            then excise_and_other_taxes - reported_excise - coalesce(reported_other_taxes, 0)
-    end as tax_tables_gap
+        when decomposed.reported_excise is not null
+            then decomposed.excise_and_other_taxes
+                - decomposed.reported_excise
+                - coalesce(decomposed.reported_other_taxes, 0)
+    end as tax_tables_gap,
+    issues.description as tax_tables_issue
 from decomposed
+left join issues
+    on issues.country_code = decomposed.country_code
+    and issues.product = decomposed.product
+    and decomposed.week between issues.valid_from and issues.valid_to

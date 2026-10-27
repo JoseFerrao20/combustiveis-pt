@@ -31,6 +31,10 @@ models:
         description: >
           ISP e outros impostos calculados a partir dos preços, menos os das tabelas do
           boletim. Perto de zero quando as tabelas estão certas.
+      - name: tax_tables_issue
+        description: >
+          Quando já se sabe porque é que as tabelas não explicam o preço nessa semana, a
+          explicação (seed known_tax_table_issues).
     data_tests:
       - unique_combination:
           arguments:
@@ -50,6 +54,10 @@ unit_tests:
       - input: ref('countries')
         rows:
           - {country_code: PT, name: Portugal, kind: country, euro_since: 2002-01-01}
+      - input: ref('known_tax_table_issues')
+        format: csv
+        rows: |
+          country_code,product,valid_from,valid_to,description
     expect:
       rows:
         # 2099 ÷ 1,23 = 1706,50 sem IVA; 1706,50 − 1121,78 = 584,73 de ISP e outros impostos, e as
@@ -68,6 +76,10 @@ unit_tests:
       - input: ref('countries')
         rows:
           - {country_code: ES, name: Espanha, kind: country, euro_since: 2002-01-01}
+      - input: ref('known_tax_table_issues')
+        format: csv
+        rows: |
+          country_code,product,valid_from,valid_to,description
     expect:
       rows:
         - {taxes_total: 65.0, vat_amount: 25.0, excise_and_other_taxes: 40.0, tax_tables_gap: 5.0, tax_share: 0.52}
@@ -84,6 +96,32 @@ unit_tests:
       - input: ref('countries')
         rows:
           - {country_code: HR, name: Croácia, kind: country, euro_since: 2023-01-01}
+      - input: ref('known_tax_table_issues')
+        format: csv
+        rows: |
+          country_code,product,valid_from,valid_to,description
     expect:
       rows:
         - {country_code: HR, reported_excise: null, tax_tables_gap: null, vat_amount: 280.0}
+  - name: known_tax_table_issues_explain_the_gap
+    description: Uma semana dentro de um período já investigado leva a explicação; fora, não.
+    model: fct_fuel_prices
+    given:
+      - input: ref('int_prices_pivoted')
+        rows:
+          - {week: 2022-12-26, country_code: NL, product: euro95, price_with_tax: 1000.0, price_without_tax: 600.0}
+          - {week: 2024-01-01, country_code: NL, product: euro95, price_with_tax: 1000.0, price_without_tax: 600.0}
+      - input: ref('int_taxes_in_force')
+        rows:
+          - {week: 2022-12-26, country_code: NL, product: euro95, vat_rate: 25, excise: 192.0, other_taxes: 0}
+          - {week: 2024-01-01, country_code: NL, product: euro95, vat_rate: 25, excise: 192.0, other_taxes: 8.0}
+      - input: ref('countries')
+        rows:
+          - {country_code: NL, name: Países Baixos, kind: country, euro_since: 2002-01-01}
+      - input: ref('known_tax_table_issues')
+        rows:
+          - {country_code: NL, product: euro95, valid_from: 2011-01-01, valid_to: 2022-12-31, description: taxa em falta}
+    expect:
+      rows:
+        - {week: 2022-12-26, tax_tables_gap: 8.0, tax_tables_issue: taxa em falta}
+        - {week: 2024-01-01, tax_tables_gap: 0.0, tax_tables_issue: null}

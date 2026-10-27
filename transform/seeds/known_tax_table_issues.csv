@@ -1,0 +1,12 @@
+country_code,product,valid_from,valid_to,description
+LT,euro95,2015-01-01,2024-12-31,"A tabela de ISP mantém de 2009 a 2024 o valor 1014,23, de antes do euro. O preço implica 434,43 € de ISP e outros impostos até 2019 (1500 litas à taxa fixa de 3,4528) e 466 € de 2020 a 2024; os outros impostos da tabela (47 €, com data de 2008) só aparecem no preço em 2025."
+LT,diesel,2015-01-01,2017-12-31,"A tabela de ISP mantém o valor 653,45 de 2013, de antes do euro. O preço implica 330,17 € (1140 litas à taxa fixa de 3,4528), sem os outros impostos da tabela (53,6 €, com data de 2008)."
+LT,diesel,2018-01-01,2024-12-31,"O preço não inclui os outros impostos da tabela (53,6 €, com data de 2008) até 2025, e o ISP implícito sobe de 347 € para 372 € em 2020 e para 410 € em 22/1/2024 sem mudança na tabela."
+LT,diesel,2026-01-01,2026-04-19,"O preço já inclui o ISP de 500 € desde janeiro de 2026, mas a tabela só o regista em 22/6/2026."
+NL,euro95,2008-01-01,2008-08-31,"A subida do ISP para 694,30 € tem data de 1/1/2008 na tabela, mas os preços só a incluem a partir de setembro de 2008."
+NL,diesel,2008-07-01,2008-08-03,"A subida do ISP para 411,61 € tem data de 1/7/2008 na tabela, mas os preços só a incluem a partir de agosto de 2008."
+NL,euro95,2011-01-01,2022-12-31,"Os preços incluem uma taxa de 5,9 € (de 2011 a março de 2013) e de 8 € (desde abril de 2013) que a tabela de outros impostos só regista a partir de 2023."
+NL,diesel,2011-01-01,2022-12-31,"Os preços incluem uma taxa de 5,9 € (de 2011 a março de 2013) e de 8 € (desde abril de 2013) que a tabela de outros impostos só regista a partir de 2023."
+NL,euro95,2023-01-01,2023-06-30,"A tabela de outros impostos regista 5,9 €, mas os preços já incluem 8 €."
+NL,diesel,2023-01-01,2023-06-30,"A tabela de outros impostos regista 5,9 €, mas os preços já incluem 8 €."
+NL,euro95,2023-07-01,2023-07-30,"A subida do ISP de 1/7/2023 (fim da descida de 2022) só aparece nos preços a partir de 31/7/2023."
