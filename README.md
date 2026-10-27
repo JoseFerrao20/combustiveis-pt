@@ -79,7 +79,7 @@ O resultado é a tabela `fct_fuel_prices`, uma linha por semana, país e produto
 | `reported_excise`, `reported_other_taxes`, `tax_tables_gap` | o ISP e os outros impostos das tabelas do boletim, e quanto ficam longe do valor acima (só a partir da entrada no euro, porque as tabelas estão na moeda nacional) |
 | `tax_tables_issue` | quando a diferença já foi investigada, a explicação (por exemplo, tabelas da Lituânia que ficaram em litas depois do euro) |
 
-A decomposição soma sempre o preço; quando as tabelas de impostos do boletim não a explicam, a diferença fica à vista em `tax_tables_gap`, em vez de escondida. As diferenças da Lituânia e dos Países Baixos estão explicadas em [`docs/analises/impostos-lituania-paises-baixos.md`](docs/analises/impostos-lituania-paises-baixos.md).
+A decomposição soma sempre o preço; quando as tabelas de impostos do boletim não a explicam, a diferença fica à vista em `tax_tables_gap`, em vez de escondida. As diferenças de Portugal, da Lituânia e dos Países Baixos estão explicadas em [`docs/analises/`](docs/analises/): em Portugal, por exemplo, a tabela de outros impostos tem valores com um algarismo a menos (12,15 € em vez de 102,15 €).
 
 O dbt exporta também `data/road_fuel_prices.parquet` (gasolina 95, gasóleo e GPL, em € por litro) para o painel. O painel (`dashboard/`, com o [Evidence](https://github.com/evidence-dev/evidence)) corre com o Node 22:
 

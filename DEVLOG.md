@@ -72,8 +72,18 @@
     - uma linha nas limitações do painel.
   - **Pista para Portugal:** em 2008–2011, as diferenças são de 64 € (gasolina) e 86 € (gasóleo), os valores iniciais da contribuição de serviço rodoviário. Falta confirmar.
 
+- **2026-10-27 (sessão cloud do Claude Code):** as tabelas de impostos de Portugal ([análise](docs/analises/impostos-portugal.md)).
+  - **Encontrado:** os 826 avisos vinham de três erros nas próprias tabelas.
+    - **2008–2011:** a contribuição de serviço rodoviário (64 € na gasolina, 86 € no gasóleo) sai do ISP e não entra na tabela de outros impostos. O total dos preços não muda.
+    - **2016–2023:** os outros impostos têm um algarismo a menos (12,15 em vez de 102,15; 14,65 em vez de 140,65; 17,2 em vez de 170,2; 19,41 em vez de 109,41). Daí os patamares de 90, 126 e 153 €.
+    - **2025 a março de 2026:** os dois valores do ISP estão trocados entre as linhas de janeiro e de dezembro, por isso as diferenças são simétricas (±16,26 € e ±24,39 €).
+  - **Feito:** mais 8 períodos no seed `known_tax_table_issues`. O aviso passa de 826 linhas para 10, todas semanas soltas de 2022 a 2026. Atualizei a página "Como se calcula", o README e a análise anterior.
+  - **Testado e posto de lado:** usar o imposto em vigor no fim da semana, em vez do de segunda-feira. Explicaria seis das semanas soltas, mas as diferenças pioram em todos os países (de 6377 para 6831 semanas).
+  - **Lição:** um patamar constante é um erro de cópia na fonte. Vale a pena comparar o valor que os preços implicam com o da tabela, algarismo a algarismo.
+
 ## Plano
 
-1. **Portugal:** a mesma análise. Os patamares são de 64/86 € em 2008–2011 (contribuição de serviço rodoviário?), 90 € em 2016–2018, 126 € em 2020 e 153 € no gasóleo em 2021–2022. Cada período confirmado entra no seed `known_tax_table_issues`.
+1. **Talvez:** as 10 semanas soltas de Portugal, uma a uma, e os outros países com muitas diferenças (Eslováquia e Espanha), com o mesmo método.
 2. **Talvez:** guardar o histórico das descargas (cada ficheiro tem um SHA-256 no manifesto) para ver quando a Comissão corrige semanas antigas.
 3. **Talvez:** um teste do painel no CI (Playwright sobre o build da amostra).
+4. **Talvez:** avisar a Comissão (DG ENER) dos erros encontrados nas tabelas, com as análises em `docs/analises/`.
