@@ -96,4 +96,4 @@ select downloaded_at from combustiveis.atualizacao
 
 Quando o petróleo fica mais barato, os impostos pesam mais, porque o ISP é um valor fixo por litro e não uma percentagem. As descidas do ISP de 2022 notam-se no gráfico de cima.
 
-<p class="text-sm text-base-content-muted">Dados descarregados do boletim a <Value data={atualizacao} column=downloaded_at fmt="dd/mm/yyyy" />; o painel atualiza-se à terça e à quinta.</p>
+<p class="text-sm text-base-content-muted">Última descarga do boletim: <Value data={atualizacao} column=downloaded_at fmt="dd/mm/yyyy" />. O painel atualiza-se à terça e à quinta.</p>

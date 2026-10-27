@@ -49,8 +49,18 @@
   - **Decisão:** o Evidence formata os números com o `ssf`, que não tem locales. Em vez de formatar os números em texto no SQL (os gráficos ficavam sem eixo numérico), um patch de cinco linhas troca os separadores, só nos números (as datas ficam iguais). Fica em `dashboard/patches/`, aplicado pelo `patch-package`; com as versões fixadas, não muda sem se dar por isso.
   - **Lição:** o `patch-package` ficou parado a criar o patch (corre um `npm i` numa pasta temporária). O patch foi escrito com `git diff --no-index` no mesmo formato, e o `patch-package` aplica-o sem problemas.
 
+- **2026-10-27 (sessão cloud do Claude Code):** painel visto no browser.
+  - **Verificado** (site publicado e build local, com o Playwright): números em português, cores, data da descarga, filtro de combustível (gasóleo: 2,175 €, 38,6 % de impostos), modo escuro e telemóvel (390 px, sem scroll horizontal).
+  - **Corrigido:**
+    - a barra lateral escrevia "Portugal E A Europa" e "Como Se Calcula": o Evidence aplica `capitalize` aos títulos; tirado com CSS no `+layout.svelte`;
+    - o caminho de navegação dizia sempre "Home" (está fixo no Evidence): desligado, com três páginas não faz falta;
+    - a legenda do gráfico de barras estava em inglês ("Price Without Tax"): o `seriesLabels` não chega às barras empilhadas, por isso as colunas têm nomes em português no SQL;
+    - o "27/10/2026 ;" com espaço antes do ponto e vírgula.
+  - **Capturas** do painel no README (`docs/images/`).
+  - **Lição:** o `npm run sources` não ficava parado por causa do domínio, mas porque o Node não usa o `HTTPS_PROXY`; com `NODE_USE_ENV_PROXY=1` (Node 22.21+) e o certificado do proxy, o build corre nas sessões cloud.
+
 ## Plano
 
-1. **Ver o painel publicado** (daqui não abre: o proxy bloqueia `extensions.duckdb.org` e `joseferrao20.github.io`) e afinar o que ficar mal; capturas para o README.
-2. **Por investigar:** as tabelas de impostos da Lituânia (unidade ou moeda?) e dos Países Baixos.
-3. **Talvez:** guardar o histórico das descargas (cada ficheiro tem um SHA-256 no manifesto) para ver quando a Comissão corrige semanas antigas.
+1. **Por investigar:** as tabelas de impostos da Lituânia (unidade ou moeda?) e dos Países Baixos.
+2. **Talvez:** guardar o histórico das descargas (cada ficheiro tem um SHA-256 no manifesto) para ver quando a Comissão corrige semanas antigas.
+3. **Talvez:** um teste do painel no CI (Playwright sobre o build da amostra), para apanhar páginas em branco ou erros de SQL que o `build:strict` não apanhe.

@@ -43,6 +43,8 @@ select
     country,
     price_without_tax,
     taxes_total,
+    price_without_tax as "Produto",
+    taxes_total as "Impostos",
     price,
     tax_share,
     country_code = 'PT' as portugal
@@ -56,8 +58,7 @@ order by price desc
 <BarChart
     data={paises}
     x=country
-    y={['price_without_tax', 'taxes_total']}
-    seriesLabels={{price_without_tax: 'Produto', taxes_total: 'Impostos'}}
+    y={['Produto', 'Impostos']}
     colorPalette={['#64748b', '#d97706']}
     swapXY=true
     sort=false
