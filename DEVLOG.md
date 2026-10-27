@@ -59,8 +59,21 @@
   - **Capturas** do painel no README (`docs/images/`).
   - **Lição:** o `npm run sources` não ficava parado por causa do domínio, mas porque o Node não usa o `HTTPS_PROXY`; com `NODE_USE_ENV_PROXY=1` (Node 22.21+) e o certificado do proxy, o build corre nas sessões cloud.
 
+- **2026-10-27 (sessão cloud do Claude Code):** as tabelas de impostos da Lituânia e dos Países Baixos ([análise](docs/analises/impostos-lituania-paises-baixos.md)).
+  - **Método:** juntar as semanas seguidas com a mesma diferença e comparar cada período com as linhas das tabelas. As diferenças nunca são ruído: ficam constantes durante meses ou anos e mudam em datas certas.
+  - **Lituânia:** as tabelas não acompanharam a passagem ao euro em 2015. A gasolina ficou com uma linha de 2009 até 2024, e o gasóleo com uma de 2013 até 2017. Os preços implicam 434,43 € e 330,17 € por 1000 L, que são exatamente 1500 e 1140 litas à taxa fixa de 3,4528. A decomposição estava certa.
+  - **Países Baixos:**
+    - os preços incluem desde 2011 uma taxa de 5,9 € (depois 8 €) que a tabela de outros impostos só regista a partir de 2023;
+    - em 2008 e 2023, as mudanças do ISP chegam aos preços algumas semanas depois da data da tabela.
+  - **Feito:**
+    - seed `known_tax_table_issues` (11 períodos, com a explicação) e a coluna `tax_tables_issue` no `fct_fuel_prices`;
+    - um teste que impede períodos sobrepostos e um teste unitário novo;
+    - o aviso das tabelas passa a cobrir PT, LT e NL fora dos períodos explicados. LT e NL ficam a zero; os 826 avisos são todos de Portugal;
+    - uma linha nas limitações do painel.
+  - **Pista para Portugal:** em 2008–2011, as diferenças são de 64 € (gasolina) e 86 € (gasóleo), os valores iniciais da contribuição de serviço rodoviário. Falta confirmar.
+
 ## Plano
 
-1. **Por investigar:** as tabelas de impostos da Lituânia (unidade ou moeda?) e dos Países Baixos.
+1. **Portugal:** a mesma análise. Os patamares são de 64/86 € em 2008–2011 (contribuição de serviço rodoviário?), 90 € em 2016–2018, 126 € em 2020 e 153 € no gasóleo em 2021–2022. Cada período confirmado entra no seed `known_tax_table_issues`.
 2. **Talvez:** guardar o histórico das descargas (cada ficheiro tem um SHA-256 no manifesto) para ver quando a Comissão corrige semanas antigas.
-3. **Talvez:** um teste do painel no CI (Playwright sobre o build da amostra), para apanhar páginas em branco ou erros de SQL que o `build:strict` não apanhe.
+3. **Talvez:** um teste do painel no CI (Playwright sobre o build da amostra).

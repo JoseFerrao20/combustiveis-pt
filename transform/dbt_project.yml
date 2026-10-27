@@ -34,6 +34,13 @@ seeds:
         product: varchar
         week: date
         description: varchar
+    known_tax_table_issues:
+      +column_types:
+        country_code: varchar
+        product: varchar
+        valid_from: date
+        valid_to: date
+        description: varchar
     products:
       +column_types:
         product: varchar
