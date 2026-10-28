@@ -51,3 +51,9 @@ jobs:
           npm ci
           npm run sources:strict
           npm run build:strict
+      # Abre cada página do painel construído com o Playwright: sem erros e com números.
+      - name: Testes do painel (Playwright)
+        working-directory: dashboard
+        run: |
+          npx playwright install --with-deps chromium
+          npm test

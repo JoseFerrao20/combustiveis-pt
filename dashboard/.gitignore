@@ -6,3 +6,5 @@ static/data
 *.options.yaml
 .env
 .evidence/meta
+test-results
+playwright-report
