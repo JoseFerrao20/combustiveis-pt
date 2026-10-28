@@ -12,3 +12,14 @@ sources:
         description: Uma linha por semana, país, produto e com ou sem impostos.
       - name: taxes
         description: IVA, ISP e outros impostos indiretos, por data de entrada em vigor.
+
+  - name: dgeg
+    description: >
+      Fotografias diárias dos preços de cada posto em Portugal continental, do portal da DGEG
+      (precoscombustiveis.dgeg.gov.pt), escritas por `combustiveis dgeg`: um Parquet por dia.
+      Fonte: Direção-Geral de Energia e Geologia.
+    meta:
+      external_location: "{{ env_var('DGEG_DIR', 'data/landing/dgeg') }}/*.parquet"
+    tables:
+      - name: station_prices
+        description: Uma linha por dia, posto e combustível.

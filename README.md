@@ -28,12 +28,16 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - Quanto do preço é imposto, e como mudou desde 2005?
 - Portugal comparado com Espanha e com a média da UE e da zona euro.
 - O efeito das mudanças do ISP (por exemplo, as descidas de 2022).
+- Em Portugal, posto a posto: quanto mais caras são as petrolíferas do que os hiper e supermercados, e que distritos pagam mais (dados da DGEG, uma fotografia por dia).
 
 ## Arquitetura
 
 ```mermaid
 flowchart LR
   WOB["Weekly Oil Bulletin<br/>(Comissão Europeia, .xlsx)"] --> I["ingest<br/>Python"]
+  DGEG["Portal da DGEG<br/>(preço de cada posto)"] --> S["dgeg<br/>Python, todos os dias"]
+  S --> H[("ramo dados<br/>um Parquet por dia")]
+  H --> L
   I --> L[("landing<br/>Parquet + manifesto")]
   L --> D["dbt + DuckDB<br/>staging · marts · testes"]
   D --> E["Evidence<br/>site estático"]
@@ -44,7 +48,8 @@ flowchart LR
 | **Ingestão**: descarrega o histórico, passa as folhas "largas" (uma coluna por país) a tabelas "longas" e escreve Parquet, com um manifesto (origem, data, SHA-256) | ✅ |
 | **Transformação**: modelos dbt em DuckDB (staging, imposto em vigor em cada semana com `ASOF JOIN`, decomposição do preço), testes de dados e testes unitários do dbt | ✅ |
 | **Painel**: site estático com o Evidence no GitHub Pages ([joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/)): a divisão do preço, a evolução desde 2005 e a comparação com a Europa | ✅ |
-| **Agendamento**: o GitHub Actions corre tudo à terça e à quinta, e falha (com email) se o boletim deixar de ser atualizado | ✅ |
+| **Agendamento**: o GitHub Actions corre tudo todos os dias, e falha (com email) se o boletim deixar de ser atualizado | ✅ |
+| **Postos em Portugal**: fotografia diária dos preços de cada posto (portal da DGEG), guardada no ramo `dados`; no painel, um mapa e as médias por grupo de marcas, marca e distrito ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md)) | ✅ |
 
 Decisões: a fonte em [`docs/adr/0001-fonte-weekly-oil-bulletin.md`](docs/adr/0001-fonte-weekly-oil-bulletin.md) e o painel em [`docs/adr/0002-painel-evidence.md`](docs/adr/0002-painel-evidence.md).
 
@@ -57,6 +62,7 @@ uv sync
 uv run combustiveis ingest                         # descarrega e escreve data/landing/
 uv run combustiveis ingest --ficheiro historico.xlsx   # a partir de um ficheiro já descarregado
 uv run combustiveis ingest --idade-maxima 15          # falha se a última semana tiver mais de 15 dias
+uv run combustiveis dgeg                           # fotografia de hoje dos postos (data/landing/dgeg/)
 ```
 
 A camada landing fica em `data/landing/`: `prices.parquet` (semana, país, produto, com ou sem impostos, valor por 1000 L), `taxes.parquet` (IVA, ISP e outros impostos, com a data de entrada em vigor) e `manifest.json`.
@@ -111,5 +117,7 @@ No dbt (`transform/`):
 ## Fonte e licença
 
 Dados: © União Europeia, [Weekly Oil Bulletin](https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en), reprodução autorizada com indicação da fonte. Os preços são médias nacionais ponderadas, não os de um posto.
+
+Preços de cada posto: Direção-Geral de Energia e Geologia, [Preços dos Combustíveis Online](https://precoscombustiveis.dgeg.gov.pt), de reutilização livre com indicação da fonte e da data e hora de atualização de cada preço (que o painel mostra). Os preços são os que os postos comunicam.
 
 Código: [MIT](LICENSE).

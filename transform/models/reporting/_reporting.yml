@@ -16,3 +16,20 @@ models:
       - name: tax_share
         data_tests:
           - not_null
+  - name: rpt_stations_latest
+    description: >
+      A última fotografia da DGEG (um posto por linha e combustível do painel), exportada para
+      Parquet (STATIONS_EXPORT_PATH, por omissão data/stations_latest.parquet).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [station_id, fuel]
+  - name: rpt_station_prices_daily
+    description: >
+      Preço médio, mediano, mínimo e máximo por dia e combustível: no país, por grupo de marcas,
+      por marca e por distrito (coluna `dimension`). Exportado para Parquet
+      (STATIONS_DAILY_EXPORT_PATH, por omissão data/station_prices_daily.parquet).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [snapshot_date, fuel, dimension, label]

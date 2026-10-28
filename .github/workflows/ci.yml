@@ -24,6 +24,7 @@ jobs:
       - name: dbt build (com a amostra)
         run: |
           uv run combustiveis ingest --ficheiro tests/fixtures/oil_bulletin_sample.xlsx
+          uv run combustiveis dgeg --ficheiro tests/fixtures/dgeg_sample.json --data 2026-10-28
           uv run dbt build --project-dir transform --profiles-dir transform
 
   dashboard:
@@ -42,6 +43,7 @@ jobs:
       - name: Dados da amostra
         run: |
           uv run combustiveis ingest --ficheiro tests/fixtures/oil_bulletin_sample.xlsx
+          uv run combustiveis dgeg --ficheiro tests/fixtures/dgeg_sample.json --data 2026-10-28
           uv run dbt build --project-dir transform --profiles-dir transform
       - name: Painel (Evidence)
         working-directory: dashboard

@@ -13,6 +13,8 @@ BASE_URL = "https://energy.ec.europa.eu"
 HISTORY_FILENAME = "Weekly_Oil_Bulletin_Prices_History"
 _LINK = re.compile(r'href="([^"]*' + HISTORY_FILENAME + r'[^"]*\.xlsx)"')
 _TIMEOUT_SECONDS = 120
+# Identifica o projeto a quem recebe os pedidos (a Comissão e a DGEG).
+USER_AGENT = "combustiveis-pt (+https://github.com/JoseFerrao20/combustiveis-pt)"
 
 
 class SourceError(RuntimeError):
@@ -31,7 +33,7 @@ def find_history_url(page: str) -> str:
 def fetch(url: str) -> bytes:
     if not url.startswith("https://"):
         raise SourceError(f"Só se descarrega por HTTPS: {url}")
-    request = urllib.request.Request(url, headers={"User-Agent": "combustiveis-pt"})  # noqa: S310 (só https, verificado acima)
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})  # noqa: S310 (só https, verificado acima)
     with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as response:  # noqa: S310 (idem)
         data: bytes = response.read()
     return data

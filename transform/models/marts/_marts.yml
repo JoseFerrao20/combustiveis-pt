@@ -40,6 +40,27 @@ models:
           arguments:
             columns: [week, country_code, product]
 
+  - name: fct_station_prices
+    description: >
+      Preço de cada posto de Portugal continental (DGEG), por dia de fotografia e combustível, em
+      euros por litro com impostos. O histórico começa no dia da primeira fotografia (a DGEG só
+      mostra o preço em vigor).
+    columns:
+      - name: fuel
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dgeg_fuels')
+                field: fuel
+      - name: price
+        data_tests: [not_null]
+      - name: is_current
+        description: O preço foi atualizado nos 30 dias antes da fotografia.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [snapshot_date, station_id, fuel]
+
 unit_tests:
   - name: decomposes_the_portuguese_price
     description: Gasolina 95 em Portugal, semana de 19/10/2026, com os valores reais do boletim.

@@ -38,3 +38,22 @@ seeds:
       - unique_combination:
           arguments:
             columns: [country_code, product, valid_from]
+  - name: dgeg_fuels
+    description: >
+      Combustíveis da fotografia diária da DGEG (os códigos vêm de `combustiveis.dgeg.FUELS`),
+      com o produto correspondente do Weekly Oil Bulletin, para comparar as duas fontes.
+    columns:
+      - name: fuel
+        data_tests: [unique, not_null]
+  - name: dgeg_brand_segments
+    description: >
+      Grupos de marcas para comparar preços: petrolíferas, hiper e supermercados e postos sem
+      marca ("Genérico" na DGEG). As marcas que não estão aqui ficam em "Outras marcas".
+    columns:
+      - name: brand
+        data_tests: [unique, not_null]
+      - name: segment
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Petrolíferas", "Hiper e supermercados", "Sem marca"]

@@ -1,6 +1,6 @@
 # 0001. Fonte dos preços: o Weekly Oil Bulletin da Comissão Europeia
 
-- **Estado:** aceite
+- **Estado:** aceite; revisto em parte pelo [ADR 0003](0003-precos-dos-postos-dgeg.md), que junta os preços de cada posto da DGEG
 - **Data:** 2026-10-26
 
 ## Contexto
@@ -23,4 +23,4 @@ O link do ficheiro muda quando a Comissão o substitui (leva um identificador), 
 - As perguntas passam a ser de análise, e não de "posto mais barato": quanto do preço é imposto, como evoluiu desde 2005, Portugal comparado com Espanha e com a UE, o efeito das mudanças do ISP.
 - Os preços são médias nacionais semanais (ponderadas pelas vendas), não preços de um posto.
 - O formato do ficheiro não está documentado: a leitura valida-o e falha com uma mensagem clara se mudar, e os testes usam uma amostra do ficheiro real.
-- Os dados posto a posto da DGEG podem entrar mais tarde, se houver um acesso legítimo.
+- Os dados posto a posto da DGEG podem entrar mais tarde, se houver um acesso legítimo. Entraram com o ADR 0003, depois de ler os termos do portal.

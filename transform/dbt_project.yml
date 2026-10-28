@@ -28,6 +28,16 @@ seeds:
         name: varchar
         kind: varchar
         euro_since: date
+    dgeg_brand_segments:
+      +column_types:
+        brand: varchar
+        segment: varchar
+    dgeg_fuels:
+      +column_types:
+        fuel: varchar
+        name: varchar
+        wob_product: varchar
+        in_dashboard: boolean
     known_source_errors:
       +column_types:
         country_code: varchar
