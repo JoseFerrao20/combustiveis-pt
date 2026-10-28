@@ -54,6 +54,7 @@ flowchart LR
 | **Painel**: site estático com o Evidence no GitHub Pages ([joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/)): a divisão do preço, a evolução desde 2005 e a comparação com a Europa | ✅ |
 | **Agendamento**: o GitHub Actions corre tudo todos os dias, e falha (com email) se o boletim deixar de ser atualizado | ✅ |
 | **Postos em Portugal**: fotografia diária dos preços de cada posto (portal da DGEG), guardada no ramo `dados`; no painel, um mapa e as médias por grupo de marcas, marca e distrito ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md)) | ✅ |
+| **Postos acompanhados**: alguns postos seguidos dia a dia (seed `tracked_stations`: o Auchan da Circunvalação, no Porto, e o de Viseu), com a posição entre os concorrentes a 5 km e a média do concelho | ✅ |
 
 Decisões: a fonte em [`docs/adr/0001-fonte-weekly-oil-bulletin.md`](docs/adr/0001-fonte-weekly-oil-bulletin.md) e o painel em [`docs/adr/0002-painel-evidence.md`](docs/adr/0002-painel-evidence.md).
 
@@ -109,7 +110,7 @@ uv run pytest                                      # testes, cobertura ≥ 90 %
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
 
-Os testes usam uma amostra do ficheiro real (`tests/fixtures/oil_bulletin_sample.xlsx`, gerada com `scripts/make_sample.py`), com o mesmo formato: se a Comissão mudar o ficheiro, é aí que se vê. O CI corre também o `dbt build` e o build do painel com essa amostra, e abre cada página do painel com o Playwright (`dashboard/tests/`): sem erros de JavaScript, com números, e com o filtro de distrito a funcionar.
+Os testes usam uma amostra do ficheiro real (`tests/fixtures/oil_bulletin_sample.xlsx`, gerada com `scripts/make_sample.py`), com o mesmo formato: se a Comissão mudar o ficheiro, é aí que se vê. O CI corre também o `dbt build` e o build do painel com essa amostra, e abre cada página do painel com o Playwright (`dashboard/tests/`): sem erros de JavaScript, com números, e com os filtros de distrito e de posto a funcionar.
 
 No dbt (`transform/`):
 

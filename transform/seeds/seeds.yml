@@ -57,3 +57,12 @@ seeds:
           - accepted_values:
               arguments:
                 values: ["Petrolíferas", "Hiper e supermercados", "Sem marca"]
+  - name: tracked_stations
+    description: >
+      Postos acompanhados no painel (página "Postos acompanhados"), pelo id da DGEG. Um posto
+      novo entra aqui; o scripts/make_dgeg_sample.py junta-os à amostra dos testes.
+    columns:
+      - name: station_id
+        data_tests: [unique, not_null]
+      - name: label
+        data_tests: [not_null]

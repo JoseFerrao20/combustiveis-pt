@@ -6,6 +6,7 @@ const PAGES = [
 	['', 'Quanto do preço é imposto?'],
 	['comparacao/', 'Portugal e a Europa'],
 	['postos/', 'Postos em Portugal'],
+	['acompanhados/', 'Postos acompanhados'],
 	['metodo/', 'Como se calcula']
 ];
 const EURO = /\d,\d{3} €/;
@@ -67,6 +68,21 @@ test('os postos mostram preços e o filtro de distrito reduz a lista', async ({ 
 	await page.keyboard.press('Escape');
 	await expect.poll(() => bigNumber(page, 'Postos')).toBeLessThan(all);
 	expect(await bigNumber(page, 'Postos')).toBeGreaterThan(0);
+	expect(errors).toEqual([]);
+});
+
+test('os postos acompanhados mostram a posição e os concorrentes', async ({ page }) => {
+	const errors = watchErrors(page);
+	await page.goto('acompanhados/');
+	await page.waitForLoadState('networkidle');
+	await expect(page.locator('main')).toContainText(EURO);
+	await expect(page.locator('main')).toContainText(/\dº de \d+/);
+	await expect(page.getByRole('cell').first()).toBeVisible();
+
+	await page.locator('button', { hasText: 'Posto' }).first().click();
+	await page.getByRole('option').nth(1).click();
+	await page.keyboard.press('Escape');
+	await expect(page.locator('main')).toContainText(/\dº de \d+/);
 	expect(errors).toEqual([]);
 });
 

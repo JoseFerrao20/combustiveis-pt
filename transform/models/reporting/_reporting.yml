@@ -33,3 +33,25 @@ models:
       - unique_combination:
           arguments:
             columns: [snapshot_date, fuel, dimension, label]
+  - name: rpt_tracked_stations_daily
+    description: >
+      Os postos acompanhados (seed tracked_stations), por dia e combustível: o preço, a média e
+      o mínimo dos concorrentes a 5 km, a posição entre eles (`rank_5km`, 1 = o mais barato) e
+      a média do concelho. Exportado para Parquet (TRACKED_DAILY_EXPORT_PATH, por omissão
+      data/tracked_stations_daily.parquet).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [snapshot_date, station_id, fuel]
+    columns:
+      - name: rank_5km
+        data_tests: [not_null]
+  - name: rpt_tracked_station_competitors
+    description: >
+      Os concorrentes a 5 km dos postos acompanhados na última fotografia, um por linha e
+      combustível, com a distância. Exportado para Parquet (TRACKED_COMPETITORS_EXPORT_PATH, por
+      omissão data/tracked_station_competitors.parquet).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [station_id, competitor_id, fuel]

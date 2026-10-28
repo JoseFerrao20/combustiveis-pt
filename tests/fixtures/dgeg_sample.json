@@ -17,7 +17,7 @@
    "CodPostal": "2640-410",
    "Latitude": 38.9516,
    "Longitude": -9.33227,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 87129,
@@ -34,7 +34,7 @@
    "CodPostal": "2625-716",
    "Latitude": 38.86376,
    "Longitude": -9.09955,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70758,
@@ -51,7 +51,7 @@
    "CodPostal": "4780-200",
    "Latitude": 41.334717,
    "Longitude": -8.480655,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66177,
@@ -68,7 +68,7 @@
    "CodPostal": "4470-006",
    "Latitude": 41.21748,
    "Longitude": -8.604181,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66900,
@@ -85,7 +85,24 @@
    "CodPostal": "2695-772",
    "Latitude": 38.82893,
    "Longitude": -9.10132,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 67260,
+   "Nome": "AUCHAN Viseu",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "0,959 €",
+   "Marca": "AUCHAN",
+   "Combustivel": "GPL Auto",
+   "DataAtualizacao": "2026-10-26 09:20",
+   "Distrito": "Viseu",
+   "Morada": "Qta. da Alagoa Estrada Nelas",
+   "Localidade": "Nelas",
+   "CodPostal": "3520-000",
+   "Latitude": 40.63785,
+   "Longitude": -7.908987,
+   "Quantidade": 156
   },
   {
    "Id": 80310,
@@ -102,7 +119,7 @@
    "CodPostal": "2660-699",
    "Latitude": 38.80744,
    "Longitude": -9.16869,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 65281,
@@ -119,7 +136,7 @@
    "CodPostal": "8005-528",
    "Latitude": 37.02859,
    "Longitude": -7.90614,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 94409,
@@ -136,7 +153,7 @@
    "CodPostal": "4570-029",
    "Latitude": 41.414955,
    "Longitude": -8.648844,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93277,
@@ -153,7 +170,7 @@
    "CodPostal": "4350",
    "Latitude": 41.169384,
    "Longitude": -8.57232,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 78596,
@@ -170,7 +187,7 @@
    "CodPostal": "8005-146",
    "Latitude": 37.03714,
    "Longitude": -7.957144,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66644,
@@ -187,7 +204,7 @@
    "CodPostal": "2710-418",
    "Latitude": 38.80345,
    "Longitude": -9.356381,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 88270,
@@ -204,7 +221,7 @@
    "CodPostal": "5340-296",
    "Latitude": 41.57081,
    "Longitude": -6.99394,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70399,
@@ -221,7 +238,7 @@
    "CodPostal": "4650-092",
    "Latitude": 41.32086,
    "Longitude": -8.19268,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66556,
@@ -238,7 +255,7 @@
    "CodPostal": "8700-207",
    "Latitude": 37.030327,
    "Longitude": -7.850788,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 67074,
@@ -255,7 +272,24 @@
    "CodPostal": "4400-698",
    "Latitude": 41.1403,
    "Longitude": -8.63289,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66729,
+   "Nome": "REPSOL Rio Tinto II",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "1,029 €",
+   "Marca": "REPSOL",
+   "Combustivel": "GPL Auto",
+   "DataAtualizacao": "2026-10-28 08:20",
+   "Distrito": "Porto",
+   "Morada": "Rua de Rebordões n.º 297",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-416",
+   "Latitude": 41.18037,
+   "Longitude": -8.568678,
+   "Quantidade": 156
   },
   {
    "Id": 78207,
@@ -265,14 +299,14 @@
    "Preco": "1,049 €",
    "Marca": "Genérico",
    "Combustivel": "GPL Auto",
-   "DataAtualizacao": "2026-10-27 15:00",
+   "DataAtualizacao": "2026-10-28 14:35",
    "Distrito": "Lisboa",
    "Morada": "E.N. 3 - Km 10.250 ANTIGO CAMPO DA FEIRA",
    "Localidade": "Azambuja",
    "CodPostal": "2050-319",
    "Latitude": 39.065964,
    "Longitude": -8.876442,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 68236,
@@ -289,7 +323,24 @@
    "CodPostal": "8900-441",
    "Latitude": 37.18386,
    "Longitude": -7.46997,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 67262,
+   "Nome": "AUCHAN Gondomar I",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "1,919 €",
+   "Marca": "AUCHAN",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-26 09:20",
+   "Distrito": "Porto",
+   "Morada": "Rua Exterior Circunvalação, 1730",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-462",
+   "Latitude": 41.172474,
+   "Longitude": -8.567009,
+   "Quantidade": 156
   },
   {
    "Id": 70586,
@@ -306,7 +357,7 @@
    "CodPostal": "8900-216",
    "Latitude": 37.19962,
    "Longitude": -7.4196,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93135,
@@ -323,7 +374,7 @@
    "CodPostal": "4785-344",
    "Latitude": 41.329826,
    "Longitude": -8.563532,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 78588,
@@ -340,7 +391,7 @@
    "CodPostal": "5360-305",
    "Latitude": 41.310218,
    "Longitude": -7.163259,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93277,
@@ -357,7 +408,24 @@
    "CodPostal": "4350",
    "Latitude": 41.169384,
    "Longitude": -8.57232,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 67260,
+   "Nome": "AUCHAN Viseu",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "1,969 €",
+   "Marca": "AUCHAN",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-26 09:20",
+   "Distrito": "Viseu",
+   "Morada": "Qta. da Alagoa Estrada Nelas",
+   "Localidade": "Nelas",
+   "CodPostal": "3520-000",
+   "Latitude": 40.63785,
+   "Longitude": -7.908987,
+   "Quantidade": 156
   },
   {
    "Id": 66316,
@@ -374,7 +442,7 @@
    "CodPostal": "8005-442",
    "Latitude": 37.051697,
    "Longitude": -7.926947,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 80310,
@@ -391,7 +459,7 @@
    "CodPostal": "2660-699",
    "Latitude": 38.80744,
    "Longitude": -9.16869,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 80310,
@@ -408,7 +476,7 @@
    "CodPostal": "2660-699",
    "Latitude": 38.80744,
    "Longitude": -9.16869,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 87129,
@@ -425,7 +493,7 @@
    "CodPostal": "2625-716",
    "Latitude": 38.86376,
    "Longitude": -9.09955,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 94409,
@@ -442,7 +510,7 @@
    "CodPostal": "4570-029",
    "Latitude": 41.414955,
    "Longitude": -8.648844,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 78596,
@@ -459,7 +527,24 @@
    "CodPostal": "8005-146",
    "Latitude": 37.03714,
    "Longitude": -7.957144,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 78207,
+   "Nome": "OURO NEGRO - Azambuja_Norte",
+   "TipoPosto": "Outro",
+   "Municipio": "Azambuja",
+   "Preco": "1,999 €",
+   "Marca": "Genérico",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-28 14:35",
+   "Distrito": "Lisboa",
+   "Morada": "E.N. 3 - Km 10.250 ANTIGO CAMPO DA FEIRA",
+   "Localidade": "Azambuja",
+   "CodPostal": "2050-319",
+   "Latitude": 39.065964,
+   "Longitude": -8.876442,
+   "Quantidade": 156
   },
   {
    "Id": 92154,
@@ -476,7 +561,7 @@
    "CodPostal": "5340-244",
    "Latitude": 41.540478,
    "Longitude": -6.966334,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70586,
@@ -493,7 +578,7 @@
    "CodPostal": "8900-216",
    "Latitude": 37.19962,
    "Longitude": -7.4196,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66316,
@@ -510,7 +595,7 @@
    "CodPostal": "8005-442",
    "Latitude": 37.051697,
    "Longitude": -7.926947,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70586,
@@ -527,7 +612,7 @@
    "CodPostal": "8900-216",
    "Latitude": 37.19962,
    "Longitude": -7.4196,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70758,
@@ -544,24 +629,7 @@
    "CodPostal": "4780-200",
    "Latitude": 41.334717,
    "Longitude": -8.480655,
-   "Quantidade": 128
-  },
-  {
-   "Id": 78207,
-   "Nome": "OURO NEGRO - Azambuja_Norte",
-   "TipoPosto": "Outro",
-   "Municipio": "Azambuja",
-   "Preco": "2,035 €",
-   "Marca": "Genérico",
-   "Combustivel": "Gasolina simples 95",
-   "DataAtualizacao": "2026-10-27 15:00",
-   "Distrito": "Lisboa",
-   "Morada": "E.N. 3 - Km 10.250 ANTIGO CAMPO DA FEIRA",
-   "Localidade": "Azambuja",
-   "CodPostal": "2050-319",
-   "Latitude": 39.065964,
-   "Longitude": -8.876442,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93213,
@@ -578,7 +646,7 @@
    "CodPostal": "5210-065",
    "Latitude": 41.470486,
    "Longitude": -6.366352,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 69088,
@@ -595,7 +663,7 @@
    "CodPostal": "2650-087",
    "Latitude": 38.7885,
    "Longitude": -9.226974,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 78588,
@@ -612,7 +680,7 @@
    "CodPostal": "5360-305",
    "Latitude": 41.310218,
    "Longitude": -7.163259,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 78596,
@@ -629,7 +697,7 @@
    "CodPostal": "8005-146",
    "Latitude": 37.03714,
    "Longitude": -7.957144,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93277,
@@ -646,7 +714,7 @@
    "CodPostal": "4350",
    "Latitude": 41.169384,
    "Longitude": -8.57232,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 92154,
@@ -663,7 +731,7 @@
    "CodPostal": "5340-244",
    "Latitude": 41.540478,
    "Longitude": -6.966334,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66865,
@@ -680,7 +748,7 @@
    "CodPostal": "5370-203",
    "Latitude": 41.49678,
    "Longitude": -7.17842,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 76006,
@@ -697,7 +765,7 @@
    "CodPostal": "4415-000",
    "Latitude": 41.045485,
    "Longitude": -8.568003,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66177,
@@ -714,7 +782,7 @@
    "CodPostal": "4470-006",
    "Latitude": 41.21748,
    "Longitude": -8.604181,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 65281,
@@ -731,7 +799,7 @@
    "CodPostal": "8005-528",
    "Latitude": 37.02859,
    "Longitude": -7.90614,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70586,
@@ -748,7 +816,7 @@
    "CodPostal": "8900-216",
    "Latitude": 37.19962,
    "Longitude": -7.4196,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 88270,
@@ -765,7 +833,41 @@
    "CodPostal": "5340-296",
    "Latitude": 41.57081,
    "Longitude": -6.99394,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66843,
+   "Nome": "E.S. VISEU",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,084 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-26 00:00",
+   "Distrito": "Viseu",
+   "Morada": "Av. Regimento de Infantaria nº 14",
+   "Localidade": "Viseu",
+   "CodPostal": "3510-104",
+   "Latitude": 40.64829,
+   "Longitude": -7.92049,
+   "Quantidade": 156
+  },
+  {
+   "Id": 66832,
+   "Nome": "E.S. VISEU-LEMOS",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,084 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-26 10:25",
+   "Distrito": "Viseu",
+   "Morada": "Rua Pedro Alvares Cabral nº 288",
+   "Localidade": "Viseu",
+   "CodPostal": "3500-000",
+   "Latitude": 40.65475,
+   "Longitude": -7.89611,
+   "Quantidade": 156
   },
   {
    "Id": 67074,
@@ -782,11 +884,11 @@
    "CodPostal": "4400-698",
    "Latitude": 41.1403,
    "Longitude": -8.63289,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
-   "Id": 93421,
-   "Nome": "PA Algoz",
+   "Id": 93420,
+   "Nome": "PA Algoz - Estação",
    "TipoPosto": "Outro",
    "Municipio": "Silves",
    "Preco": "2,086 €",
@@ -794,12 +896,12 @@
    "Combustivel": "Gasolina simples 95",
    "DataAtualizacao": "2026-10-21 09:20",
    "Distrito": "Faro",
-   "Morada": "EN 269 - Algoz",
+   "Morada": "Rua da Estação",
    "Localidade": "Algoz",
-   "CodPostal": "8365-084",
-   "Latitude": 37.165634,
-   "Longitude": -8.305439,
-   "Quantidade": 128
+   "CodPostal": "8365-064",
+   "Latitude": 37.167316,
+   "Longitude": -8.301712,
+   "Quantidade": 156
   },
   {
    "Id": 65444,
@@ -816,7 +918,24 @@
    "CodPostal": "5370-205",
    "Latitude": 41.49177,
    "Longitude": -7.17704,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66729,
+   "Nome": "REPSOL Rio Tinto II",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,089 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-28 08:20",
+   "Distrito": "Porto",
+   "Morada": "Rua de Rebordões n.º 297",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-416",
+   "Latitude": 41.18037,
+   "Longitude": -8.568678,
+   "Quantidade": 156
   },
   {
    "Id": 69088,
@@ -833,7 +952,7 @@
    "CodPostal": "2650-087",
    "Latitude": 38.7885,
    "Longitude": -9.226974,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66900,
@@ -850,7 +969,7 @@
    "CodPostal": "2695-772",
    "Latitude": 38.82893,
    "Longitude": -9.10132,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66556,
@@ -867,7 +986,7 @@
    "CodPostal": "8700-207",
    "Latitude": 37.030327,
    "Longitude": -7.850788,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93135,
@@ -884,7 +1003,24 @@
    "CodPostal": "4785-344",
    "Latitude": 41.329826,
    "Longitude": -8.563532,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 67744,
+   "Nome": "BP Vila Flor",
+   "TipoPosto": "Outro",
+   "Municipio": "Vila Flor",
+   "Preco": "2,099 €",
+   "Marca": "BP",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-28 11:05",
+   "Distrito": "Bragança",
+   "Morada": "Av. Vasco da Gama",
+   "Localidade": "Vila Flor",
+   "CodPostal": "5360-305",
+   "Latitude": 41.31505,
+   "Longitude": -7.17378,
+   "Quantidade": 156
   },
   {
    "Id": 66497,
@@ -901,7 +1037,41 @@
    "CodPostal": "5370-000",
    "Latitude": 41.49318,
    "Longitude": -7.17624,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 65310,
+   "Nome": "Teixeira & Martins,lda",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,109 €",
+   "Marca": "GALP",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-26 07:25",
+   "Distrito": "Porto",
+   "Morada": "Rua Pedro Álvares Cabral",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-000",
+   "Latitude": 41.17334,
+   "Longitude": -8.554465,
+   "Quantidade": 156
+  },
+  {
+   "Id": 78207,
+   "Nome": "OURO NEGRO - Azambuja_Norte",
+   "TipoPosto": "Outro",
+   "Municipio": "Azambuja",
+   "Preco": "2,109 €",
+   "Marca": "Genérico",
+   "Combustivel": "Gasolina 98",
+   "DataAtualizacao": "2026-10-28 14:35",
+   "Distrito": "Lisboa",
+   "Morada": "E.N. 3 - Km 10.250 ANTIGO CAMPO DA FEIRA",
+   "Localidade": "Azambuja",
+   "CodPostal": "2050-319",
+   "Latitude": 39.065964,
+   "Longitude": -8.876442,
+   "Quantidade": 156
   },
   {
    "Id": 78588,
@@ -918,7 +1088,7 @@
    "CodPostal": "5360-305",
    "Latitude": 41.310218,
    "Longitude": -7.163259,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66865,
@@ -935,7 +1105,7 @@
    "CodPostal": "5370-203",
    "Latitude": 41.49678,
    "Longitude": -7.17842,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 76006,
@@ -952,7 +1122,7 @@
    "CodPostal": "4415-000",
    "Latitude": 41.045485,
    "Longitude": -8.568003,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66177,
@@ -969,7 +1139,7 @@
    "CodPostal": "4470-006",
    "Latitude": 41.21748,
    "Longitude": -8.604181,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70399,
@@ -986,7 +1156,58 @@
    "CodPostal": "4650-092",
    "Latitude": 41.32086,
    "Longitude": -8.19268,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66843,
+   "Nome": "E.S. VISEU",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,129 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasolina especial 95",
+   "DataAtualizacao": "2026-10-26 00:00",
+   "Distrito": "Viseu",
+   "Morada": "Av. Regimento de Infantaria nº 14",
+   "Localidade": "Viseu",
+   "CodPostal": "3510-104",
+   "Latitude": 40.64829,
+   "Longitude": -7.92049,
+   "Quantidade": 156
+  },
+  {
+   "Id": 67260,
+   "Nome": "AUCHAN Viseu",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,129 €",
+   "Marca": "AUCHAN",
+   "Combustivel": "Gasóleo simples",
+   "DataAtualizacao": "2026-10-26 09:20",
+   "Distrito": "Viseu",
+   "Morada": "Qta. da Alagoa Estrada Nelas",
+   "Localidade": "Nelas",
+   "CodPostal": "3520-000",
+   "Latitude": 40.63785,
+   "Longitude": -7.908987,
+   "Quantidade": 156
+  },
+  {
+   "Id": 66832,
+   "Nome": "E.S. VISEU-LEMOS",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,129 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasolina especial 95",
+   "DataAtualizacao": "2026-10-26 10:25",
+   "Distrito": "Viseu",
+   "Morada": "Rua Pedro Alvares Cabral nº 288",
+   "Localidade": "Viseu",
+   "CodPostal": "3500-000",
+   "Latitude": 40.65475,
+   "Longitude": -7.89611,
+   "Quantidade": 156
   },
   {
    "Id": 65281,
@@ -1003,7 +1224,7 @@
    "CodPostal": "8005-528",
    "Latitude": 37.02859,
    "Longitude": -7.90614,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93135,
@@ -1020,7 +1241,7 @@
    "CodPostal": "4785-344",
    "Latitude": 41.329826,
    "Longitude": -8.563532,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 88270,
@@ -1037,7 +1258,7 @@
    "CodPostal": "5340-296",
    "Latitude": 41.57081,
    "Longitude": -6.99394,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 67074,
@@ -1054,24 +1275,7 @@
    "CodPostal": "4400-698",
    "Latitude": 41.1403,
    "Longitude": -8.63289,
-   "Quantidade": 128
-  },
-  {
-   "Id": 70138,
-   "Nome": "BP MOGADOURO",
-   "TipoPosto": "Outro",
-   "Municipio": "Mogadouro",
-   "Preco": "2,139 €",
-   "Marca": "BP",
-   "Combustivel": "Gasolina simples 95",
-   "DataAtualizacao": "2026-10-25 23:20",
-   "Distrito": "Bragança",
-   "Morada": "Recta de Vale da Madre",
-   "Localidade": "Mogadouro",
-   "CodPostal": "5200-216",
-   "Latitude": 41.353201,
-   "Longitude": -6.707939,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 65444,
@@ -1088,7 +1292,7 @@
    "CodPostal": "5370-205",
    "Latitude": 41.49177,
    "Longitude": -7.17704,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 68236,
@@ -1105,7 +1309,24 @@
    "CodPostal": "8900-441",
    "Latitude": 37.18386,
    "Longitude": -7.46997,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 67262,
+   "Nome": "AUCHAN Gondomar I",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,139 €",
+   "Marca": "AUCHAN",
+   "Combustivel": "Gasóleo simples",
+   "DataAtualizacao": "2026-10-26 09:20",
+   "Distrito": "Porto",
+   "Morada": "Rua Exterior Circunvalação, 1730",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-462",
+   "Latitude": 41.172474,
+   "Longitude": -8.567009,
+   "Quantidade": 156
   },
   {
    "Id": 87129,
@@ -1122,7 +1343,7 @@
    "CodPostal": "2625-716",
    "Latitude": 38.86376,
    "Longitude": -9.09955,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66644,
@@ -1139,7 +1360,7 @@
    "CodPostal": "2710-418",
    "Latitude": 38.80345,
    "Longitude": -9.356381,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66316,
@@ -1156,7 +1377,7 @@
    "CodPostal": "8005-442",
    "Latitude": 37.051697,
    "Longitude": -7.926947,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66556,
@@ -1173,7 +1394,7 @@
    "CodPostal": "8700-207",
    "Latitude": 37.030327,
    "Longitude": -7.850788,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66497,
@@ -1190,7 +1411,7 @@
    "CodPostal": "5370-000",
    "Latitude": 41.49318,
    "Longitude": -7.17624,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 87129,
@@ -1207,7 +1428,7 @@
    "CodPostal": "2625-716",
    "Latitude": 38.86376,
    "Longitude": -9.09955,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 94409,
@@ -1224,7 +1445,58 @@
    "CodPostal": "4570-029",
    "Latitude": 41.414955,
    "Longitude": -8.648844,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66729,
+   "Nome": "REPSOL Rio Tinto II",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,149 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasolina especial 95",
+   "DataAtualizacao": "2026-10-28 08:20",
+   "Distrito": "Porto",
+   "Morada": "Rua de Rebordões n.º 297",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-416",
+   "Latitude": 41.18037,
+   "Longitude": -8.568678,
+   "Quantidade": 156
+  },
+  {
+   "Id": 78207,
+   "Nome": "OURO NEGRO - Azambuja_Norte",
+   "TipoPosto": "Outro",
+   "Municipio": "Azambuja",
+   "Preco": "2,149 €",
+   "Marca": "Genérico",
+   "Combustivel": "Gasóleo simples",
+   "DataAtualizacao": "2026-10-28 14:35",
+   "Distrito": "Lisboa",
+   "Morada": "E.N. 3 - Km 10.250 ANTIGO CAMPO DA FEIRA",
+   "Localidade": "Azambuja",
+   "CodPostal": "2050-319",
+   "Latitude": 39.065964,
+   "Longitude": -8.876442,
+   "Quantidade": 156
+  },
+  {
+   "Id": 65310,
+   "Nome": "Teixeira & Martins,lda",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,159 €",
+   "Marca": "GALP",
+   "Combustivel": "Gasolina especial 95",
+   "DataAtualizacao": "2026-10-26 07:25",
+   "Distrito": "Porto",
+   "Morada": "Rua Pedro Álvares Cabral",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-000",
+   "Latitude": 41.17334,
+   "Longitude": -8.554465,
+   "Quantidade": 156
   },
   {
    "Id": 80310,
@@ -1241,7 +1513,7 @@
    "CodPostal": "2660-699",
    "Latitude": 38.80744,
    "Longitude": -9.16869,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 80310,
@@ -1258,7 +1530,7 @@
    "CodPostal": "2660-699",
    "Latitude": 38.80744,
    "Longitude": -9.16869,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 94409,
@@ -1275,11 +1547,11 @@
    "CodPostal": "4570-029",
    "Latitude": 41.414955,
    "Longitude": -8.648844,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
-   "Id": 93421,
-   "Nome": "PA Algoz",
+   "Id": 93420,
+   "Nome": "PA Algoz - Estação",
    "TipoPosto": "Outro",
    "Municipio": "Silves",
    "Preco": "2,170 €",
@@ -1287,12 +1559,29 @@
    "Combustivel": "Gasolina 98",
    "DataAtualizacao": "2026-10-21 09:20",
    "Distrito": "Faro",
-   "Morada": "EN 269 - Algoz",
+   "Morada": "Rua da Estação",
    "Localidade": "Algoz",
-   "CodPostal": "8365-084",
-   "Latitude": 37.165634,
-   "Longitude": -8.305439,
-   "Quantidade": 128
+   "CodPostal": "8365-064",
+   "Latitude": 37.167316,
+   "Longitude": -8.301712,
+   "Quantidade": 156
+  },
+  {
+   "Id": 66080,
+   "Nome": "BP VIA SACRA",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,174 €",
+   "Marca": "BP",
+   "Combustivel": "Gasolina simples 95",
+   "DataAtualizacao": "2026-10-19 00:05",
+   "Distrito": "Viseu",
+   "Morada": "Rua Cónego Barreiros nº 270",
+   "Localidade": "Viseu",
+   "CodPostal": "3500-093",
+   "Latitude": 40.655517,
+   "Longitude": -7.902734,
+   "Quantidade": 156
   },
   {
    "Id": 87129,
@@ -1309,7 +1598,7 @@
    "CodPostal": "2625-716",
    "Latitude": 38.86376,
    "Longitude": -9.09955,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93213,
@@ -1326,7 +1615,7 @@
    "CodPostal": "5210-065",
    "Latitude": 41.470486,
    "Longitude": -6.366352,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 78207,
@@ -1335,15 +1624,15 @@
    "Municipio": "Azambuja",
    "Preco": "2,179 €",
    "Marca": "Genérico",
-   "Combustivel": "Gasóleo simples",
-   "DataAtualizacao": "2026-10-27 15:00",
+   "Combustivel": "Gasóleo especial",
+   "DataAtualizacao": "2026-10-28 14:35",
    "Distrito": "Lisboa",
    "Morada": "E.N. 3 - Km 10.250 ANTIGO CAMPO DA FEIRA",
    "Localidade": "Azambuja",
    "CodPostal": "2050-319",
    "Latitude": 39.065964,
    "Longitude": -8.876442,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93277,
@@ -1360,7 +1649,7 @@
    "CodPostal": "4350",
    "Latitude": 41.169384,
    "Longitude": -8.57232,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 78596,
@@ -1377,11 +1666,11 @@
    "CodPostal": "8005-146",
    "Latitude": 37.03714,
    "Longitude": -7.957144,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
-   "Id": 93421,
-   "Nome": "PA Algoz",
+   "Id": 93420,
+   "Nome": "PA Algoz - Estação",
    "TipoPosto": "Outro",
    "Municipio": "Silves",
    "Preco": "2,185 €",
@@ -1389,12 +1678,12 @@
    "Combustivel": "Gasóleo simples",
    "DataAtualizacao": "2026-10-21 09:20",
    "Distrito": "Faro",
-   "Morada": "EN 269 - Algoz",
+   "Morada": "Rua da Estação",
    "Localidade": "Algoz",
-   "CodPostal": "8365-084",
-   "Latitude": 37.165634,
-   "Longitude": -8.305439,
-   "Quantidade": 128
+   "CodPostal": "8365-064",
+   "Latitude": 37.167316,
+   "Longitude": -8.301712,
+   "Quantidade": 156
   },
   {
    "Id": 94409,
@@ -1411,7 +1700,7 @@
    "CodPostal": "4570-029",
    "Latitude": 41.414955,
    "Longitude": -8.648844,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66316,
@@ -1428,7 +1717,7 @@
    "CodPostal": "8005-442",
    "Latitude": 37.051697,
    "Longitude": -7.926947,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70399,
@@ -1445,7 +1734,7 @@
    "CodPostal": "4650-092",
    "Latitude": 41.32086,
    "Longitude": -8.19268,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70399,
@@ -1462,7 +1751,7 @@
    "CodPostal": "4650-092",
    "Latitude": 41.32086,
    "Longitude": -8.19268,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 92154,
@@ -1479,24 +1768,7 @@
    "CodPostal": "5340-244",
    "Latitude": 41.540478,
    "Longitude": -6.966334,
-   "Quantidade": 128
-  },
-  {
-   "Id": 78207,
-   "Nome": "OURO NEGRO - Azambuja_Norte",
-   "TipoPosto": "Outro",
-   "Municipio": "Azambuja",
-   "Preco": "2,200 €",
-   "Marca": "Genérico",
-   "Combustivel": "Gasolina 98",
-   "DataAtualizacao": "2026-10-27 15:00",
-   "Distrito": "Lisboa",
-   "Morada": "E.N. 3 - Km 10.250 ANTIGO CAMPO DA FEIRA",
-   "Localidade": "Azambuja",
-   "CodPostal": "2050-319",
-   "Latitude": 39.065964,
-   "Longitude": -8.876442,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 93213,
@@ -1513,7 +1785,7 @@
    "CodPostal": "5210-065",
    "Latitude": 41.470486,
    "Longitude": -6.366352,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70758,
@@ -1530,24 +1802,7 @@
    "CodPostal": "4780-200",
    "Latitude": 41.334717,
    "Longitude": -8.480655,
-   "Quantidade": 128
-  },
-  {
-   "Id": 78207,
-   "Nome": "OURO NEGRO - Azambuja_Norte",
-   "TipoPosto": "Outro",
-   "Municipio": "Azambuja",
-   "Preco": "2,209 €",
-   "Marca": "Genérico",
-   "Combustivel": "Gasóleo especial",
-   "DataAtualizacao": "2026-10-27 15:00",
-   "Distrito": "Lisboa",
-   "Morada": "E.N. 3 - Km 10.250 ANTIGO CAMPO DA FEIRA",
-   "Localidade": "Azambuja",
-   "CodPostal": "2050-319",
-   "Latitude": 39.065964,
-   "Longitude": -8.876442,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66644,
@@ -1564,7 +1819,7 @@
    "CodPostal": "2710-418",
    "Latitude": 38.80345,
    "Longitude": -9.356381,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 69088,
@@ -1581,7 +1836,7 @@
    "CodPostal": "2650-087",
    "Latitude": 38.7885,
    "Longitude": -9.226974,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 70399,
@@ -1598,7 +1853,7 @@
    "CodPostal": "4650-092",
    "Latitude": 41.32086,
    "Longitude": -8.19268,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66177,
@@ -1615,7 +1870,7 @@
    "CodPostal": "4470-006",
    "Latitude": 41.21748,
    "Longitude": -8.604181,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 88270,
@@ -1632,7 +1887,24 @@
    "CodPostal": "5340-296",
    "Latitude": 41.57081,
    "Longitude": -6.99394,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66843,
+   "Nome": "E.S. VISEU",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,264 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasóleo simples",
+   "DataAtualizacao": "2026-10-26 00:00",
+   "Distrito": "Viseu",
+   "Morada": "Av. Regimento de Infantaria nº 14",
+   "Localidade": "Viseu",
+   "CodPostal": "3510-104",
+   "Latitude": 40.64829,
+   "Longitude": -7.92049,
+   "Quantidade": 156
   },
   {
    "Id": 69088,
@@ -1649,7 +1921,24 @@
    "CodPostal": "2650-087",
    "Latitude": 38.7885,
    "Longitude": -9.226974,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66832,
+   "Nome": "E.S. VISEU-LEMOS",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,264 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasóleo simples",
+   "DataAtualizacao": "2026-10-26 10:25",
+   "Distrito": "Viseu",
+   "Morada": "Rua Pedro Alvares Cabral nº 288",
+   "Localidade": "Viseu",
+   "CodPostal": "3500-000",
+   "Latitude": 40.65475,
+   "Longitude": -7.89611,
+   "Quantidade": 156
   },
   {
    "Id": 65281,
@@ -1666,7 +1955,7 @@
    "CodPostal": "8005-528",
    "Latitude": 37.02859,
    "Longitude": -7.90614,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 67074,
@@ -1683,7 +1972,24 @@
    "CodPostal": "4400-698",
    "Latitude": 41.1403,
    "Longitude": -8.63289,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66729,
+   "Nome": "REPSOL Rio Tinto II",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,269 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasóleo simples",
+   "DataAtualizacao": "2026-10-28 08:20",
+   "Distrito": "Porto",
+   "Morada": "Rua de Rebordões n.º 297",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-416",
+   "Latitude": 41.18037,
+   "Longitude": -8.568678,
+   "Quantidade": 156
   },
   {
    "Id": 65444,
@@ -1700,7 +2006,24 @@
    "CodPostal": "5370-205",
    "Latitude": 41.49177,
    "Longitude": -7.17704,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66080,
+   "Nome": "BP VIA SACRA",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,279 €",
+   "Marca": "BP",
+   "Combustivel": "Gasóleo simples",
+   "DataAtualizacao": "2026-10-19 00:05",
+   "Distrito": "Viseu",
+   "Morada": "Rua Cónego Barreiros nº 270",
+   "Localidade": "Viseu",
+   "CodPostal": "3500-093",
+   "Latitude": 40.655517,
+   "Longitude": -7.902734,
+   "Quantidade": 156
   },
   {
    "Id": 66556,
@@ -1717,7 +2040,7 @@
    "CodPostal": "8700-207",
    "Latitude": 37.030327,
    "Longitude": -7.850788,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66497,
@@ -1734,7 +2057,7 @@
    "CodPostal": "5370-000",
    "Latitude": 41.49318,
    "Longitude": -7.17624,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66177,
@@ -1751,7 +2074,7 @@
    "CodPostal": "4470-006",
    "Latitude": 41.21748,
    "Longitude": -8.604181,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66900,
@@ -1768,7 +2091,24 @@
    "CodPostal": "2695-772",
    "Latitude": 38.82893,
    "Longitude": -9.10132,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 67744,
+   "Nome": "BP Vila Flor",
+   "TipoPosto": "Outro",
+   "Municipio": "Vila Flor",
+   "Preco": "2,284 €",
+   "Marca": "BP",
+   "Combustivel": "Gasóleo simples",
+   "DataAtualizacao": "2026-10-28 11:05",
+   "Distrito": "Bragança",
+   "Morada": "Av. Vasco da Gama",
+   "Localidade": "Vila Flor",
+   "CodPostal": "5360-305",
+   "Latitude": 41.31505,
+   "Longitude": -7.17378,
+   "Quantidade": 156
   },
   {
    "Id": 66177,
@@ -1785,24 +2125,41 @@
    "CodPostal": "4470-006",
    "Latitude": 41.21748,
    "Longitude": -8.604181,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
-   "Id": 70138,
-   "Nome": "BP MOGADOURO",
+   "Id": 65310,
+   "Nome": "Teixeira & Martins,lda",
    "TipoPosto": "Outro",
-   "Municipio": "Mogadouro",
-   "Preco": "2,294 €",
-   "Marca": "BP",
+   "Municipio": "Gondomar",
+   "Preco": "2,297 €",
+   "Marca": "GALP",
    "Combustivel": "Gasóleo simples",
-   "DataAtualizacao": "2026-10-25 23:20",
-   "Distrito": "Bragança",
-   "Morada": "Recta de Vale da Madre",
-   "Localidade": "Mogadouro",
-   "CodPostal": "5200-216",
-   "Latitude": 41.353201,
-   "Longitude": -6.707939,
-   "Quantidade": 128
+   "DataAtualizacao": "2026-10-26 07:25",
+   "Distrito": "Porto",
+   "Morada": "Rua Pedro Álvares Cabral",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-000",
+   "Latitude": 41.17334,
+   "Longitude": -8.554465,
+   "Quantidade": 156
+  },
+  {
+   "Id": 66729,
+   "Nome": "REPSOL Rio Tinto II",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,299 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasolina especial 98",
+   "DataAtualizacao": "2026-10-28 08:20",
+   "Distrito": "Porto",
+   "Morada": "Rua de Rebordões n.º 297",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-416",
+   "Latitude": 41.18037,
+   "Longitude": -8.568678,
+   "Quantidade": 156
   },
   {
    "Id": 88270,
@@ -1819,7 +2176,7 @@
    "CodPostal": "5340-296",
    "Latitude": 41.57081,
    "Longitude": -6.99394,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66556,
@@ -1836,7 +2193,7 @@
    "CodPostal": "8700-207",
    "Latitude": 37.030327,
    "Longitude": -7.850788,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66497,
@@ -1853,7 +2210,7 @@
    "CodPostal": "5370-000",
    "Latitude": 41.49318,
    "Longitude": -7.17624,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 68236,
@@ -1870,7 +2227,7 @@
    "CodPostal": "8900-441",
    "Latitude": 37.18386,
    "Longitude": -7.46997,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 65281,
@@ -1887,7 +2244,7 @@
    "CodPostal": "8005-528",
    "Latitude": 37.02859,
    "Longitude": -7.90614,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 67074,
@@ -1904,7 +2261,41 @@
    "CodPostal": "4400-698",
    "Latitude": 41.1403,
    "Longitude": -8.63289,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66843,
+   "Nome": "E.S. VISEU",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,319 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasóleo especial",
+   "DataAtualizacao": "2026-10-26 00:00",
+   "Distrito": "Viseu",
+   "Morada": "Av. Regimento de Infantaria nº 14",
+   "Localidade": "Viseu",
+   "CodPostal": "3510-104",
+   "Latitude": 40.64829,
+   "Longitude": -7.92049,
+   "Quantidade": 156
+  },
+  {
+   "Id": 66832,
+   "Nome": "E.S. VISEU-LEMOS",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,319 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasóleo especial",
+   "DataAtualizacao": "2026-10-26 10:25",
+   "Distrito": "Viseu",
+   "Morada": "Rua Pedro Alvares Cabral nº 288",
+   "Localidade": "Viseu",
+   "CodPostal": "3500-000",
+   "Latitude": 40.65475,
+   "Longitude": -7.89611,
+   "Quantidade": 156
   },
   {
    "Id": 66644,
@@ -1921,7 +2312,7 @@
    "CodPostal": "2710-418",
    "Latitude": 38.80345,
    "Longitude": -9.356381,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 65444,
@@ -1938,7 +2329,7 @@
    "CodPostal": "5370-205",
    "Latitude": 41.49177,
    "Longitude": -7.17704,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66497,
@@ -1955,7 +2346,24 @@
    "CodPostal": "5370-000",
    "Latitude": 41.49318,
    "Longitude": -7.17624,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 66729,
+   "Nome": "REPSOL Rio Tinto II",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,329 €",
+   "Marca": "REPSOL",
+   "Combustivel": "Gasóleo especial",
+   "DataAtualizacao": "2026-10-28 08:20",
+   "Distrito": "Porto",
+   "Morada": "Rua de Rebordões n.º 297",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-416",
+   "Latitude": 41.18037,
+   "Longitude": -8.568678,
+   "Quantidade": 156
   },
   {
    "Id": 66556,
@@ -1972,7 +2380,41 @@
    "CodPostal": "8700-207",
    "Latitude": 37.030327,
    "Longitude": -7.850788,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 65310,
+   "Nome": "Teixeira & Martins,lda",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,339 €",
+   "Marca": "GALP",
+   "Combustivel": "Gasolina especial 98",
+   "DataAtualizacao": "2026-10-26 07:25",
+   "Distrito": "Porto",
+   "Morada": "Rua Pedro Álvares Cabral",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-000",
+   "Latitude": 41.17334,
+   "Longitude": -8.554465,
+   "Quantidade": 156
+  },
+  {
+   "Id": 65310,
+   "Nome": "Teixeira & Martins,lda",
+   "TipoPosto": "Outro",
+   "Municipio": "Gondomar",
+   "Preco": "2,347 €",
+   "Marca": "GALP",
+   "Combustivel": "Gasóleo especial",
+   "DataAtualizacao": "2026-10-26 07:25",
+   "Distrito": "Porto",
+   "Morada": "Rua Pedro Álvares Cabral",
+   "Localidade": "Rio Tinto",
+   "CodPostal": "4435-000",
+   "Latitude": 41.17334,
+   "Longitude": -8.554465,
+   "Quantidade": 156
   },
   {
    "Id": 66644,
@@ -1989,7 +2431,7 @@
    "CodPostal": "2710-418",
    "Latitude": 38.80345,
    "Longitude": -9.356381,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 68236,
@@ -2006,7 +2448,7 @@
    "CodPostal": "8900-441",
    "Latitude": 37.18386,
    "Longitude": -7.46997,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66900,
@@ -2023,24 +2465,24 @@
    "CodPostal": "2695-772",
    "Latitude": 38.82893,
    "Longitude": -9.10132,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
-   "Id": 70138,
-   "Nome": "BP MOGADOURO",
+   "Id": 67744,
+   "Nome": "BP Vila Flor",
    "TipoPosto": "Outro",
-   "Municipio": "Mogadouro",
-   "Preco": "2,389 €",
+   "Municipio": "Vila Flor",
+   "Preco": "2,369 €",
    "Marca": "BP",
    "Combustivel": "Gasolina especial 98",
-   "DataAtualizacao": "2026-10-25 23:20",
+   "DataAtualizacao": "2026-10-28 11:05",
    "Distrito": "Bragança",
-   "Morada": "Recta de Vale da Madre",
-   "Localidade": "Mogadouro",
-   "CodPostal": "5200-216",
-   "Latitude": 41.353201,
-   "Longitude": -6.707939,
-   "Quantidade": 128
+   "Morada": "Av. Vasco da Gama",
+   "Localidade": "Vila Flor",
+   "CodPostal": "5360-305",
+   "Latitude": 41.31505,
+   "Longitude": -7.17378,
+   "Quantidade": 156
   },
   {
    "Id": 66644,
@@ -2057,92 +2499,109 @@
    "CodPostal": "2710-418",
    "Latitude": 38.80345,
    "Longitude": -9.356381,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
-   "Id": 66865,
-   "Nome": "PD MIRANDELA",
+   "Id": 66080,
+   "Nome": "BP VIA SACRA",
    "TipoPosto": "Outro",
-   "Municipio": "Mirandela",
+   "Municipio": "Viseu",
    "Preco": "2,429 €",
-   "Marca": "PINGO DOCE",
-   "Combustivel": "Gasóleo especial",
-   "DataAtualizacao": "2026-10-27 18:15",
-   "Distrito": "Bragança",
-   "Morada": "Lugar de Telheiras",
-   "Localidade": "Mirandela",
-   "CodPostal": "5370-203",
-   "Latitude": 41.49678,
-   "Longitude": -7.17842,
-   "Quantidade": 128
-  },
-  {
-   "Id": 76006,
-   "Nome": "PD GRIJÓ",
-   "TipoPosto": "Outro",
-   "Municipio": "Vila Nova de Gaia",
-   "Preco": "2,429 €",
-   "Marca": "PINGO DOCE",
-   "Combustivel": "Gasóleo especial",
-   "DataAtualizacao": "2026-10-27 18:15",
-   "Distrito": "Porto",
-   "Morada": "B.Park-Rua Boavista-Lugar Barrancas-G",
-   "Localidade": "Grijó",
-   "CodPostal": "4415-000",
-   "Latitude": 41.045485,
-   "Longitude": -8.568003,
-   "Quantidade": 128
-  },
-  {
-   "Id": 66865,
-   "Nome": "PD MIRANDELA",
-   "TipoPosto": "Outro",
-   "Municipio": "Mirandela",
-   "Preco": "2,434 €",
-   "Marca": "PINGO DOCE",
-   "Combustivel": "Gasolina especial 98",
-   "DataAtualizacao": "2026-10-27 18:15",
-   "Distrito": "Bragança",
-   "Morada": "Lugar de Telheiras",
-   "Localidade": "Mirandela",
-   "CodPostal": "5370-203",
-   "Latitude": 41.49678,
-   "Longitude": -7.17842,
-   "Quantidade": 128
-  },
-  {
-   "Id": 76006,
-   "Nome": "PD GRIJÓ",
-   "TipoPosto": "Outro",
-   "Municipio": "Vila Nova de Gaia",
-   "Preco": "2,434 €",
-   "Marca": "PINGO DOCE",
-   "Combustivel": "Gasolina especial 98",
-   "DataAtualizacao": "2026-10-27 18:15",
-   "Distrito": "Porto",
-   "Morada": "B.Park-Rua Boavista-Lugar Barrancas-G",
-   "Localidade": "Grijó",
-   "CodPostal": "4415-000",
-   "Latitude": 41.045485,
-   "Longitude": -8.568003,
-   "Quantidade": 128
-  },
-  {
-   "Id": 70138,
-   "Nome": "BP MOGADOURO",
-   "TipoPosto": "Outro",
-   "Municipio": "Mogadouro",
-   "Preco": "2,444 €",
    "Marca": "BP",
    "Combustivel": "Gasóleo especial",
-   "DataAtualizacao": "2026-10-25 23:20",
+   "DataAtualizacao": "2026-10-19 00:05",
+   "Distrito": "Viseu",
+   "Morada": "Rua Cónego Barreiros nº 270",
+   "Localidade": "Viseu",
+   "CodPostal": "3500-093",
+   "Latitude": 40.655517,
+   "Longitude": -7.902734,
+   "Quantidade": 156
+  },
+  {
+   "Id": 66865,
+   "Nome": "PD MIRANDELA",
+   "TipoPosto": "Outro",
+   "Municipio": "Mirandela",
+   "Preco": "2,429 €",
+   "Marca": "PINGO DOCE",
+   "Combustivel": "Gasóleo especial",
+   "DataAtualizacao": "2026-10-27 18:15",
    "Distrito": "Bragança",
-   "Morada": "Recta de Vale da Madre",
-   "Localidade": "Mogadouro",
-   "CodPostal": "5200-216",
-   "Latitude": 41.353201,
-   "Longitude": -6.707939,
-   "Quantidade": 128
+   "Morada": "Lugar de Telheiras",
+   "Localidade": "Mirandela",
+   "CodPostal": "5370-203",
+   "Latitude": 41.49678,
+   "Longitude": -7.17842,
+   "Quantidade": 156
+  },
+  {
+   "Id": 76006,
+   "Nome": "PD GRIJÓ",
+   "TipoPosto": "Outro",
+   "Municipio": "Vila Nova de Gaia",
+   "Preco": "2,429 €",
+   "Marca": "PINGO DOCE",
+   "Combustivel": "Gasóleo especial",
+   "DataAtualizacao": "2026-10-27 18:15",
+   "Distrito": "Porto",
+   "Morada": "B.Park-Rua Boavista-Lugar Barrancas-G",
+   "Localidade": "Grijó",
+   "CodPostal": "4415-000",
+   "Latitude": 41.045485,
+   "Longitude": -8.568003,
+   "Quantidade": 156
+  },
+  {
+   "Id": 66080,
+   "Nome": "BP VIA SACRA",
+   "TipoPosto": "Outro",
+   "Municipio": "Viseu",
+   "Preco": "2,434 €",
+   "Marca": "BP",
+   "Combustivel": "Gasolina especial 98",
+   "DataAtualizacao": "2026-10-19 00:05",
+   "Distrito": "Viseu",
+   "Morada": "Rua Cónego Barreiros nº 270",
+   "Localidade": "Viseu",
+   "CodPostal": "3500-093",
+   "Latitude": 40.655517,
+   "Longitude": -7.902734,
+   "Quantidade": 156
+  },
+  {
+   "Id": 66865,
+   "Nome": "PD MIRANDELA",
+   "TipoPosto": "Outro",
+   "Municipio": "Mirandela",
+   "Preco": "2,434 €",
+   "Marca": "PINGO DOCE",
+   "Combustivel": "Gasolina especial 98",
+   "DataAtualizacao": "2026-10-27 18:15",
+   "Distrito": "Bragança",
+   "Morada": "Lugar de Telheiras",
+   "Localidade": "Mirandela",
+   "CodPostal": "5370-203",
+   "Latitude": 41.49678,
+   "Longitude": -7.17842,
+   "Quantidade": 156
+  },
+  {
+   "Id": 76006,
+   "Nome": "PD GRIJÓ",
+   "TipoPosto": "Outro",
+   "Municipio": "Vila Nova de Gaia",
+   "Preco": "2,434 €",
+   "Marca": "PINGO DOCE",
+   "Combustivel": "Gasolina especial 98",
+   "DataAtualizacao": "2026-10-27 18:15",
+   "Distrito": "Porto",
+   "Morada": "B.Park-Rua Boavista-Lugar Barrancas-G",
+   "Localidade": "Grijó",
+   "CodPostal": "4415-000",
+   "Latitude": 41.045485,
+   "Longitude": -8.568003,
+   "Quantidade": 156
   },
   {
    "Id": 68236,
@@ -2159,7 +2618,7 @@
    "CodPostal": "8900-441",
    "Latitude": 37.18386,
    "Longitude": -7.46997,
-   "Quantidade": 128
+   "Quantidade": 156
   },
   {
    "Id": 66900,
@@ -2176,7 +2635,24 @@
    "CodPostal": "2695-772",
    "Latitude": 38.82893,
    "Longitude": -9.10132,
-   "Quantidade": 128
+   "Quantidade": 156
+  },
+  {
+   "Id": 67744,
+   "Nome": "BP Vila Flor",
+   "TipoPosto": "Outro",
+   "Municipio": "Vila Flor",
+   "Preco": "2,444 €",
+   "Marca": "BP",
+   "Combustivel": "Gasóleo especial",
+   "DataAtualizacao": "2026-10-28 11:05",
+   "Distrito": "Bragança",
+   "Morada": "Av. Vasco da Gama",
+   "Localidade": "Vila Flor",
+   "CodPostal": "5360-305",
+   "Latitude": 41.31505,
+   "Longitude": -7.17378,
+   "Quantidade": 156
   }
  ],
  "token": null
