@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: int_station_neighbours
+    description: >
+      Concorrência à volta de cada posto, por dia de fotografia: quantos postos há a 2 e a 5 km
+      em linha reta, e a distância ao mais próximo (nula se não houver nenhum a uns 5 km).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [snapshot_date, station_id]
+
+unit_tests:
+  - name: counts_neighbours_by_straight_line_distance
+    description: >
+      Três postos em Lisboa: A e B a 1 km um do outro (0,009° de latitude), C a 4 km de A. Um
+      posto no Porto não conta para ninguém.
+    model: int_station_neighbours
+    given:
+      - input: ref('stg_dgeg__station_prices')
+        rows:
+          - {snapshot_date: 2026-10-28, station_id: 1, latitude: 38.700, longitude: -9.150}
+          - {snapshot_date: 2026-10-28, station_id: 2, latitude: 38.709, longitude: -9.150}
+          - {snapshot_date: 2026-10-28, station_id: 3, latitude: 38.736, longitude: -9.150}
+          - {snapshot_date: 2026-10-28, station_id: 4, latitude: 41.150, longitude: -8.610}
+    expect:
+      rows:
+        - {station_id: 1, competitors_2km: 1, competitors_5km: 2}
+        - {station_id: 2, competitors_2km: 1, competitors_5km: 2}
+        - {station_id: 3, competitors_2km: 0, competitors_5km: 2}
+        - {station_id: 4, competitors_2km: 0, competitors_5km: 0}

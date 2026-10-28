@@ -98,8 +98,20 @@
     - há preços que os postos não atualizam há mais de um ano: as médias usam só os dos últimos 30 dias;
     - o gráfico de barras a começar no zero escondia 12 cêntimos de diferença: o painel mostra a diferença para a média.
 
+- **2026-10-28 (sessão cloud do Claude Code):** filtros por distrito e concelho, concorrência entre postos e testes do painel.
+  - **Filtros:** a página "Postos em Portugal" tem filtros de distrito e de concelho. O resumo, o mapa (que se ajusta à zona), os grupos de marcas, as marcas e os mais baratos e mais caros passam a ser da zona escolhida. Há também uma tabela de concelhos, com pesquisa.
+  - **Concorrência** ([análise](docs/analises/concorrencia-postos.md)):
+    - `int_station_neighbours` conta os postos a 2 e 5 km com a fórmula de haversine em SQL, com um teste unitário;
+    - os postos sem nenhum concorrente a 5 km são 3,7 cêntimos mais caros na gasolina e 2,8 no gasóleo, e 1,5 a 1,8 acima da média do próprio concelho. Com um ou dois concorrentes, a diferença desaparece;
+    - os independentes e os postos sem marca baixam 3 a 4 cêntimos quando há concorrência perto. As petrolíferas e os hiper e supermercados quase não mudam.
+  - **Testes do painel:** o Playwright abre as quatro páginas do build (no CI, com a amostra) e confirma que não há erros, que há números e que o filtro de distrito reduz a lista. 8 testes.
+  - **Lições:**
+    - a extensão espacial do DuckDB não descarrega aqui (o DuckDB não usa o proxy), e a fórmula de haversine em SQL chega para 3000 postos;
+    - nos testes unitários do dbt, todas as linhas esperadas têm de ter as mesmas colunas;
+    - as listas dos filtros do Evidence só desenham as primeiras opções: o teste escolhe a primeira a seguir a "Todos".
+
 ## Plano
 
-1. **Ver o ramo `dados` a crescer** nos primeiros dias e o mapa no site publicado (aqui, os mosaicos do mapa estão bloqueados). Depois, a captura da página "Postos em Portugal" para o README.
-2. **Com algumas semanas de histórico:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim para o preço, e se o padrão se repete por distrito.
-3. **Talvez:** as 10 semanas soltas de Portugal nas tabelas de impostos; Eslováquia e Espanha; um teste do painel no CI; avisar a Comissão dos erros nas tabelas.
+1. **Captura da página "Postos em Portugal" para o README:** precisa dos mosaicos da CARTO (`*.basemaps.cartocdn.com`) nos domínios permitidos.
+2. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar.
+3. **Talvez:** as 10 semanas soltas de Portugal nas tabelas de impostos; Eslováquia e Espanha; avisar a Comissão dos erros nas tabelas.

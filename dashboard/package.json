@@ -9,7 +9,8 @@
     "sources": "evidence sources",
     "sources:strict": "evidence sources --strict",
     "preview": "evidence preview",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "test": "playwright test"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -21,6 +22,7 @@
     "@evidence-dev/evidence": "40.1.8"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "patch-package": "8.0.1",
     "typescript": "5.4.2"
   }

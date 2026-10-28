@@ -20,8 +20,12 @@ select
     fuels.name as fuel_name,
     prices.price,
     prices.updated_at,
-    prices.is_current
+    prices.is_current,
+    neighbours.competitors_2km,
+    neighbours.competitors_5km,
+    neighbours.nearest_competitor_km
 from {{ ref('fct_station_prices') }} as prices
 inner join {{ ref('dgeg_fuels') }} as fuels using (fuel)
+left join {{ ref('int_station_neighbours') }} as neighbours using (snapshot_date, station_id)
 where fuels.in_dashboard
     and prices.snapshot_date = (select max(snapshot_date) from {{ ref('fct_station_prices') }})

@@ -11,7 +11,32 @@ from combustiveis.postos
 order by fuel = 'gpl', fuel = 'gasoleo', fuel = 'gasolina_98'
 ```
 
+```sql distritos_lista
+select distinct district from combustiveis.postos order by district
+```
+
+```sql concelhos_lista
+select distinct municipality
+from combustiveis.postos
+where district like '${inputs.distrito.value}'
+order by municipality
+```
+
 <Dropdown data={combustiveis} name=combustivel value=fuel label=fuel_name defaultValue="gasolina_95" title="Combustível" />
+<Dropdown data={distritos_lista} name=distrito value=district title="Distrito">
+    <DropdownOption value="%" valueLabel="Todos" />
+</Dropdown>
+<Dropdown data={concelhos_lista} name=concelho value=municipality title="Concelho">
+    <DropdownOption value="%" valueLabel="Todos" />
+</Dropdown>
+
+```sql zona
+select *
+from combustiveis.postos
+where fuel = '${inputs.combustivel.value}'
+    and district like '${inputs.distrito.value}'
+    and municipality like '${inputs.concelho.value}'
+```
 
 ```sql resumo
 select
@@ -21,8 +46,7 @@ select
     min(price) filter (where is_current) as minimo,
     max(price) filter (where is_current) as maximo,
     max(updated_at) as ultima_atualizacao
-from combustiveis.postos
-where fuel = '${inputs.combustivel.value}'
+from ${zona}
 ```
 
 ## Dia <Value data={resumo} column=dia fmt="dd/mm/yyyy" />
@@ -34,10 +58,8 @@ where fuel = '${inputs.combustivel.value}'
 
 ```sql mapa
 select station_name, brand, municipality, price as "Preço (€/L)", latitude, longitude, updated_at
-from combustiveis.postos
-where fuel = '${inputs.combustivel.value}'
-    and is_current
-    and latitude is not null
+from ${zona}
+where is_current and latitude is not null
 ```
 
 <PointMap
@@ -48,9 +70,6 @@ where fuel = '${inputs.combustivel.value}'
     valueFmt='0.000'
     pointName=station_name
     height=600
-    startingLat=39.6
-    startingLong=-8.0
-    startingZoom=7
     tooltip={[
         {id: 'station_name', showColumnName: false, valueClass: 'font-semibold'},
         {id: 'brand', title: 'Marca'},
@@ -63,19 +82,14 @@ where fuel = '${inputs.combustivel.value}'
 ## Por grupo de marcas
 
 ```sql grupos
+with zona_atual as (select * from ${zona} where is_current)
 select
-    grupos.label as grupo,
-    grupos.stations as postos,
-    grupos.avg_price as media,
-    (grupos.avg_price - pais.avg_price) * 100 as diferenca
-from combustiveis.postos_diario as grupos
-inner join combustiveis.postos_diario as pais
-    on pais.snapshot_date = grupos.snapshot_date
-    and pais.fuel = grupos.fuel
-    and pais.dimension = 'Portugal'
-where grupos.fuel = '${inputs.combustivel.value}'
-    and grupos.dimension = 'Grupo de marcas'
-    and grupos.snapshot_date = (select max(snapshot_date) from combustiveis.postos_diario)
+    brand_segment as grupo,
+    count(*) as postos,
+    avg(price) as media,
+    (avg(price) - (select avg(price) from zona_atual)) * 100 as diferenca
+from zona_atual
+group by all
 order by diferenca
 ```
 
@@ -86,14 +100,14 @@ order by diferenca
     swapXY=true
     sort=false
     colorPalette={['#d97706']}
-    title="Diferença para o preço médio do país, em cêntimos por litro"
+    title="Diferença para o preço médio da zona escolhida, em cêntimos por litro"
     yFmt='+0.0;-0.0'
     labels=true
     xAxisTitle=false
     yAxisTitle=false
 />
 
-<DataTable data={grupos}>
+<DataTable data={grupos} emptySet="pass" emptyMessage="Sem postos nesta zona.">
     <Column id=grupo title="Grupo de marcas" />
     <Column id=postos title="Postos" fmt="#,##0" />
     <Column id=media title="Preço médio (€/L)" fmt='0.000' />
@@ -104,13 +118,13 @@ Os hiper e supermercados são Intermarché, Pingo Doce, Auchan, E.Leclerc e Rech
 
 ```sql tipos
 select station_type as tipo, count(*) as postos, avg(price) as media
-from combustiveis.postos
-where fuel = '${inputs.combustivel.value}' and is_current
+from ${zona}
+where is_current
 group by all
 order by media
 ```
 
-<DataTable data={tipos}>
+<DataTable data={tipos} emptySet="pass" emptyMessage="Sem postos nesta zona.">
     <Column id=tipo title="Tipo de posto" />
     <Column id=postos title="Postos" fmt="#,##0" />
     <Column id=media title="Preço médio (€/L)" fmt='0.000' />
@@ -119,16 +133,15 @@ order by media
 ## Por marca
 
 ```sql marcas
-select label as marca, stations as postos, avg_price as media, min_price as minimo, max_price as maximo
-from combustiveis.postos_diario
-where fuel = '${inputs.combustivel.value}'
-    and dimension = 'Marca'
-    and snapshot_date = (select max(snapshot_date) from combustiveis.postos_diario)
-    and stations >= 10
+select brand as marca, count(*) as postos, avg(price) as media, min(price) as minimo, max(price) as maximo
+from ${zona}
+where is_current
+group by all
+having count(*) >= 3
 order by media
 ```
 
-<DataTable data={marcas} rows=30 emptySet="pass" emptyMessage="Nenhuma marca com pelo menos 10 postos.">
+<DataTable data={marcas} rows=30 emptySet="pass" emptyMessage="Nenhuma marca com pelo menos 3 postos nesta zona.">
     <Column id=marca title="Marca" />
     <Column id=postos title="Postos" fmt="#,##0" />
     <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale colorScale=negative />
@@ -136,46 +149,71 @@ order by media
     <Column id=maximo title="Máximo" fmt='0.000' />
 </DataTable>
 
-Só as marcas com pelo menos 10 postos.
+Só as marcas com pelo menos 3 postos na zona escolhida.
 
-## Por distrito
+## Por distrito e por concelho
 
 ```sql distritos
-select label as distrito, stations as postos, avg_price as media
-from combustiveis.postos_diario
-where fuel = '${inputs.combustivel.value}'
-    and dimension = 'Distrito'
-    and snapshot_date = (select max(snapshot_date) from combustiveis.postos_diario)
+select district as distrito, count(*) as postos, avg(price) as media
+from combustiveis.postos
+where fuel = '${inputs.combustivel.value}' and is_current
+group by all
 order by media
 ```
 
-<DataTable data={distritos} rows=20>
-    <Column id=distrito title="Distrito" />
-    <Column id=postos title="Postos" fmt="#,##0" />
-    <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale colorScale=negative />
-</DataTable>
+```sql concelhos
+select municipality as concelho, district as distrito, count(*) as postos, avg(price) as media, min(price) as minimo
+from combustiveis.postos
+where fuel = '${inputs.combustivel.value}'
+    and is_current
+    and district like '${inputs.distrito.value}'
+group by all
+having count(*) >= 3
+order by media
+```
+
+<Tabs>
+    <Tab label="Concelhos">
+        <DataTable data={concelhos} rows=15 search=true emptySet="pass" emptyMessage="Nenhum concelho com pelo menos 3 postos.">
+            <Column id=concelho title="Concelho" />
+            <Column id=distrito title="Distrito" />
+            <Column id=postos title="Postos" fmt="#,##0" />
+            <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale colorScale=negative />
+            <Column id=minimo title="Mais barato" fmt='0.000' />
+        </DataTable>
+    </Tab>
+    <Tab label="Distritos">
+        <DataTable data={distritos} rows=20>
+            <Column id=distrito title="Distrito" />
+            <Column id=postos title="Postos" fmt="#,##0" />
+            <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale colorScale=negative />
+        </DataTable>
+    </Tab>
+</Tabs>
+
+Os concelhos com pelo menos 3 postos, do mais barato para o mais caro (no distrito escolhido, ou em todo o continente).
 
 ## Os mais baratos e os mais caros
 
 ```sql baratos
 select station_name, brand, municipality, district, price, updated_at
-from combustiveis.postos
-where fuel = '${inputs.combustivel.value}' and is_current
+from ${zona}
+where is_current
 order by price, station_name
 limit 10
 ```
 
 ```sql caros
 select station_name, brand, municipality, district, price, updated_at
-from combustiveis.postos
-where fuel = '${inputs.combustivel.value}' and is_current
+from ${zona}
+where is_current
 order by price desc, station_name
 limit 10
 ```
 
 <Tabs>
     <Tab label="Mais baratos">
-        <DataTable data={baratos}>
+        <DataTable data={baratos} emptySet="pass" emptyMessage="Sem postos nesta zona.">
             <Column id=station_name title="Posto" />
             <Column id=brand title="Marca" />
             <Column id=municipality title="Concelho" />
@@ -184,7 +222,7 @@ limit 10
         </DataTable>
     </Tab>
     <Tab label="Mais caros">
-        <DataTable data={caros}>
+        <DataTable data={caros} emptySet="pass" emptyMessage="Sem postos nesta zona.">
             <Column id=station_name title="Posto" />
             <Column id=brand title="Marca" />
             <Column id=municipality title="Concelho" />
@@ -193,6 +231,75 @@ limit 10
         </DataTable>
     </Tab>
 </Tabs>
+
+## Concorrência
+
+Um posto sem concorrentes por perto pode cobrar mais? Para cada posto, conta-se quantos outros há num raio de 5 km (em linha reta) e compara-se o preço com a média do próprio concelho, para não confundir com a diferença entre regiões. Ficam de fora os postos de autoestrada e de hipermercado.
+
+```sql concorrencia_base
+select
+    *,
+    case
+        when competitors_5km = 0 then '0'
+        when competitors_5km <= 2 then '1 a 2'
+        when competitors_5km <= 5 then '3 a 5'
+        when competitors_5km <= 10 then '6 a 10'
+        else '11 ou mais'
+    end as concorrentes,
+    case
+        when competitors_5km = 0 then 1
+        when competitors_5km <= 2 then 2
+        when competitors_5km <= 5 then 3
+        when competitors_5km <= 10 then 4
+        else 5
+    end as ordem,
+    (price - avg(price) over (partition by municipality)) * 100 as vs_concelho
+from combustiveis.postos
+where fuel = '${inputs.combustivel.value}'
+    and is_current
+    and station_type = 'Outro'
+    and competitors_5km is not null
+```
+
+```sql concorrencia
+select concorrentes, ordem, count(*) as postos, avg(price) as media, avg(vs_concelho) as vs_concelho
+from ${concorrencia_base}
+group by all
+order by ordem
+```
+
+<BarChart
+    data={concorrencia}
+    x=concorrentes
+    y=vs_concelho
+    sort=false
+    colorPalette={['#64748b']}
+    title="Diferença para a média do concelho, em cêntimos por litro, pelo número de concorrentes a 5 km"
+    yFmt='+0.0;-0.0'
+    labels=true
+    xAxisTitle="Concorrentes a 5 km"
+    yAxisTitle=false
+/>
+
+```sql concorrencia_grupos
+select
+    brand_segment as grupo,
+    avg(vs_concelho) filter (where competitors_5km <= 2) as isolados,
+    avg(vs_concelho) filter (where competitors_5km > 2) as com_concorrencia,
+    count(*) filter (where competitors_5km <= 2) as postos_isolados
+from ${concorrencia_base}
+group by all
+order by isolados desc
+```
+
+<DataTable data={concorrencia_grupos} emptySet="pass">
+    <Column id=grupo title="Grupo de marcas" />
+    <Column id=postos_isolados title="Postos com 0 a 2 concorrentes" fmt="#,##0" />
+    <Column id=isolados title="Diferença para o concelho (cêntimos)" fmt='+0.0;-0.0' />
+    <Column id=com_concorrencia title="Com 3 ou mais concorrentes" fmt='+0.0;-0.0' />
+</DataTable>
+
+É uma fotografia de um dia: a análise com mais pormenor está em [docs/analises](https://github.com/JoseFerrao20/combustiveis-pt/blob/main/docs/analises/concorrencia-postos.md).
 
 ## Ao longo do tempo
 
