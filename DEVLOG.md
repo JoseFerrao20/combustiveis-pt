@@ -115,8 +115,9 @@
   - **Feito:** o `PointMap` usa os mosaicos do OpenStreetMap, com a atribuição "© OpenStreetMap" (o uso é gratuito para sites com pouco tráfego). O endereço vai como texto JavaScript (`basemap={'…{z}/{x}/{y}.png'}`), porque, escrito como atributo, o Svelte lê as chavetas como código e o build falha. A captura da secção de concorrência entrou no README.
   - **Lição:** um serviço externo pode mudar as regras sem aviso. Só se deu por isto por causa da captura; os testes não olham para o fundo do mapa.
 
+- **2026-10-28 (sessão cloud do Claude Code):** captura do mapa dos postos no README, já com o fundo do OpenStreetMap (o domínio dos mosaicos passou a estar nos permitidos da sessão). A captura é do site publicado, com os dados reais.
+
 ## Plano
 
-1. **Captura do mapa para o README:** precisa de `tile.openstreetmap.org` nos domínios permitidos da sessão.
-2. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar.
-3. **Talvez:** as 10 semanas soltas de Portugal nas tabelas de impostos; Eslováquia e Espanha; avisar a Comissão dos erros nas tabelas.
+1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar.
+2. **Talvez:** as 10 semanas soltas de Portugal nas tabelas de impostos; Eslováquia e Espanha; avisar a Comissão dos erros nas tabelas.
