@@ -43,8 +43,8 @@ def row(**changes: object) -> dict[str, object]:
 def test_reads_the_sample_of_the_real_response() -> None:
     prices = read_prices(SAMPLE.read_bytes(), DAY)
 
-    assert len(prices) == 128
-    assert len({p.station_id for p in prices}) == 30
+    assert len(prices) == 156
+    assert len({p.station_id for p in prices}) == 37
     assert {p.fuel for p in prices} >= {"gasolina_95", "gasoleo"}
     assert {p.snapshot_date for p in prices} == {DAY}
     assert all(0.5 < p.price < 4 for p in prices)
@@ -107,7 +107,7 @@ def test_snapshot_is_one_parquet_per_day(tmp_path: Path) -> None:
     assert target == tmp_path / "2026-10-28.parquet"
     db = duckdb.connect()
     rows = db.sql(f"SELECT count(*), min(snapshot_date), max(price) FROM '{target}'").fetchall()
-    assert rows[0][0] == 128
+    assert rows[0][0] == 156
     assert rows[0][1] == DAY
     columns = {
         name: kind for name, kind, *_ in db.sql(f"DESCRIBE SELECT * FROM '{target}'").fetchall()
@@ -126,7 +126,7 @@ def test_a_snapshot_has_one_day(tmp_path: Path) -> None:
 def test_command_line(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     args = ["dgeg", "--ficheiro", str(SAMPLE), "--destino", str(tmp_path), "--data", "2026-10-28"]
     assert cli.main(args) == 0
-    assert "128 preços de 30 postos, do dia 2026-10-28" in capsys.readouterr().out
+    assert "156 preços de 37 postos, do dia 2026-10-28" in capsys.readouterr().out
     assert (tmp_path / "2026-10-28.parquet").exists()
 
 

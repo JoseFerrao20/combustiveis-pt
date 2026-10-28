@@ -117,7 +117,14 @@
 
 - **2026-10-28 (sessão cloud do Claude Code):** captura do mapa dos postos no README, já com o fundo do OpenStreetMap (o domínio dos mosaicos passou a estar nos permitidos da sessão). A captura é do site publicado, com os dados reais.
 
+- **2026-10-28 (sessão cloud do Claude Code):** página "Postos acompanhados".
+  - **Feito:** o seed `tracked_stations` tem os postos a seguir, pelo id da DGEG: o Auchan Gondomar I (Estrada da Circunvalação, Rio Tinto, ao lado do Parque Nascente) e o Auchan Viseu (Quinta da Alagoa, junto ao Palácio do Gelo). Para cada um, por dia e combustível, `rpt_tracked_stations_daily` tem o preço, a média e o mínimo dos concorrentes a 5 km, a posição entre eles e a média do concelho. `rpt_tracked_station_competitors` lista os concorrentes da última fotografia. A página mostra os números do dia, um mapa com o posto a vermelho, a tabela dos concorrentes e, quando houver mais de 5 dias, a evolução.
+  - **Primeiro dia (28/10/2026, gasolina 95):** o Auchan da Circunvalação é o mais barato dos 56 postos a 5 km (1,919 €, empatado com o Auchan de Campanhã), 16 cêntimos abaixo da média. O de Viseu é o 2.º de 20 (1,969 €), atrás do Intermarché de Viseu (1,959 €), e 10 cêntimos abaixo da média.
+  - **Amostra dos testes:** o `make_dgeg_sample.py` junta os postos acompanhados e os três mais próximos de cada um, para a página ter dados no CI. Passou de 30 para 37 postos.
+  - **Lição:** o `Value` do Evidence deixa um espaço antes da pontuação a seguir; frases com vários valores ficam melhor montadas no SQL.
+
 ## Plano
 
-1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar.
-2. **Talvez:** as 10 semanas soltas de Portugal nas tabelas de impostos; Eslováquia e Espanha; avisar a Comissão dos erros nas tabelas.
+1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
+2. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 dias).
+3. **Talvez:** as 10 semanas soltas de Portugal nas tabelas de impostos; Eslováquia e Espanha; avisar a Comissão dos erros nas tabelas.
