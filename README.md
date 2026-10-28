@@ -17,11 +17,13 @@ Na semana de 19/10/2026, um litro de gasolina 95 custava 2,099 € em Portugal:
 
 Quase **47 %** do preço são impostos. A decomposição bate certo com o preço publicado ao cêntimo, e essa verificação faz parte dos testes.
 
-**Painel:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado duas vezes por semana.
+**Painel:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado todos os dias.
 
 ![A página inicial do painel: preço da gasolina 95 em Portugal, dividido em produto, ISP e outros impostos e IVA, e a evolução desde 2005](docs/images/painel-inicio.png)
 
 ![Portugal comparado com Espanha e com a média da UE, e o preço em cada país dividido em produto e impostos](docs/images/painel-comparacao.png)
+
+![Página "Postos em Portugal": o preço médio da gasolina 95 no continente e o mapa com os mais de 3000 postos, coloridos pelo preço](docs/images/painel-postos.png)
 
 ![Página "Postos em Portugal": os postos mais baratos do continente e a diferença de preço para a média do concelho pelo número de concorrentes a 5 km](docs/images/painel-concorrencia.png)
 
