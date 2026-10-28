@@ -1,0 +1,43 @@
+name: Fotografia DGEG
+
+# Todos os dias, a fotografia dos preços de cada posto em Portugal (portal da DGEG), guardada
+# no ramo `dados` (dgeg/AAAA-MM-DD.parquet). A DGEG só mostra o preço em vigor: o histórico é
+# este ramo (ADR 0003). O painel (pages.yml) lê-o mais tarde, na mesma manhã.
+on:
+  schedule:
+    - cron: "41 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dados
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - run: uv sync --locked
+      - run: uv run combustiveis dgeg --destino snapshot
+      - name: Guardar no ramo dados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin dados; then
+            git fetch --depth=1 origin dados:refs/remotes/origin/dados
+            git worktree add dados origin/dados
+          else
+            git worktree add --orphan -b dados dados
+          fi
+          mkdir -p dados/dgeg
+          cp snapshot/*.parquet dados/dgeg/
+          cd dados
+          git add dgeg
+          git diff --cached --quiet || git commit -m "DGEG snapshot $(ls ../snapshot)"
+          git push origin HEAD:dados

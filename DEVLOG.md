@@ -81,9 +81,25 @@
   - **Testado e posto de lado:** usar o imposto em vigor no fim da semana, em vez do de segunda-feira. Explicaria seis das semanas soltas, mas as diferenças pioram em todos os países (de 6377 para 6831 semanas).
   - **Lição:** um patamar constante é um erro de cópia na fonte. Vale a pena comparar o valor que os preços implicam com o da tabela, algarismo a algarismo.
 
+- **2026-10-28 (sessão cloud do Claude Code):** preços de cada posto em Portugal (DGEG), com uma página nova no painel.
+  - **Fonte:** os termos do portal (rodapé) permitem a reutilização, desde que se identifique a DGEG, se mostre a data e hora de atualização de cada preço e não se altere a informação. Não há API documentada, mas a página de pesquisa usa uma API JSON, e um pedido traz os 12 715 preços de 3204 postos em menos de 2 segundos. O dados.gov.pt tem a lista dos postos, sem preços. O José aceitou usar o portal assim ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md), que revê em parte o 0001).
+  - **Feito:**
+    - `combustiveis dgeg`: leitura validada, como a do boletim (13 testes novos, 35 no total, 98 % de cobertura), com uma amostra real de 30 postos;
+    - dbt: `stg_dgeg__station_prices`, `fct_station_prices` (com o grupo da marca e `is_current`), dois modelos para o painel e avisos para preços fora de 0,50–4 € e para a média da DGEG longe do boletim (> 5 %);
+    - workflow `dgeg.yml`: uma fotografia por dia no ramo `dados`. O `pages.yml` passa a correr todos os dias e junta o histórico desse ramo;
+    - página "Postos em Portugal": mapa dos postos, diferença por grupo de marcas, tipo de posto, marcas, distritos, os 10 mais baratos e os 10 mais caros, e a evolução (quando houver dias suficientes).
+  - **Primeiros números** (gasolina 95, 28/10/2026):
+    - média de 2,086 € (o boletim dá 2,099 € para 19/10);
+    - os hiper e supermercados ficam 9,3 cêntimos abaixo da média e as petrolíferas 2,4 acima;
+    - nas autoestradas, 2,154 €;
+    - Braga é o distrito mais barato (2,071 €) e Beja o mais caro (2,112 €).
+  - **Lições:**
+    - a lista que a API devolve diz quantos preços há no total (`Quantidade`): comparar com o número de linhas apanha uma página cortada;
+    - há preços que os postos não atualizam há mais de um ano: as médias usam só os dos últimos 30 dias;
+    - o gráfico de barras a começar no zero escondia 12 cêntimos de diferença: o painel mostra a diferença para a média.
+
 ## Plano
 
-1. **Talvez:** as 10 semanas soltas de Portugal, uma a uma, e os outros países com muitas diferenças (Eslováquia e Espanha), com o mesmo método.
-2. **Talvez:** guardar o histórico das descargas (cada ficheiro tem um SHA-256 no manifesto) para ver quando a Comissão corrige semanas antigas.
-3. **Talvez:** um teste do painel no CI (Playwright sobre o build da amostra).
-4. **Talvez:** avisar a Comissão (DG ENER) dos erros encontrados nas tabelas, com as análises em `docs/analises/`.
+1. **Ver o ramo `dados` a crescer** nos primeiros dias e o mapa no site publicado (aqui, os mosaicos do mapa estão bloqueados). Depois, a captura da página "Postos em Portugal" para o README.
+2. **Com algumas semanas de histórico:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim para o preço, e se o padrão se repete por distrito.
+3. **Talvez:** as 10 semanas soltas de Portugal nas tabelas de impostos; Eslováquia e Espanha; um teste do painel no CI; avisar a Comissão dos erros nas tabelas.

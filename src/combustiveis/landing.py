@@ -13,6 +13,7 @@ from pathlib import Path
 
 import duckdb
 
+from .dgeg import StationPrice
 from .parse import Bulletin
 
 PRICES_SCHEMA = {
@@ -30,6 +31,24 @@ TAXES_SCHEMA = {
     "value": "DOUBLE",
 }
 
+STATIONS_SCHEMA = {
+    "snapshot_date": "DATE",
+    "station_id": "BIGINT",
+    "name": "VARCHAR",
+    "brand": "VARCHAR",
+    "station_type": "VARCHAR",
+    "district": "VARCHAR",
+    "municipality": "VARCHAR",
+    "address": "VARCHAR",
+    "locality": "VARCHAR",
+    "postal_code": "VARCHAR",
+    "latitude": "DOUBLE",
+    "longitude": "DOUBLE",
+    "fuel": "VARCHAR",
+    "price": "DOUBLE",
+    "updated_at": "TIMESTAMP",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class Manifest:
@@ -41,7 +60,7 @@ class Manifest:
     taxes: int
 
 
-def _write_parquet(rows: list[dict[str, object]], schema: dict[str, str], target: Path) -> None:
+def write_parquet(rows: list[dict[str, object]], schema: dict[str, str], target: Path) -> None:
     # CSV temporário e COPY do DuckDB: tipos explícitos e Parquet sem precisar do pyarrow.
     with tempfile.TemporaryDirectory() as tmp:
         staging = Path(tmp) / "rows.csv"
@@ -59,10 +78,8 @@ def _write_parquet(rows: list[dict[str, object]], schema: dict[str, str], target
 def write_landing(bulletin: Bulletin, data: bytes, source_url: str, directory: Path) -> Manifest:
     """Escreve prices.parquet, taxes.parquet e manifest.json em ``directory``."""
     directory.mkdir(parents=True, exist_ok=True)
-    _write_parquet(
-        [asdict(p) for p in bulletin.prices], PRICES_SCHEMA, directory / "prices.parquet"
-    )
-    _write_parquet([asdict(t) for t in bulletin.taxes], TAXES_SCHEMA, directory / "taxes.parquet")
+    write_parquet([asdict(p) for p in bulletin.prices], PRICES_SCHEMA, directory / "prices.parquet")
+    write_parquet([asdict(t) for t in bulletin.taxes], TAXES_SCHEMA, directory / "taxes.parquet")
     manifest = Manifest(
         source_url=source_url,
         downloaded_at=datetime.now(UTC).isoformat(timespec="seconds"),
@@ -75,3 +92,14 @@ def write_landing(bulletin: Bulletin, data: bytes, source_url: str, directory: P
         json.dumps(asdict(manifest), indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     return manifest
+
+
+def write_station_snapshot(prices: list[StationPrice], directory: Path) -> Path:
+    """Escreve a fotografia de um dia dos preços da DGEG em ``directory/AAAA-MM-DD.parquet``."""
+    days = {p.snapshot_date for p in prices}
+    if len(days) != 1:
+        raise ValueError(f"Uma fotografia é de um só dia, e esta tem {sorted(days)}")
+    directory.mkdir(parents=True, exist_ok=True)
+    target = directory / f"{days.pop().isoformat()}.parquet"
+    write_parquet([asdict(p) for p in prices], STATIONS_SCHEMA, target)
+    return target

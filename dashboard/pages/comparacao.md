@@ -1,4 +1,5 @@
 ---
+sidebar_position: 1
 title: Portugal e a Europa
 ---
 

@@ -3,15 +3,16 @@ name: Painel
 # Descarrega o boletim, corre o dbt e publica o painel (dashboard/) no GitHub Pages. Em
 # Settings → Pages, a origem tem de ser "GitHub Actions".
 #
-# Corre a cada push na main e duas vezes por semana (terça e quinta, de manhã em UTC): o
-# boletim traz os preços de segunda e sai nos dias seguintes. Uma execução agendada que falhe
-# chega por email a quem mudou o cron por último. O GitHub desliga os agendamentos de um
-# repositório público sem atividade há 60 dias; volta-se a ligá-los em Actions → Painel.
+# Corre a cada push na main e todos os dias de manhã (UTC), depois da fotografia da DGEG
+# (dgeg.yml): os preços dos postos mudam todos os dias, e o boletim europeu sai uma vez por
+# semana. Uma execução agendada que falhe chega por email a quem mudou o cron por último. O
+# GitHub desliga os agendamentos de um repositório público sem atividade há 60 dias; volta-se a
+# ligá-los em Actions → Painel.
 on:
   push:
     branches: [main]
   schedule:
-    - cron: "53 5 * * 2,4"
+    - cron: "53 5 * * *"
   workflow_dispatch:
 
 permissions:
@@ -38,6 +39,17 @@ jobs:
       # Falha se o boletim não tiver uma semana dos últimos 15 dias (falta mais de uma
       # publicação): é a forma de dar conta de uma fonte parada ou de um link que mudou.
       - run: uv run combustiveis ingest --idade-maxima 15
+      # O histórico da DGEG está no ramo dados (dgeg.yml); junta-se a fotografia de agora, para
+      # o painel ter o dia de hoje mesmo que a fotografia da manhã tenha falhado. Se o portal
+      # não responder, chega o histórico; sem nenhum dos dois, o passo falha.
+      - name: Fotografias da DGEG
+        run: |
+          mkdir -p data/landing/dgeg
+          if git ls-remote --exit-code --heads origin dados; then
+            git fetch --depth=1 origin dados
+            git archive FETCH_HEAD dgeg | tar -x -C data/landing
+          fi
+          uv run combustiveis dgeg || ls data/landing/dgeg/*.parquet
       - run: uv run dbt build --project-dir transform --profiles-dir transform
       - name: Painel (Evidence)
         working-directory: dashboard

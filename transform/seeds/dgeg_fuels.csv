@@ -1,0 +1,8 @@
+fuel,name,wob_product,in_dashboard
+gasolina_95,Gasolina 95,euro95,true
+gasolina_95_especial,Gasolina 95 especial,,false
+gasolina_98,Gasolina 98,,true
+gasolina_98_especial,Gasolina 98 especial,,false
+gasoleo,Gasóleo,diesel,true
+gasoleo_especial,Gasóleo especial,,false
+gpl,GPL auto,lpg,true
