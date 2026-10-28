@@ -54,7 +54,5 @@ Valores em euros por 1000 L.
 
 ## Por ver
 
-- **Portugal**, com o mesmo método: as diferenças também são constantes por períodos.
-  - Em 2008–2011 são de 64 € na gasolina e 86 € no gasóleo, os valores com que a contribuição de serviço rodoviário começou em 2008. Isso sugere que a tabela de outros impostos não a tinha nesses anos, mas falta confirmar.
-  - Há outros patamares por explicar: 90 € na gasolina em 2016–2018, 126 € em 2020 e 153 € no gasóleo em 2021–2022.
+- **Portugal:** feito em [impostos-portugal.md](impostos-portugal.md).
 - **Outros países com muitas diferenças:** Eslováquia (40 % das semanas) e Espanha (20 %).

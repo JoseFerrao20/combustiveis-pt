@@ -18,7 +18,7 @@ As três partes somam sempre o preço publicado. As tabelas de ISP e de outros i
 
 ## Limitações
 
-- Em Portugal, as tabelas de ISP e de outros impostos do boletim batem certo com o preço ao cêntimo em muitos anos, mas não em 2008–2011, 2016–2018 e 2025: aí faltam valores, ou estão trocados entre as duas tabelas. A divisão acima não depende dessas tabelas, por isso não é afetada.
+- Em Portugal, as tabelas de ISP e de outros impostos do boletim batem certo com o preço ao cêntimo na maior parte dos anos. Nos outros há erros nas próprias tabelas: a contribuição de serviço rodoviário em falta de 2008 a 2011, valores com um algarismo a menos (12,15 em vez de 102,15) e dois valores do ISP trocados em 2025. A divisão acima não depende dessas tabelas, por isso não é afetada. A [análise](https://github.com/JoseFerrao20/combustiveis-pt/blob/main/docs/analises/impostos-portugal.md) mostra cada caso.
 - Na Lituânia (2015–2024) e nos Países Baixos (2011–2023), as tabelas de impostos do boletim ficaram com valores antigos ou incompletos; os preços batem certo com as taxas de cada país. A análise está em [docs/analises](https://github.com/JoseFerrao20/combustiveis-pt/blob/main/docs/analises/impostos-lituania-paises-baixos.md).
 - Há erros de uma semana no próprio boletim (por exemplo, nos fuelóleos da Irlanda e da Bélgica). Estão listados no projeto, com a explicação, e os testes de dados ignoram essas semanas.
 - As médias da UE e da zona euro são ponderadas pelo consumo de cada país.
