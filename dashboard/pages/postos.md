@@ -70,6 +70,8 @@ where is_current and latitude is not null
     valueFmt='0.000'
     pointName=station_name
     height=600
+    basemap={'https://tile.openstreetmap.org/{z}/{x}/{y}.png'}
+    attribution={'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}
     tooltip={[
         {id: 'station_name', showColumnName: false, valueClass: 'font-semibold'},
         {id: 'brand', title: 'Marca'},
