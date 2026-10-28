@@ -128,7 +128,7 @@ where fuel = '${inputs.combustivel.value}'
 order by media
 ```
 
-<DataTable data={marcas} rows=30>
+<DataTable data={marcas} rows=30 emptySet="pass" emptyMessage="Nenhuma marca com pelo menos 10 postos.">
     <Column id=marca title="Marca" />
     <Column id=postos title="Postos" fmt="#,##0" />
     <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale colorScale=negative />
