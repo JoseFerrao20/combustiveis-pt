@@ -96,7 +96,7 @@ npm run sources                                    # lê o Parquet (precisa de a
 npm run dev                                        # abre o painel no browser
 ```
 
-O workflow `pages.yml` faz tudo a cada push na `main` e duas vezes por semana (terça e quinta de manhã, depois de o boletim sair): descarrega o boletim, corre o dbt e publica o painel no GitHub Pages. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa.
+O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã: descarrega o boletim, junta as fotografias diárias da DGEG (workflow `dgeg.yml`, ramo `dados`), corre o dbt e publica o painel no GitHub Pages. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa.
 
 ## Desenvolvimento
 
