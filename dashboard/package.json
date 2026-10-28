@@ -22,7 +22,7 @@
     "@evidence-dev/evidence": "40.1.8"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1",
+    "@playwright/test": "1.64.1",
     "patch-package": "8.0.1",
     "typescript": "5.4.2"
   }
