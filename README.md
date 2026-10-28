@@ -23,7 +23,7 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 
 ![Portugal comparado com Espanha e com a média da UE, e o preço em cada país dividido em produto e impostos](docs/images/painel-comparacao.png)
 
-![Página "Postos em Portugal": o preço médio da gasolina 95 no continente e o mapa com os mais de 3000 postos, coloridos pelo preço](docs/images/painel-postos.png)
+![Página "Postos em Portugal": o mapa com os mais de 3000 postos, coloridos do mais barato (verde) ao mais caro (vermelho), e por baixo a tabela dos postos que se veem no mapa, do mais barato para o mais caro](docs/images/painel-postos.png)
 
 ![Página "Postos em Portugal": os postos mais baratos do continente e a diferença de preço para a média do concelho pelo número de concorrentes a 5 km](docs/images/painel-concorrencia.png)
 
@@ -53,7 +53,7 @@ flowchart LR
 | **Transformação**: modelos dbt em DuckDB (staging, imposto em vigor em cada semana com `ASOF JOIN`, decomposição do preço), testes de dados e testes unitários do dbt | ✅ |
 | **Painel**: site estático com o Evidence no GitHub Pages ([joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/)): a divisão do preço, a evolução desde 2005 e a comparação com a Europa | ✅ |
 | **Agendamento**: o GitHub Actions corre tudo todos os dias, e falha (com email) se o boletim deixar de ser atualizado | ✅ |
-| **Postos em Portugal**: fotografia diária dos preços de cada posto (portal da DGEG), guardada no ramo `dados`; no painel, um mapa e as médias por grupo de marcas, marca e distrito ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md)) | ✅ |
+| **Postos em Portugal**: fotografia diária dos preços de cada posto (portal da DGEG), guardada no ramo `dados`; no painel, um mapa com a tabela dos postos que se veem, do mais barato para o mais caro (segue o zoom e os filtros de distrito e concelho), e as médias por grupo de marcas, marca e distrito ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md)) | ✅ |
 | **Postos acompanhados**: alguns postos seguidos dia a dia (seed `tracked_stations`: o Auchan da Circunvalação, no Porto, e o de Viseu), com a posição entre os concorrentes a 5 km e a média do concelho | ✅ |
 
 Decisões: a fonte em [`docs/adr/0001-fonte-weekly-oil-bulletin.md`](docs/adr/0001-fonte-weekly-oil-bulletin.md) e o painel em [`docs/adr/0002-painel-evidence.md`](docs/adr/0002-painel-evidence.md).

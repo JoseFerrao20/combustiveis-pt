@@ -71,6 +71,31 @@ test('os postos mostram preços e o filtro de distrito reduz a lista', async ({ 
 	expect(errors).toEqual([]);
 });
 
+test('a tabela por baixo do mapa vai do mais barato para o mais caro e segue o mapa', async ({ page }) => {
+	const errors = watchErrors(page);
+	await page.goto('postos/');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	await page.waitForLoadState('networkidle');
+
+	const precos = async () =>
+		(await mapa.locator('tbody td:nth-child(5)').allInnerTexts()).map((t) =>
+			Number(t.replace(',', '.'))
+		);
+	const primeiros = await precos();
+	expect(primeiros.length).toBeGreaterThan(0);
+	expect(primeiros).toEqual([...primeiros].sort((a, b) => a - b));
+
+	const contagem = async () =>
+		Number((await mapa.locator('p[aria-live]').innerText()).match(/^[\d\s\u00a0]+/)[0].replace(/\D/g, ''));
+	const todos = await contagem();
+	// Escolher um posto na tabela aproxima o mapa dele: a tabela fica só com os que se veem.
+	await mapa.locator('tbody button').first().click();
+	await expect(page.locator('.leaflet-popup-content')).toContainText(EURO);
+	await expect.poll(contagem).toBeLessThan(todos);
+	expect(errors).toEqual([]);
+});
+
 test('os postos acompanhados mostram a posição e os concorrentes', async ({ page }) => {
 	const errors = watchErrors(page);
 	await page.goto('acompanhados/');
