@@ -23,6 +23,8 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 
 ![Portugal comparado com Espanha e com a média da UE, e o preço em cada país dividido em produto e impostos](docs/images/painel-comparacao.png)
 
+![Página "Postos em Portugal": os postos mais baratos do continente e a diferença de preço para a média do concelho pelo número de concorrentes a 5 km](docs/images/painel-concorrencia.png)
+
 ## Perguntas
 
 - Quanto do preço é imposto, e como mudou desde 2005?
