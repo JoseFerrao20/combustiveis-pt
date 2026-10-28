@@ -117,6 +117,13 @@
 
 - **2026-10-28 (sessão cloud do Claude Code):** captura do mapa dos postos no README, já com o fundo do OpenStreetMap (o domínio dos mosaicos passou a estar nos permitidos da sessão). A captura é do site publicado, com os dados reais.
 
+- **2026-10-28 (sessão cloud do Claude Code):** as últimas semanas de Portugal, a Eslováquia e a Espanha nas tabelas de impostos ([análise](docs/analises/impostos-semanas-eslovaquia-espanha.md)).
+  - **Portugal:** as 10 semanas soltas têm explicação. Em 7, o imposto muda entre terça-feira e domingo e o preço com data de segunda-feira já mostra a mudança toda. Em 9/9/2024 falta na tabela um degrau da taxa de carbono (Portaria n.º 203-A/2024/1), e em 13/7/2026 a tabela repete o ISP da semana seguinte.
+  - **Eslováquia:** a tabela de outros impostos não regista uma subida de 10 € de 2017 a 2024 (714 semanas), e em 2011 adianta uma mudança em duas semanas.
+  - **Espanha:** falta a parte regional do "céntimo sanitario" até setembro de 2008, um valor errado no gasóleo em 2009–2010, três semanas com o preço sem impostos errado e as semanas das mudanças de 2026. Nestas, a diferença é uma fração exata da mudança (4/7 e 5/7), como numa média diária.
+  - **Resultado:** o seed `known_tax_table_issues` tem mais 29 linhas, e o aviso `warn_tax_tables_explain_price` cobre os cinco países e está a zero.
+  - **Lição:** o boletim não calcula o preço da semana da mesma maneira em todos os países. Em Portugal, a mudança aparece inteira; em Espanha, aos bocados. Uma regra única para a data do imposto nunca deixaria o aviso a zero.
+
 - **2026-10-28 (sessão cloud do Claude Code):** página "Postos acompanhados".
   - **Feito:** o seed `tracked_stations` tem os postos a seguir, pelo id da DGEG: o Auchan Gondomar I (Estrada da Circunvalação, Rio Tinto, ao lado do Parque Nascente) e o Auchan Viseu (Quinta da Alagoa, junto ao Palácio do Gelo). Para cada um, por dia e combustível, `rpt_tracked_stations_daily` tem o preço, a média e o mínimo dos concorrentes a 5 km, a posição entre eles e a média do concelho. `rpt_tracked_station_competitors` lista os concorrentes da última fotografia. A página mostra os números do dia, um mapa com o posto a vermelho, a tabela dos concorrentes e, quando houver mais de 5 dias, a evolução.
   - **Primeiro dia (28/10/2026, gasolina 95):** o Auchan da Circunvalação é o mais barato dos 56 postos a 5 km (1,919 €, empatado com o Auchan de Campanhã), 16 cêntimos abaixo da média. O de Viseu é o 2.º de 20 (1,969 €), atrás do Intermarché de Viseu (1,959 €), e 10 cêntimos abaixo da média.
@@ -127,4 +134,4 @@
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
 2. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 dias).
-3. **Talvez:** as 10 semanas soltas de Portugal nas tabelas de impostos; Eslováquia e Espanha; avisar a Comissão dos erros nas tabelas.
+3. **Talvez:** avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.

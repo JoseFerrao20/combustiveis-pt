@@ -54,7 +54,7 @@ A tabela tem as duas linhas, mas com os valores trocados entre si. Por isso as d
 
 Sobram 10 semanas soltas, de 2022 a 2026. Em seis delas, a mudança do imposto tem data entre terça e domingo, e o preço da semana (com data de segunda-feira) já a inclui.
 
-Testou-se usar o imposto em vigor no fim da semana em vez do de segunda-feira. As diferenças acima de 1 € pioraram, de 6377 para 6831 semanas em todos os países, e em Portugal de 10 para 30. Ficou a regra da segunda-feira, e estas semanas ficam no aviso.
+Testou-se usar o imposto em vigor no fim da semana em vez do de segunda-feira. As diferenças acima de 1 € pioraram, de 6377 para 6831 semanas em todos os países, e em Portugal de 10 para 30. Ficou a regra da segunda-feira, e estas semanas ficam no aviso. (Atualização de 28/10/2026: cada uma delas está explicada na [análise das semanas soltas](impostos-semanas-eslovaquia-espanha.md).)
 
 ## O que mudou no projeto
 
