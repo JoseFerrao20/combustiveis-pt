@@ -7,6 +7,10 @@ semanal usa-o para dar conta de uma fonte parada).
 
 ``combustiveis dgeg``: a fotografia de hoje dos preços de cada posto em Portugal (portal da
 DGEG), em ``data/landing/dgeg/AAAA-MM-DD.parquet``.
+
+``combustiveis verificar-dgeg --idade-maxima 2``: falha se a última fotografia da DGEG tiver
+mais de 2 dias, ou se tiver muito menos postos do que a anterior (o agendamento usa-o para dar
+conta de uma recolha parada ou de uma resposta incompleta do portal).
 """
 
 from __future__ import annotations
@@ -16,6 +20,7 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
+from .check import SnapshotError, check_snapshots
 from .dgeg import DgegFormatError, read_prices, search_url
 from .landing import write_landing, write_station_snapshot
 from .parse import FormatError, read_bulletin
@@ -69,6 +74,15 @@ def snapshot(file: Path | None, directory: Path, day: date | None = None) -> int
     return 0
 
 
+def verify_snapshots(directory: Path, max_age_days: int, today: date | None = None) -> int:
+    result = check_snapshots(directory, max_age_days, today or date.today())
+    message = f"Última fotografia da DGEG: {result.latest}, com {result.stations} postos"
+    if result.previous is not None:
+        message += f" ({result.previous_stations} em {result.previous})"
+    print(message)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="combustiveis", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -85,12 +99,33 @@ def main(argv: list[str] | None = None) -> int:
     command.add_argument("--ficheiro", type=Path, help="usar esta resposta (JSON) do portal")
     command.add_argument("--destino", type=Path, default=DEFAULT_DGEG)
     command.add_argument("--data", type=date.fromisoformat, help="o dia da fotografia (hoje)")
+    command = commands.add_parser(
+        "verificar-dgeg", help="confirma que o histórico de fotografias da DGEG está em dia"
+    )
+    command.add_argument("--pasta", type=Path, default=DEFAULT_DGEG)
+    command.add_argument(
+        "--idade-maxima",
+        type=int,
+        default=2,
+        metavar="DIAS",
+        help="falhar se a última fotografia tiver mais de DIAS dias (por omissão, 2)",
+    )
+    command.add_argument("--hoje", type=date.fromisoformat, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     try:
         if args.command == "dgeg":
             return snapshot(args.ficheiro, args.destino, args.data)
+        if args.command == "verificar-dgeg":
+            return verify_snapshots(args.pasta, args.idade_maxima, args.hoje)
         return ingest(args.ficheiro, args.destino, args.idade_maxima)
-    except (SourceError, FormatError, DgegFormatError, StaleError, OSError) as exc:
+    except (
+        SourceError,
+        FormatError,
+        DgegFormatError,
+        StaleError,
+        SnapshotError,
+        OSError,
+    ) as exc:
         print(f"erro: {exc}", file=sys.stderr)
         return 1
 
