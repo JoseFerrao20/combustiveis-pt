@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#15803d"/>
+  <!-- Bomba de combustível -->
+  <rect x="136" y="112" width="176" height="296" rx="24" fill="#ffffff"/>
+  <rect x="164" y="144" width="120" height="84" rx="10" fill="#15803d"/>
+  <rect x="112" y="388" width="224" height="40" rx="12" fill="#ffffff"/>
+  <path d="M312 176 h28 a28 28 0 0 1 28 28 v128 a18 18 0 0 0 36 0 v-150 l-44 -44"
+        fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Seta para baixo: o preço mais baixo -->
+  <path d="M224 262 v76 M194 312 l30 30 l30 -30" fill="none" stroke="#15803d" stroke-width="22"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

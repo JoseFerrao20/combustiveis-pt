@@ -1,6 +1,9 @@
 ---
 sidebar_position: 4
 title: Como se calcula
+description: Como se calcula a parte do preço que é imposto, e de onde vêm os dados.
+og:
+  image: https://joseferrao20.github.io/combustiveis-pt/og.png
 ---
 
 ## Os dados

@@ -135,6 +135,16 @@
   - **Decisão:** os mapas do Evidence não dão os limites do mapa à página, por isso o mapa é um componente próprio (`dashboard/components/MapaPostos.svelte`) com o Leaflet, que já vinha com o Evidence. O resto da página continua com os componentes do Evidence.
   - **Lição:** o store de uma consulta do Evidence pode emitir as mesmas linhas mais de uma vez. Se o mapa se reenquadrar a cada emissão, volta atrás depois de o utilizador mexer: o componente só redesenha quando as linhas mudam.
 
+- **2026-10-29 (sessão cloud do Claude Code):** "Perto de mim", caminho até ao posto e partilha do link.
+  - **Para quê:** partilhar o painel com a família e os amigos, que o vão abrir no telemóvel.
+  - **Feito:**
+    - botão "Perto de mim": centra o mapa na localização (depois de a pessoa autorizar; a posição não sai do telemóvel), e a tabela ganha a distância a cada posto;
+    - botão "Ir" em cada posto, que abre o caminho no Google Maps;
+    - a tabela cabe no telemóvel: abaixo de 640 px, a marca, o concelho e a data passam para debaixo do nome;
+    - o mapa já não passa por cima do cabeçalho ao fazer scroll (erro do PR #16);
+    - descrição e imagem (`og.png`, com o mapa) para a pré-visualização do link, e um ícone próprio (bomba de combustível com uma seta para baixo) para o separador e para o ecrã principal do telemóvel.
+  - **Lições:** a pré-visualização do WhatsApp só aceita a imagem com o endereço completo. O Evidence gera o `manifest.webmanifest` numa rota própria: um ficheiro com o mesmo nome em `static/` parte o build.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.

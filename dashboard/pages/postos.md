@@ -1,6 +1,9 @@
 ---
 title: Postos em Portugal
 sidebar_position: 2
+description: O preço de cada posto de combustível em Portugal, do mais barato para o mais caro, com um mapa e a opção de ver os mais baratos perto de si.
+og:
+  image: https://joseferrao20.github.io/combustiveis-pt/og.png
 ---
 
 O preço de cada posto de Portugal continental, tal como o posto o comunica à Direção-Geral de Energia e Geologia ([precoscombustiveis.dgeg.gov.pt](https://precoscombustiveis.dgeg.gov.pt)). As médias usam só os preços atualizados nos últimos 30 dias.

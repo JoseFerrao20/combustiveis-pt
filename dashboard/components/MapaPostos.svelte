@@ -4,6 +4,10 @@
 	componentes de mapa do Evidence não dão os limites do mapa à página, por isso este usa o
 	Leaflet diretamente (já vem com o Evidence), com os mosaicos do OpenStreetMap.
 
+	"Perto de mim" usa a localização do browser (só depois de a pessoa autorizar; a posição
+	fica no telemóvel) para centrar o mapa e mostrar a distância de cada posto. "Ir" abre o
+	caminho até ao posto no Google Maps (no telemóvel, na aplicação).
+
 	Colunas de `data`: station_name, brand, municipality, price, updated_at, latitude, longitude.
 -->
 <script>
@@ -31,6 +35,12 @@
 	let shown = pageSize;
 	let breaks = [];
 	let drawn = null;
+	/** A posição da pessoa, depois de carregar em "Perto de mim". */
+	let here = null;
+	let hereMarker;
+	let locating = false;
+	let locationError = '';
+	const canLocate = typeof navigator !== 'undefined' && 'geolocation' in navigator;
 
 	$: data?.fetch?.();
 	$: rows = ($data ?? [])
@@ -63,12 +73,59 @@
 		return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
 	}
 
+	/** Distância em linha reta, em km (haversine, como no dbt). */
+	function distanceKm(a, b) {
+		const rad = (deg) => (deg * Math.PI) / 180;
+		const h =
+			Math.sin(rad(b.latitude - a.latitude) / 2) ** 2 +
+			Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(rad(b.longitude - a.longitude) / 2) ** 2;
+		return 2 * 6371 * Math.asin(Math.sqrt(h));
+	}
+
+	const km = (value) =>
+		value.toLocaleString('pt-PT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
+
+	/** O caminho até ao posto no Google Maps (abre a aplicação no telemóvel). */
+	const directions = (row) =>
+		`https://www.google.com/maps/dir/?api=1&destination=${row.latitude},${row.longitude}`;
+
+	function locate() {
+		locating = true;
+		locationError = '';
+		navigator.geolocation.getCurrentPosition(
+			(position) => {
+				locating = false;
+				here = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+				hereMarker?.remove();
+				hereMarker = L.circleMarker([here.latitude, here.longitude], {
+					radius: 8,
+					weight: 3,
+					color: '#ffffff',
+					fillColor: '#2563eb',
+					fillOpacity: 1
+				})
+					.bindTooltip('Está aqui')
+					.addTo(map);
+				// Uns 5 km à volta: chega para ver os postos de uma cidade.
+				map.setView([here.latitude, here.longitude], 13);
+			},
+			(error) => {
+				locating = false;
+				locationError =
+					error.code === error.PERMISSION_DENIED
+						? 'O browser não deu acesso à localização. Pode autorizar nas definições do browser, ou aproximar o mapa à mão.'
+						: 'Não foi possível saber a localização. Tente outra vez, ou aproxime o mapa à mão.';
+			},
+			{ enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
+		);
+	}
+
 	function escape(text) {
 		return String(text ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 	}
 
 	function popup(row) {
-		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}<br><small>Atualizado: ${when(row.updated_at)}</small>`;
+		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}<br><small>Atualizado: ${when(row.updated_at)}</small><br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
 	}
 
 	function draw(rows, signature) {
@@ -123,6 +180,18 @@
 </script>
 
 <div class="mapa-postos my-4" data-postos={drawn === null ? undefined : rows.length}>
+	{#if canLocate}
+		<p class="perto">
+			<button type="button" class="perto-botao" on:click={locate} disabled={locating || !map}>
+				{locating ? 'A procurar…' : here ? 'Atualizar a minha localização' : 'Perto de mim'}
+			</button>
+			<span class="text-sm text-base-content-muted">
+				Centra o mapa onde está, para ver os postos mais baratos à volta. A localização não sai
+				do seu telemóvel.
+			</span>
+		</p>
+		{#if locationError}<p class="text-sm" role="alert">{locationError}</p>{/if}
+	{/if}
 	<div bind:this={element} style="height: {height}px" class="rounded border border-base-300" />
 	{#if breaks.length}
 		<p class="legenda text-sm">
@@ -151,10 +220,12 @@
 				<tr>
 					<th class="num">#</th>
 					<th>Posto</th>
-					<th>Marca</th>
-					<th>Concelho</th>
+					<th class="larga">Marca</th>
+					<th class="larga">Concelho</th>
 					<th class="num">Preço (€/L)</th>
-					<th>Atualizado</th>
+					{#if here}<th class="num">Distância</th>{/if}
+					<th class="larga">Atualizado</th>
+					<th><span class="sr-only">Caminho</span></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -166,11 +237,23 @@
 								<span class="cor" style="background: {color(row.price)}" />
 								{row.station_name}
 							</button>
+							<!-- No telemóvel, a marca, o concelho e a data vão aqui, em vez de colunas. -->
+							<span class="estreita">{row.brand} · {row.municipality} · {when(row.updated_at)}</span>
 						</td>
-						<td>{row.brand}</td>
-						<td>{row.municipality}</td>
+						<td class="larga">{row.brand}</td>
+						<td class="larga">{row.municipality}</td>
 						<td class="num">{euros(row.price).replace(' €', '')}</td>
-						<td>{when(row.updated_at)}</td>
+						{#if here}<td class="num">{km(distanceKm(here, row))}</td>{/if}
+						<td class="larga">{when(row.updated_at)}</td>
+						<td>
+							<a
+								class="ir"
+								href={directions(row)}
+								target="_blank"
+								rel="noopener"
+								aria-label="Ir até {row.station_name} (Google Maps)">Ir</a
+							>
+						</td>
 					</tr>
 				{/each}
 			</tbody>
@@ -184,6 +267,64 @@
 </div>
 
 <style>
+	/* Os painéis do Leaflet têm z-index até 1000: sem um contexto próprio, o mapa passava por
+	   cima do cabeçalho fixo da página ao fazer scroll. */
+	.mapa-postos {
+		position: relative;
+		isolation: isolate;
+		z-index: 0;
+	}
+	.perto {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.75rem;
+	}
+	.perto-botao {
+		padding: 0.5rem 1rem;
+		border-radius: 0.375rem;
+		background: #2563eb;
+		color: #ffffff;
+		font-weight: 600;
+	}
+	.perto-botao:disabled {
+		opacity: 0.7;
+	}
+	.ir {
+		display: inline-block;
+		padding: 0.1rem 0.6rem;
+		border: 1px solid #2563eb;
+		border-radius: 999px;
+		color: #2563eb;
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.estreita {
+		display: none;
+	}
+	@media (max-width: 640px) {
+		.tabela-postos .larga {
+			display: none;
+		}
+		.estreita {
+			display: block;
+			font-size: 0.75rem;
+			opacity: 0.75;
+		}
+		.tabela-postos td,
+		.tabela-postos th {
+			padding: 0.35rem 0.25rem;
+		}
+	}
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+	}
 	.legenda {
 		display: flex;
 		align-items: center;

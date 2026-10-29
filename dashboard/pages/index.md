@@ -1,5 +1,8 @@
 ---
 title: Quanto do preço é imposto?
+description: Quanto do preço da gasolina e do gasóleo são impostos, semana a semana desde 2005, e o preço de cada posto em Portugal.
+og:
+  image: https://joseferrao20.github.io/combustiveis-pt/og.png
 ---
 
 Preços semanais dos combustíveis em Portugal desde 2005, a partir do [Weekly Oil Bulletin](https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en) da Comissão Europeia. Os valores são médias nacionais em euros por litro, não os preços de um posto.
