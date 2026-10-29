@@ -41,3 +41,7 @@ jobs:
           git add dgeg
           git diff --cached --quiet || git commit -m "DGEG snapshot $(ls ../snapshot)"
           git push origin HEAD:dados
+      # Depois de guardar (os dados guardam-se sempre): falha, e o GitHub manda um email, se a
+      # fotografia de hoje tiver muito menos postos do que a de ontem (resposta incompleta ou
+      # portal mudado).
+      - run: uv run combustiveis verificar-dgeg --pasta dados/dgeg --idade-maxima 0

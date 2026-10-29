@@ -153,6 +153,13 @@
     - no telemóvel, o mapa fica com 60 % da altura do ecrã, no máximo, para a tabela aparecer mais cedo.
   - **Lição:** uma página do Evidence sem nenhuma consulta pede um `all-queries.json` que não existe; a página "Análises" tem uma consulta pequena (semanas e postos) por isso.
 
+- **2026-10-29 (sessão cloud do Claude Code):** vigilância do histórico da DGEG.
+  - **Porquê:** a DGEG só mostra o preço em vigor, por isso um dia sem fotografia perde-se para sempre. Até aqui, uma recolha parada ou uma resposta incompleta só se via a olhar para o site.
+  - **Feito:** `combustiveis verificar-dgeg` (`check.py`, com 7 testes) falha se a última fotografia tiver mais de N dias ou se tiver menos 20 % de postos do que a anterior.
+    - O `dgeg.yml` corre-o depois de guardar a fotografia: os dados ficam guardados na mesma, mas o trabalho falha e chega um email.
+    - O `pages.yml` tem um trabalho novo, `vigilancia`, que falha se a última fotografia do ramo `dados` tiver mais de 2 dias, por exemplo se o `dgeg.yml` deixar de correr. Fica à parte do build, para o site continuar a ser publicado.
+  - **Hoje:** 3153 postos a 29/10, contra 3206 a 28/10 (−1,7 %).
+
 - **2026-10-29 (sessão cloud do Claude Code):** "Desde ontem" e o histórico de cada posto.
   - **Feito:**
     - `int_station_price_changes` (dbt, com um teste unitário) calcula, para cada posto e combustível da última fotografia: o preço da fotografia anterior e a diferença, o de há uma semana, o último dia em que o preço mudou e os preços dos últimos 7 dias em texto. O `rpt_stations_latest` junta estas colunas;
