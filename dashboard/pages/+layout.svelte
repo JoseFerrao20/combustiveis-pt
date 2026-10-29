@@ -12,6 +12,7 @@
 	githubRepo="https://github.com/JoseFerrao20/combustiveis-pt"
 	hideTOC={true}
 	hideBreadcrumbs={true}
+	neverShowQueries={true}
 >
 	<slot slot="content" />
 </EvidenceDefaultLayout>
