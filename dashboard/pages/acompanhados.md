@@ -1,6 +1,9 @@
 ---
 title: Postos acompanhados
 sidebar_position: 3
+description: Alguns postos seguidos dia a dia, comparados com os concorrentes a 5 km.
+og:
+  image: https://joseferrao20.github.io/combustiveis-pt/og.png
 ---
 
 Alguns postos seguidos de perto, dia a dia: o preço, comparado com o dos concorrentes num raio de 5 km (em linha reta) e com a média do concelho. Os preços são os que cada posto comunica à Direção-Geral de Energia e Geologia ([precoscombustiveis.dgeg.gov.pt](https://precoscombustiveis.dgeg.gov.pt)).

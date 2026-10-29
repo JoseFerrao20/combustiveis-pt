@@ -96,6 +96,31 @@ test('a tabela por baixo do mapa vai do mais barato para o mais caro e segue o m
 	expect(errors).toEqual([]);
 });
 
+test('"Perto de mim" centra o mapa na localização e mostra a distância', async ({ page, context }) => {
+	// Ao lado do Parque Nascente, no Porto (a amostra dos testes tem os postos à volta).
+	await context.grantPermissions(['geolocation']);
+	await context.setGeolocation({ latitude: 41.1734, longitude: -8.565 });
+	const errors = watchErrors(page);
+	await page.goto('postos/');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+
+	await page.getByRole('button', { name: 'Perto de mim' }).click();
+	await expect(mapa.getByRole('columnheader', { name: 'Distância' })).toBeVisible();
+	await expect(mapa.locator('tbody tr').first()).toContainText(/\d,\d km/);
+	await expect(mapa.getByRole('link', { name: /^Ir até / }).first()).toHaveAttribute(
+		'href',
+		/^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=/
+	);
+	expect(errors).toEqual([]);
+});
+
+test('as páginas têm a descrição e a imagem para a partilha do link', async ({ page }) => {
+	await page.goto('postos/');
+	await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /.+/);
+	await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /^https:.*og\.png$/);
+});
+
 test('os postos acompanhados mostram a posição e os concorrentes', async ({ page }) => {
 	const errors = watchErrors(page);
 	await page.goto('acompanhados/');
