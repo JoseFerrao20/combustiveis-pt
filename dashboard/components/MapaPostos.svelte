@@ -1,0 +1,233 @@
+<!--
+	Mapa dos postos com a tabela dos que se veem, do mais barato para o mais caro. A tabela
+	acompanha o mapa: ao aproximar ou arrastar, fica só com os postos dentro do mapa. Os
+	componentes de mapa do Evidence não dão os limites do mapa à página, por isso este usa o
+	Leaflet diretamente (já vem com o Evidence), com os mosaicos do OpenStreetMap.
+
+	Colunas de `data`: station_name, brand, municipality, price, updated_at, latitude, longitude.
+-->
+<script>
+	import { onDestroy, onMount } from 'svelte';
+	import 'leaflet/dist/leaflet.css';
+
+	/** Resultado de uma consulta do Evidence (um store com as linhas). */
+	export let data;
+	export let height = 520;
+	/** Linhas da tabela de cada vez; "Mostrar mais" junta outras tantas. */
+	export let pageSize = 15;
+
+	// Do mais barato para o mais caro (5 classes, pelos quintis dos preços da zona escolhida).
+	const COLORS = ['#1a9850', '#91cf60', '#fee08b', '#fc8d59', '#d73027'];
+	const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+	const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+
+	let element;
+	let L;
+	let map;
+	let layer;
+	let markers = new Map();
+	let rows = [];
+	let visible = [];
+	let shown = pageSize;
+	let breaks = [];
+	let drawn = null;
+
+	$: data?.fetch?.();
+	$: rows = ($data ?? [])
+		.filter((row) => row.latitude != null && row.longitude != null && row.price != null)
+		.map((row, index) => ({ ...row, key: index }));
+	$: breaks = quantiles(rows.map((row) => row.price));
+	// O store da consulta pode emitir as mesmas linhas mais de uma vez: só se redesenha (e
+	// reenquadra o mapa) quando mudam, senão o mapa voltava atrás depois de o utilizador mexer.
+	$: signature = rows.map((row) => `${row.latitude},${row.longitude},${row.price}`).join(';');
+	$: if (map && L && signature !== drawn) draw(rows, signature);
+
+	function quantiles(prices) {
+		const sorted = [...prices].sort((a, b) => a - b);
+		if (!sorted.length) return [];
+		return [0.2, 0.4, 0.6, 0.8].map((q) => sorted[Math.floor(q * (sorted.length - 1))]);
+	}
+
+	function color(price) {
+		const index = breaks.findIndex((limit) => price <= limit);
+		return COLORS[index === -1 ? COLORS.length - 1 : index];
+	}
+
+	const euros = (value) =>
+		value.toLocaleString('pt-PT', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + ' €';
+
+	function when(value) {
+		if (value == null) return '';
+		const date = value instanceof Date ? value : new Date(value);
+		const pad = (n) => String(n).padStart(2, '0');
+		return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
+	}
+
+	function escape(text) {
+		return String(text ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+	}
+
+	function popup(row) {
+		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}<br><small>Atualizado: ${when(row.updated_at)}</small>`;
+	}
+
+	function draw(rows, signature) {
+		drawn = signature;
+		layer.clearLayers();
+		markers = new Map();
+		// Os mais caros primeiro, para os mais baratos ficarem por cima quando se sobrepõem.
+		for (const row of [...rows].sort((a, b) => b.price - a.price)) {
+			const marker = L.circleMarker([row.latitude, row.longitude], {
+				radius: 5,
+				weight: 1,
+				color: '#ffffff',
+				fillColor: color(row.price),
+				fillOpacity: 0.9
+			}).bindPopup(popup(row));
+			marker.addTo(layer);
+			markers.set(row.key, marker);
+		}
+		if (rows.length) {
+			map.fitBounds(L.latLngBounds(rows.map((row) => [row.latitude, row.longitude])), {
+				padding: [20, 20],
+				maxZoom: 14,
+				animate: false
+			});
+		}
+		update();
+	}
+
+	function update() {
+		const bounds = map.getBounds();
+		visible = rows
+			.filter((row) => bounds.contains([row.latitude, row.longitude]))
+			.sort((a, b) => a.price - b.price || a.station_name.localeCompare(b.station_name));
+		shown = pageSize;
+	}
+
+	function focus(row) {
+		map.setView([row.latitude, row.longitude], Math.max(map.getZoom(), 14));
+		markers.get(row.key)?.openPopup();
+	}
+
+	onMount(async () => {
+		L = (await import('leaflet')).default;
+		map = L.map(element, { preferCanvas: true, scrollWheelZoom: false });
+		L.tileLayer(TILES, { attribution: ATTRIBUTION, maxZoom: 18 }).addTo(map);
+		layer = L.layerGroup().addTo(map);
+		map.setView([39.6, -8.0], 7);
+		map.on('moveend', update);
+	});
+
+	onDestroy(() => map?.remove());
+</script>
+
+<div class="mapa-postos my-4" data-postos={drawn === null ? undefined : rows.length}>
+	<div bind:this={element} style="height: {height}px" class="rounded border border-base-300" />
+	{#if breaks.length}
+		<p class="legenda text-sm">
+			<span>Mais barato</span>
+			{#each COLORS as fill}<span class="cor" style="background: {fill}" />{/each}
+			<span>Mais caro</span>
+			<span class="text-base-content-muted">
+				({euros(Math.min(...rows.map((r) => r.price)))} a {euros(Math.max(...rows.map((r) => r.price)))})
+			</span>
+		</p>
+	{/if}
+
+	<p class="text-sm" aria-live="polite">
+		{#if visible.length}
+			{visible.length.toLocaleString('pt-PT')}
+			{visible.length === 1 ? 'posto' : 'postos'} na parte do mapa que se vê, do mais barato
+			para o mais caro. Aproxime ou arraste o mapa para ver só os de uma zona.
+		{:else}
+			Nenhum posto na parte do mapa que se vê.
+		{/if}
+	</p>
+
+	{#if visible.length}
+		<table class="tabela-postos text-sm">
+			<thead>
+				<tr>
+					<th class="num">#</th>
+					<th>Posto</th>
+					<th>Marca</th>
+					<th>Concelho</th>
+					<th class="num">Preço (€/L)</th>
+					<th>Atualizado</th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each visible.slice(0, shown) as row, index (row.key)}
+					<tr>
+						<td class="num">{index + 1}</td>
+						<td>
+							<button type="button" on:click={() => focus(row)} title="Ver no mapa">
+								<span class="cor" style="background: {color(row.price)}" />
+								{row.station_name}
+							</button>
+						</td>
+						<td>{row.brand}</td>
+						<td>{row.municipality}</td>
+						<td class="num">{euros(row.price).replace(' €', '')}</td>
+						<td>{when(row.updated_at)}</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+		{#if visible.length > shown}
+			<button type="button" class="mais text-sm" on:click={() => (shown += pageSize)}>
+				Mostrar mais ({(visible.length - shown).toLocaleString('pt-PT')} por mostrar)
+			</button>
+		{/if}
+	{/if}
+</div>
+
+<style>
+	.legenda {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		flex-wrap: wrap;
+		margin: 0.5rem 0;
+	}
+	.cor {
+		display: inline-block;
+		width: 0.8rem;
+		height: 0.8rem;
+		border-radius: 999px;
+		vertical-align: middle;
+	}
+	.tabela-postos {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 0.5rem;
+	}
+	.tabela-postos th {
+		text-align: left;
+		font-weight: 600;
+		border-bottom: 1px solid currentColor;
+		padding: 0.25rem 0.5rem;
+	}
+	.tabela-postos td {
+		padding: 0.25rem 0.5rem;
+		border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+	}
+	.tabela-postos .num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+	.tabela-postos button {
+		text-align: left;
+		cursor: pointer;
+	}
+	.tabela-postos button:hover {
+		text-decoration: underline;
+	}
+	.mais {
+		margin-top: 0.5rem;
+		padding: 0.25rem 0.75rem;
+		border: 1px solid rgba(127, 127, 127, 0.5);
+		border-radius: 0.25rem;
+	}
+</style>

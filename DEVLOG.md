@@ -130,6 +130,11 @@
   - **Amostra dos testes:** o `make_dgeg_sample.py` junta os postos acompanhados e os três mais próximos de cada um, para a página ter dados no CI. Passou de 30 para 37 postos.
   - **Lição:** o `Value` do Evidence deixa um espaço antes da pontuação a seguir; frases com vários valores ficam melhor montadas no SQL.
 
+- **2026-10-28 (sessão cloud do Claude Code):** tabela dos postos por baixo do mapa.
+  - **Feito:** na página "Postos em Portugal", o mapa passa a ter por baixo a tabela dos postos que se veem, do mais barato para o mais caro. Ao aproximar ou arrastar o mapa, ou ao filtrar por distrito e concelho, a tabela acompanha. Clicar num posto da tabela aproxima o mapa dele e abre os dados. As cores vão do verde (mais barato) ao vermelho (mais caro), pelos quintis dos preços da zona, e os mais baratos ficam por cima quando os pontos se sobrepõem. A secção "Os mais baratos e os mais caros" fica só com os mais caros.
+  - **Decisão:** os mapas do Evidence não dão os limites do mapa à página, por isso o mapa é um componente próprio (`dashboard/components/MapaPostos.svelte`) com o Leaflet, que já vinha com o Evidence. O resto da página continua com os componentes do Evidence.
+  - **Lição:** o store de uma consulta do Evidence pode emitir as mesmas linhas mais de uma vez. Se o mapa se reenquadrar a cada emissão, volta atrás depois de o utilizador mexer: o componente só redesenha quando as linhas mudam.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.

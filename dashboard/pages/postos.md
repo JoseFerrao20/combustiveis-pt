@@ -57,29 +57,12 @@ from ${zona}
 <BigValue data={resumo} value=maximo title="Mais caro" fmt='0.000 "€"' />
 
 ```sql mapa
-select station_name, brand, municipality, price as "Preço (€/L)", latitude, longitude, updated_at
+select station_name, brand, municipality, price, latitude, longitude, updated_at
 from ${zona}
 where is_current and latitude is not null
 ```
 
-<PointMap
-    data={mapa}
-    lat=latitude
-    long=longitude
-    value='Preço (€/L)'
-    valueFmt='0.000'
-    pointName=station_name
-    height=600
-    basemap={'https://tile.openstreetmap.org/{z}/{x}/{y}.png'}
-    attribution={'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}
-    tooltip={[
-        {id: 'station_name', showColumnName: false, valueClass: 'font-semibold'},
-        {id: 'brand', title: 'Marca'},
-        {id: 'municipality', title: 'Concelho'},
-        {id: 'Preço (€/L)', title: 'Preço', fmt: '0.000 "€"'},
-        {id: 'updated_at', title: 'Atualizado', fmt: 'dd/mm/yyyy hh:mm'}
-    ]}
-/>
+<MapaPostos data={mapa} />
 
 ## Por grupo de marcas
 
@@ -195,15 +178,9 @@ order by media
 
 Os concelhos com pelo menos 3 postos, do mais barato para o mais caro (no distrito escolhido, ou em todo o continente).
 
-## Os mais baratos e os mais caros
+## Os mais caros
 
-```sql baratos
-select station_name, brand, municipality, district, price, updated_at
-from ${zona}
-where is_current
-order by price, station_name
-limit 10
-```
+Os mais baratos estão na tabela por baixo do mapa.
 
 ```sql caros
 select station_name, brand, municipality, district, price, updated_at
@@ -213,26 +190,13 @@ order by price desc, station_name
 limit 10
 ```
 
-<Tabs>
-    <Tab label="Mais baratos">
-        <DataTable data={baratos} emptySet="pass" emptyMessage="Sem postos nesta zona.">
-            <Column id=station_name title="Posto" />
-            <Column id=brand title="Marca" />
-            <Column id=municipality title="Concelho" />
-            <Column id=price title="Preço (€/L)" fmt='0.000' />
-            <Column id=updated_at title="Atualizado" fmt='dd/mm/yyyy hh:mm' />
-        </DataTable>
-    </Tab>
-    <Tab label="Mais caros">
-        <DataTable data={caros} emptySet="pass" emptyMessage="Sem postos nesta zona.">
-            <Column id=station_name title="Posto" />
-            <Column id=brand title="Marca" />
-            <Column id=municipality title="Concelho" />
-            <Column id=price title="Preço (€/L)" fmt='0.000' />
-            <Column id=updated_at title="Atualizado" fmt='dd/mm/yyyy hh:mm' />
-        </DataTable>
-    </Tab>
-</Tabs>
+<DataTable data={caros} emptySet="pass" emptyMessage="Sem postos nesta zona.">
+    <Column id=station_name title="Posto" />
+    <Column id=brand title="Marca" />
+    <Column id=municipality title="Concelho" />
+    <Column id=price title="Preço (€/L)" fmt='0.000' />
+    <Column id=updated_at title="Atualizado" fmt='dd/mm/yyyy hh:mm' />
+</DataTable>
 
 ## Concorrência
 
