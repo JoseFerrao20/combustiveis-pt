@@ -91,8 +91,11 @@ test('a tabela por baixo do mapa vai do mais barato para o mais caro e segue o m
 		Number((await mapa.locator('p[aria-live]').innerText()).match(/^[\d\s\u00a0]+/)[0].replace(/\D/g, ''));
 	const todos = await contagem();
 	// Escolher um posto na tabela aproxima o mapa dele: a tabela fica só com os que se veem.
+	await expect(mapa.getByRole('columnheader', { name: 'Desde ontem' })).toBeVisible();
 	await mapa.locator('tbody button').first().click();
 	await expect(page.locator('.leaflet-popup-content')).toContainText(EURO);
+	// Os preços das últimas fotografias ("28/10: 1,919"), mesmo com uma só (a amostra do CI).
+	await expect(page.locator('.leaflet-popup-content')).toContainText(/Últimos dias: \d\d\/\d\d: \d,\d{3}/);
 	await expect.poll(contagem).toBeLessThan(todos);
 	expect(errors).toEqual([]);
 });
