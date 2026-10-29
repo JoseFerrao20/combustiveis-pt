@@ -42,7 +42,9 @@ where fuel = '${inputs.combustivel.value}'
 ```
 
 ```sql mapa
-select station_name, brand, municipality, price, latitude, longitude, updated_at
+select
+    station_name, brand, municipality, price, latitude, longitude, updated_at,
+    change_since_previous, last_change_date, history_7d
 from ${zona}
 where is_current and latitude is not null
 ```

@@ -9,6 +9,15 @@ models:
       - unique_combination:
           arguments:
             columns: [snapshot_date, station_id]
+  - name: int_station_price_changes
+    description: >
+      A evolução do preço de cada posto e combustível na última fotografia: o preço da
+      fotografia anterior e a diferença, o de há uma semana, o dia da última mudança e os
+      preços dos últimos 7 dias em texto (`history_7d`).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [station_id, fuel]
 
 unit_tests:
   - name: counts_neighbours_by_straight_line_distance
@@ -29,3 +38,31 @@ unit_tests:
         - {station_id: 2, competitors_2km: 1, competitors_5km: 2}
         - {station_id: 3, competitors_2km: 0, competitors_5km: 2}
         - {station_id: 4, competitors_2km: 0, competitors_5km: 0}
+
+  - name: price_changes_compare_with_the_previous_snapshot
+    description: >
+      O posto 1 tem fotografias a 20, 22, 27 e 29/10: muda a 22/10 e outra vez a 29/10. Há uma
+      semana (a última fotografia até 22/10) custava 1,950. O posto 2 só aparece hoje.
+    model: int_station_price_changes
+    given:
+      - input: ref('fct_station_prices')
+        rows:
+          - {snapshot_date: 2026-10-20, station_id: 1, fuel: gasolina_95, price: 1.900}
+          - {snapshot_date: 2026-10-22, station_id: 1, fuel: gasolina_95, price: 1.950}
+          - {snapshot_date: 2026-10-27, station_id: 1, fuel: gasolina_95, price: 1.950}
+          - {snapshot_date: 2026-10-29, station_id: 1, fuel: gasolina_95, price: 1.930}
+          - {snapshot_date: 2026-10-29, station_id: 2, fuel: gasolina_95, price: 1.800}
+    expect:
+      rows:
+        - station_id: 1
+          previous_price: 1.950
+          change_since_previous: -0.020
+          price_7d: 1.950
+          last_change_date: 2026-10-29
+          history_7d: "29/10: 1,930 · 27/10: 1,950"
+        - station_id: 2
+          previous_price: null
+          change_since_previous: null
+          price_7d: null
+          last_change_date: null
+          history_7d: "29/10: 1,800"

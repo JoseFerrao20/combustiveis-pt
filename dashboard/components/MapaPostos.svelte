@@ -8,7 +8,11 @@
 	fica no telemóvel) para centrar o mapa e mostrar a distância de cada posto. "Ir" abre o
 	caminho até ao posto no Google Maps (no telemóvel, na aplicação).
 
-	Colunas de `data`: station_name, brand, municipality, price, updated_at, latitude, longitude.
+	A coluna "Desde ontem" compara com a fotografia anterior da DGEG (▲ subiu, ▼ desceu, em
+	cêntimos); o balão do mapa mostra os preços dos últimos 7 dias.
+
+	Colunas de `data`: station_name, brand, municipality, price, updated_at, latitude, longitude,
+	e, se houver histórico, change_since_previous, last_change_date e history_7d.
 -->
 <script>
 	import { onDestroy, onMount } from 'svelte';
@@ -89,6 +93,9 @@
 	const directions = (row) =>
 		`https://www.google.com/maps/dir/?api=1&destination=${row.latitude},${row.longitude}`;
 
+	$: subiram = visible.filter((row) => row.change_since_previous > 0).length;
+	$: desceram = visible.filter((row) => row.change_since_previous < 0).length;
+
 	function locate() {
 		locating = true;
 		locationError = '';
@@ -120,12 +127,47 @@
 		);
 	}
 
+	/** "▲ 2,0" ou "▼ 0,5" (cêntimos), ou "=" se não mudou; vazio sem fotografia anterior. */
+	function change(row) {
+		const value = row.change_since_previous;
+		if (value == null) return '';
+		const cents = Math.round(value * 1000) / 10;
+		if (cents === 0) return '=';
+		const text = Math.abs(cents).toLocaleString('pt-PT', {
+			minimumFractionDigits: 1,
+			maximumFractionDigits: 1
+		});
+		return `${cents > 0 ? '▲' : '▼'} ${text}`;
+	}
+
+	const changeClass = (row) =>
+		row.change_since_previous > 0 ? 'subiu' : row.change_since_previous < 0 ? 'desceu' : '';
+
+	function changeLabel(row) {
+		const text = change(row);
+		if (!text) return 'sem fotografia anterior';
+		if (text === '=') return 'o mesmo preço de ontem';
+		return `${row.change_since_previous > 0 ? 'subiu' : 'desceu'} ${text.slice(2)} cêntimos desde ontem`;
+	}
+
+	/** Uma data, ou null: o Evidence pode dar uma data vazia como 1/1/1970. */
+	function dateOrNull(value) {
+		if (value == null) return null;
+		const date = value instanceof Date ? value : new Date(value);
+		return Number.isNaN(date.getTime()) || date.getUTCFullYear() < 2000 ? null : date;
+	}
+
+	function day(date) {
+		const pad = (n) => String(n).padStart(2, '0');
+		return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}`;
+	}
+
 	function escape(text) {
 		return String(text ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 	}
 
 	function popup(row) {
-		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}<br><small>Atualizado: ${when(row.updated_at)}</small><br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
+		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.history_7d ? `<br><small>Últimos dias: ${escape(row.history_7d)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
 	}
 
 	function draw(rows, signature) {
@@ -212,6 +254,10 @@
 		{:else}
 			Nenhum posto na parte do mapa que se vê.
 		{/if}
+		{#if subiram + desceram > 0}
+			Desde ontem, {subiram.toLocaleString('pt-PT')} {subiram === 1 ? 'subiu' : 'subiram'} e
+			{desceram.toLocaleString('pt-PT')} {desceram === 1 ? 'desceu' : 'desceram'} de preço.
+		{/if}
 	</p>
 
 	{#if visible.length}
@@ -223,6 +269,7 @@
 					<th class="larga">Marca</th>
 					<th class="larga">Concelho</th>
 					<th class="num">Preço (€/L)</th>
+					<th class="num larga">Desde ontem</th>
 					{#if here}<th class="num">Distância</th>{/if}
 					<th class="larga">Atualizado</th>
 					<th><span class="sr-only">Caminho</span></th>
@@ -242,7 +289,18 @@
 						</td>
 						<td class="larga">{row.brand}</td>
 						<td class="larga">{row.municipality}</td>
-						<td class="num">{euros(row.price).replace(' €', '')}</td>
+						<td class="num">
+							{euros(row.price).replace(' €', '')}
+							<!-- No telemóvel, a variação vai debaixo do preço. -->
+							<span class="estreita variacao {changeClass(row)}">
+								<span aria-hidden="true">{change(row)}</span>
+								<span class="sr-only">{changeLabel(row)}</span>
+							</span>
+						</td>
+						<td class="num larga variacao {changeClass(row)}">
+							<span aria-hidden="true">{change(row)}</span>
+							<span class="sr-only">{changeLabel(row)}</span>
+						</td>
 						{#if here}<td class="num">{km(distanceKm(here, row))}</td>{/if}
 						<td class="larga">{when(row.updated_at)}</td>
 						<td>
@@ -302,6 +360,22 @@
 	}
 	.estreita {
 		display: none;
+	}
+	.variacao {
+		white-space: nowrap;
+	}
+	/* Vermelho a subir, verde a descer; a seta diz o mesmo para quem não distingue as cores. */
+	.subiu {
+		color: #b91c1c;
+	}
+	.desceu {
+		color: #15803d;
+	}
+	:global([data-theme='dark']) .subiu {
+		color: #f87171;
+	}
+	:global([data-theme='dark']) .desceu {
+		color: #4ade80;
 	}
 	@media (max-width: 640px) {
 		.tabela-postos .larga {

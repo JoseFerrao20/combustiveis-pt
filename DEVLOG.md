@@ -160,6 +160,14 @@
     - O `pages.yml` tem um trabalho novo, `vigilancia`, que falha se a última fotografia do ramo `dados` tiver mais de 2 dias, por exemplo se o `dgeg.yml` deixar de correr. Fica à parte do build, para o site continuar a ser publicado.
   - **Hoje:** 3153 postos a 29/10, contra 3206 a 28/10 (−1,7 %).
 
+- **2026-10-29 (sessão cloud do Claude Code):** "Desde ontem" e o histórico de cada posto.
+  - **Feito:**
+    - `int_station_price_changes` (dbt, com um teste unitário) calcula, para cada posto e combustível da última fotografia: o preço da fotografia anterior e a diferença, o de há uma semana, o último dia em que o preço mudou e os preços dos últimos 7 dias em texto. O `rpt_stations_latest` junta estas colunas;
+    - na tabela por baixo do mapa, uma coluna "Desde ontem" (▲ vermelho a subir, ▼ verde a descer, em cêntimos; "=" sem mudança), e por cima "Desde ontem, X subiram e Y desceram de preço", contado na parte do mapa que se vê. No telemóvel, a variação vai debaixo do preço;
+    - o balão de cada posto mostra os preços dos últimos dias e o dia da última mudança.
+  - **Primeiro dia com duas fotografias (29/10, gasolina 95):** 34 postos subiram e 63 desceram; a média mudou −0,07 cêntimos.
+  - **Lição:** o Evidence pode entregar uma data vazia como 1/1/1970: o componente trata as datas antes de 2000 como vazias.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
