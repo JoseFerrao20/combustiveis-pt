@@ -63,6 +63,25 @@ jobs:
         with:
           path: dashboard/build
 
+  # A DGEG só mostra o preço em vigor: um dia sem fotografia não se recupera. Este trabalho
+  # falha (com email) se a última fotografia do ramo dados tiver mais de 2 dias, por exemplo
+  # porque o dgeg.yml deixou de correr. Fica à parte do build, para o site continuar a ser
+  # publicado.
+  vigilancia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - run: uv sync --locked
+      - name: Histórico da DGEG em dia
+        run: |
+          mkdir -p data/landing
+          git fetch --depth=1 origin dados
+          git archive FETCH_HEAD dgeg | tar -x -C data/landing
+          uv run combustiveis verificar-dgeg --idade-maxima 2
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
