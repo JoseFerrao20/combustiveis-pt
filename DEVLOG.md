@@ -145,6 +145,14 @@
     - descrição e imagem (`og.png`, com o mapa) para a pré-visualização do link, e um ícone próprio (bomba de combustível com uma seta para baixo) para o separador e para o ecrã principal do telemóvel.
   - **Lições:** a pré-visualização do WhatsApp só aceita a imagem com o endereço completo. O Evidence gera o `manifest.webmanifest` numa rota própria: um ficheiro com o mesmo nome em `static/` parte o build.
 
+- **2026-10-29 (sessão cloud do Claude Code):** uma porta de entrada para a família e os amigos.
+  - **Feito:**
+    - a página inicial passa a ser a dos postos ("Combustível mais barato"), com o mapa e o "Perto de mim" logo a seguir aos filtros; o resumo do dia vem depois do mapa;
+    - as páginas do boletim (impostos, Europa e método) passam para o menu "Análises" (`pages/analises/`); os endereços antigos redirecionam;
+    - interface em português: menu, pesquisa e páginas das tabelas, "Feito com o Evidence" e `lang="pt-PT"` (o Chrome deixa de oferecer a tradução), com patches do `patch-package`; o menu deixa de mostrar o SQL ("Show Queries");
+    - no telemóvel, o mapa fica com 60 % da altura do ecrã, no máximo, para a tabela aparecer mais cedo.
+  - **Lição:** uma página do Evidence sem nenhuma consulta pede um `all-queries.json` que não existe; a página "Análises" tem uma consulta pequena (semanas e postos) por isso.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.

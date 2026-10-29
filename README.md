@@ -19,13 +19,15 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 
 **Painel:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado todos os dias.
 
-![A página inicial do painel: preço da gasolina 95 em Portugal, dividido em produto, ISP e outros impostos e IVA, e a evolução desde 2005](docs/images/painel-inicio.png)
+A página inicial é para quem só quer saber onde abastecer: o mapa com todos os postos, a tabela do mais barato para o mais caro e o botão "Perto de mim". As análises (impostos, Europa e método) estão num menu à parte.
 
-![Portugal comparado com Espanha e com a média da UE, e o preço em cada país dividido em produto e impostos](docs/images/painel-comparacao.png)
+![Página inicial: o mapa com os mais de 3000 postos, coloridos do mais barato (verde) ao mais caro (vermelho), e por baixo a tabela dos postos que se veem no mapa, do mais barato para o mais caro](docs/images/painel-postos.png)
 
-![Página "Postos em Portugal": o mapa com os mais de 3000 postos, coloridos do mais barato (verde) ao mais caro (vermelho), e por baixo a tabela dos postos que se veem no mapa, do mais barato para o mais caro](docs/images/painel-postos.png)
+![Análises, "Quanto do preço é imposto?": preço da gasolina 95 em Portugal, dividido em produto, ISP e outros impostos e IVA, e a evolução desde 2005](docs/images/painel-inicio.png)
 
-![Página "Postos em Portugal": os postos mais baratos do continente e a diferença de preço para a média do concelho pelo número de concorrentes a 5 km](docs/images/painel-concorrencia.png)
+![Análises, "Portugal e a Europa": Portugal comparado com Espanha e com a média da UE, e o preço em cada país dividido em produto e impostos](docs/images/painel-comparacao.png)
+
+![Página inicial, mais abaixo: os postos mais caros do continente e a diferença de preço para a média do concelho pelo número de concorrentes a 5 km](docs/images/painel-concorrencia.png)
 
 ## Perguntas
 

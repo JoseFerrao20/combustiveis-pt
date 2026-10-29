@@ -192,7 +192,7 @@
 		</p>
 		{#if locationError}<p class="text-sm" role="alert">{locationError}</p>{/if}
 	{/if}
-	<div bind:this={element} style="height: {height}px" class="rounded border border-base-300" />
+	<div bind:this={element} style="height: min({height}px, 60vh)" class="rounded border border-base-300" />
 	{#if breaks.length}
 		<p class="legenda text-sm">
 			<span>Mais barato</span>

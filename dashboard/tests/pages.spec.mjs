@@ -3,11 +3,12 @@
 import { expect, test } from '@playwright/test';
 
 const PAGES = [
-	['', 'Quanto do preço é imposto?'],
-	['comparacao/', 'Portugal e a Europa'],
-	['postos/', 'Postos em Portugal'],
+	['', 'Combustível mais barato'],
 	['acompanhados/', 'Postos acompanhados'],
-	['metodo/', 'Como se calcula']
+	['analises/', 'Análises'],
+	['analises/impostos/', 'Quanto do preço é imposto?'],
+	['analises/comparacao/', 'Portugal e a Europa'],
+	['analises/metodo/', 'Como se calcula']
 ];
 const EURO = /\d,\d{3} €/;
 
@@ -42,21 +43,21 @@ for (const [path, title] of PAGES) {
 	});
 }
 
-test('a página inicial mostra o preço da última semana', async ({ page }) => {
-	await page.goto('');
+test('a página dos impostos mostra o preço da última semana', async ({ page }) => {
+	await page.goto('analises/impostos/');
 	await expect(page.locator('main')).toContainText('Preço por litro');
 	await expect(page.locator('main')).toContainText(EURO);
 	await expect(page.locator('main')).toContainText('Última descarga do boletim');
 });
 
 test('a comparação tem Portugal na tabela dos países', async ({ page }) => {
-	await page.goto('comparacao/');
+	await page.goto('analises/comparacao/');
 	await expect(page.getByRole('cell', { name: 'Portugal', exact: true })).toBeVisible();
 });
 
 test('os postos mostram preços e o filtro de distrito reduz a lista', async ({ page }) => {
 	const errors = watchErrors(page);
-	await page.goto('postos/');
+	await page.goto('');
 	await page.waitForLoadState('networkidle');
 	const all = await bigNumber(page, 'Postos');
 	expect(all).toBeGreaterThan(0);
@@ -73,7 +74,7 @@ test('os postos mostram preços e o filtro de distrito reduz a lista', async ({ 
 
 test('a tabela por baixo do mapa vai do mais barato para o mais caro e segue o mapa', async ({ page }) => {
 	const errors = watchErrors(page);
-	await page.goto('postos/');
+	await page.goto('');
 	const mapa = page.locator('.mapa-postos[data-postos]');
 	await expect(mapa.locator('tbody tr').first()).toBeVisible();
 	await page.waitForLoadState('networkidle');
@@ -101,7 +102,7 @@ test('"Perto de mim" centra o mapa na localização e mostra a distância', asyn
 	await context.grantPermissions(['geolocation']);
 	await context.setGeolocation({ latitude: 41.1734, longitude: -8.565 });
 	const errors = watchErrors(page);
-	await page.goto('postos/');
+	await page.goto('');
 	const mapa = page.locator('.mapa-postos[data-postos]');
 	await expect(mapa.locator('tbody tr').first()).toBeVisible();
 
@@ -116,7 +117,7 @@ test('"Perto de mim" centra o mapa na localização e mostra a distância', asyn
 });
 
 test('as páginas têm a descrição e a imagem para a partilha do link', async ({ page }) => {
-	await page.goto('postos/');
+	await page.goto('');
 	await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /.+/);
 	await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /^https:.*og\.png$/);
 });
@@ -136,7 +137,21 @@ test('os postos acompanhados mostram a posição e os concorrentes', async ({ pa
 	expect(errors).toEqual([]);
 });
 
-test('o método diz quantas semanas de dados há', async ({ page }) => {
+test('os endereços antigos levam às páginas novas', async ({ page }) => {
+	await page.goto('postos/');
+	await expect(page.getByRole('heading', { level: 1, name: 'Combustível mais barato' })).toBeVisible();
 	await page.goto('metodo/');
+	await expect(page.getByRole('heading', { level: 1, name: 'Como se calcula' })).toBeVisible();
+});
+
+test('a interface está em português', async ({ page }) => {
+	await page.goto('');
+	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
+	await expect(page.getByText('Feito com o Evidence')).toBeAttached();
+	await expect(page.getByText('Built with Evidence')).toHaveCount(0);
+});
+
+test('o método diz quantas semanas de dados há', async ({ page }) => {
+	await page.goto('analises/metodo/');
 	await expect(page.locator('main')).toContainText(/\d[\d\s]* semanas de dados/);
 });

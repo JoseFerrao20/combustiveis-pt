@@ -1,0 +1,11 @@
+diff --git a/node_modules/@evidence-dev/evidence/template/src/app.html b/node_modules/@evidence-dev/evidence/template/src/app.html
+index 84f8421..ba8052f 100644
+--- a/node_modules/@evidence-dev/evidence/template/src/app.html
++++ b/node_modules/@evidence-dev/evidence/template/src/app.html
+@@ -1,5 +1,5 @@
+ <!doctype html>
+-<html lang="en">
++<html lang="pt-PT">
+ 	<head>
+ 		<meta charset="utf-8" />
+ 		<link rel="icon" href="%sveltekit.assets%/favicon.ico" sizes="32x32" />

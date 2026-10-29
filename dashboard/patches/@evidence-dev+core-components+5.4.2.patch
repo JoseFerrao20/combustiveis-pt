@@ -1,0 +1,106 @@
+diff --git a/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/KebabMenu.svelte b/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/KebabMenu.svelte
+index af6ace1..e0c6663 100644
+--- a/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/KebabMenu.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/KebabMenu.svelte
+@@ -31,10 +31,10 @@
+ 
+ 	$: themeLabel =
+ 		$selectedAppearance === 'system'
+-			? 'System'
++			? 'Sistema'
+ 			: $selectedAppearance === 'light'
+-				? 'Light'
+-				: 'Dark';
++				? 'Claro'
++				: 'Escuro';
+ 	$: themeIcon = $activeAppearance === 'light' ? Sun : Moon;
+ </script>
+ 
+@@ -47,7 +47,7 @@
+ 	<DropdownMenu.Content class="w-52 text-xs">
+ 		<DropdownMenu.Group>
+ 			<DropdownMenu.Item on:click={print}>
+-				Print PDF
++				Imprimir em PDF
+ 				<DropdownMenu.Shortcut>⌘P</DropdownMenu.Shortcut>
+ 			</DropdownMenu.Item>
+ 			{#if dev || !neverShowQueries}
+@@ -68,7 +68,7 @@
+ 						cycleAppearance();
+ 					}}
+ 				>
+-					Appearance
++					Aspeto
+ 					<DropdownMenu.Shortcut class="tracking-normal flex flex-row items-center">
+ 						<span class="text-xs leading-none">{themeLabel}</span>
+ 						<Icon src={themeIcon} class="h-4 w-4 ml-1" />
+diff --git a/node_modules/@evidence-dev/core-components/dist/organisms/layout/sidebar/Sidebar.svelte b/node_modules/@evidence-dev/core-components/dist/organisms/layout/sidebar/Sidebar.svelte
+index 53ec74c..faf4576 100644
+--- a/node_modules/@evidence-dev/core-components/dist/organisms/layout/sidebar/Sidebar.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/organisms/layout/sidebar/Sidebar.svelte
+@@ -372,7 +372,7 @@
+ 				href="https://www.evidence.dev"
+ 				class="bg-gradient-to-r inline-block antialiased font-medium"
+ 			>
+-				Built with Evidence</a
++				Feito com o Evidence</a
+ 			>
+ 		</div>
+ 	{/if}
+diff --git a/node_modules/@evidence-dev/core-components/dist/unsorted/ui/DownloadData.svelte b/node_modules/@evidence-dev/core-components/dist/unsorted/ui/DownloadData.svelte
+index e79c119..682e155 100644
+--- a/node_modules/@evidence-dev/core-components/dist/unsorted/ui/DownloadData.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/unsorted/ui/DownloadData.svelte
+@@ -11,7 +11,7 @@
+ 
+ 	export let data = undefined;
+ 	export let queryID = undefined;
+-	export let text = 'Download';
++	export let text = 'Descarregar';
+ 	export let display = true;
+ 	$: display = toBoolean(display);
+ 	let errors = [];
+diff --git a/node_modules/@evidence-dev/core-components/dist/unsorted/viz/core/SearchBar.svelte b/node_modules/@evidence-dev/core-components/dist/unsorted/viz/core/SearchBar.svelte
+index bfeb20c..ab641b6 100644
+--- a/node_modules/@evidence-dev/core-components/dist/unsorted/viz/core/SearchBar.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/unsorted/viz/core/SearchBar.svelte
+@@ -6,7 +6,7 @@
+ 	import { Icon } from '@steeze-ui/svelte-icon';
+ 	import { Search } from '@steeze-ui/tabler-icons';
+ 
+-	export let placeholder = 'Search';
++	export let placeholder = 'Pesquisar';
+ 	export let value;
+ 	export let searchFunction;
+ </script>
+diff --git a/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/_DataTable.svelte b/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/_DataTable.svelte
+index ab6494f..a61b9c3 100644
+--- a/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/_DataTable.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/_DataTable.svelte
+@@ -688,7 +688,7 @@
+ 			</table>
+ 		</div>
+ 
+-		<div class="noresults" class:shownoresults={showNoResults}>No Results</div>
++		<div class="noresults" class:shownoresults={showNoResults}>Sem resultados</div>
+ 
+ 		{#if paginated && pageCount > 1}
+ 			<div class="pagination">
+@@ -716,7 +716,7 @@
+ 						</div>
+ 					</button>
+ 					<span class="page-count">
+-						Page
++						Página
+ 						<input
+ 							class="page-input"
+ 							class:hovering
+@@ -732,7 +732,7 @@
+ 						<span class="page-count ml-1">{pageCount.toLocaleString()}</span>
+ 					</span>
+ 					<span class="print-page-count">
+-						{displayedPageLength.toLocaleString()} of {totalRows.toLocaleString()} records
++						{displayedPageLength.toLocaleString()} de {totalRows.toLocaleString()} linhas
+ 					</span>
+ 					<button
+ 						aria-label="next-page"
