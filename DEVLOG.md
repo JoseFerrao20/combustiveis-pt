@@ -176,6 +176,11 @@
   - **Primeira previsão:** para 2/11/2026, gasolina −1,4 cêntimos e gasóleo −6,4, com só 2 dias de cotações dessa semana.
   - **Lições:** os coeficientes ficam num seed, e não no dbt, para o teste ser honesto e o CI funcionar com 5 semanas. Em outubro de 2026, Nova Iorque e a Europa separaram-se na gasolina, e a previsão errou mais; o painel mostra as semanas todas para isso se ver.
 
+- **2026-10-30 (sessão cloud do Claude Code):** "Compensa ir mais longe?".
+  - **Feito:** depois de "Perto de mim", a tabela ganha a coluna "Poupa". É quanto se poupa num depósito em cada posto face ao posto mais perto, já descontando o combustível da ida e volta (a distância em linha reta × 1,3, uma aproximação da estrada). O depósito (50 L) e o consumo (6,5 L/100 km) mudam-se por cima da tabela e ficam guardados no browser. A tabela pode ordenar-se por preço ou por poupança. No telemóvel, a distância passa para debaixo do nome, para a poupança caber.
+  - **Exemplo (Lisboa, Avenida da República, gasolina 95):** o PRIO de Arroios, a 1 km, poupa 9,29 € num depósito de 50 L face ao posto mais perto; o MOEVE da Pontinha, a 6,4 km, é mais barato, mas a viagem come parte da diferença (8,78 €).
+  - **Decisão:** a distância em linha reta × 1,3 em vez de um serviço de rotas, para não depender de mais um serviço nem enviar a localização a ninguém.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.

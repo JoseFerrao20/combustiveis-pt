@@ -11,6 +11,10 @@
 	A coluna "Desde ontem" compara com a fotografia anterior da DGEG (▲ subiu, ▼ desceu, em
 	cêntimos); o balão do mapa mostra os preços dos últimos 7 dias.
 
+	Com a localização, a coluna "Poupa" diz quanto se poupa num depósito em cada posto, face ao
+	posto mais perto, já descontando o combustível da ida e volta (distância em linha reta × 1,3,
+	uma aproximação da distância por estrada). O depósito e o consumo ficam no browser.
+
 	Colunas de `data`: station_name, brand, municipality, price, updated_at, latitude, longitude,
 	e, se houver histórico, change_since_previous, last_change_date e history_7d.
 -->
@@ -45,6 +49,64 @@
 	let locating = false;
 	let locationError = '';
 	const canLocate = typeof navigator !== 'undefined' && 'geolocation' in navigator;
+
+	/** A distância por estrada é, em média, cerca de 1,3 vezes a distância em linha reta. */
+	const ROAD_FACTOR = 1.3;
+	const SETTINGS_KEY = 'combustiveis-pt:poupanca';
+	let tank = 50;
+	let consumption = 6.5;
+	let order = 'preco';
+
+	function loadSettings() {
+		try {
+			const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}');
+			if (saved.tank > 0) tank = saved.tank;
+			if (saved.consumption > 0) consumption = saved.consumption;
+		} catch {
+			// Sem acesso ao armazenamento do browser: ficam os valores por omissão.
+		}
+	}
+
+	function saveSettings() {
+		try {
+			localStorage.setItem(SETTINGS_KEY, JSON.stringify({ tank, consumption }));
+		} catch {
+			// Idem: a poupança calcula-se na mesma, só não fica guardada.
+		}
+	}
+
+	/** O custo de um depósito no posto, mais o combustível da ida e volta até lá. */
+	function totalCost(row) {
+		const trip = 2 * distanceKm(here, row) * ROAD_FACTOR * (consumption / 100) * row.price;
+		return tank * row.price + trip;
+	}
+
+	$: nearest = here
+		? rows.reduce(
+				(best, row) => (!best || distanceKm(here, row) < distanceKm(here, best) ? row : best),
+				null
+			)
+		: null;
+	$: validSettings = tank > 0 && consumption > 0;
+	$: savings = new Map(
+		nearest && validSettings
+			? rows.map((row) => [row.key, totalCost(nearest) - totalCost(row)])
+			: []
+	);
+
+	function saving(row) {
+		if (!nearest || !savings.has(row.key)) return '';
+		if (row.key === nearest.key) return 'o mais perto';
+		const value = savings.get(row.key);
+		const text = Math.abs(value).toLocaleString('pt-PT', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		});
+		return `${value >= 0 ? '+' : '−'}${text} €`;
+	}
+
+	const savingClass = (row) =>
+		!nearest || row.key === nearest.key ? '' : savings.get(row.key) >= 0 ? 'desceu' : 'subiu';
 
 	$: data?.fetch?.();
 	$: rows = ($data ?? [])
@@ -198,10 +260,22 @@
 
 	function update() {
 		const bounds = map.getBounds();
-		visible = rows
-			.filter((row) => bounds.contains([row.latitude, row.longitude]))
-			.sort((a, b) => a.price - b.price || a.station_name.localeCompare(b.station_name));
+		visible = sortRows(rows.filter((row) => bounds.contains([row.latitude, row.longitude])));
 		shown = pageSize;
+	}
+
+	function sortRows(list) {
+		const byPrice = (a, b) => a.price - b.price || a.station_name.localeCompare(b.station_name);
+		if (order === 'poupanca' && savings.size) {
+			return list.sort((a, b) => savings.get(b.key) - savings.get(a.key) || byPrice(a, b));
+		}
+		return list.sort(byPrice);
+	}
+
+	// Ao mudar a ordem, o depósito ou o consumo, a tabela reordena-se sem mexer no mapa.
+	$: if (map) {
+		order, savings;
+		visible = sortRows([...visible]);
 	}
 
 	function focus(row) {
@@ -216,6 +290,7 @@
 		layer = L.layerGroup().addTo(map);
 		map.setView([39.6, -8.0], 7);
 		map.on('moveend', update);
+		loadSettings();
 	});
 
 	onDestroy(() => map?.remove());
@@ -233,6 +308,42 @@
 			</span>
 		</p>
 		{#if locationError}<p class="text-sm" role="alert">{locationError}</p>{/if}
+		{#if here}
+			<fieldset class="poupanca text-sm">
+				<legend class="sr-only">Contas da poupança</legend>
+				<label>
+					Depósito
+					<input type="number" min="5" max="200" step="1" bind:value={tank} on:change={saveSettings} />
+					L
+				</label>
+				<label>
+					Consumo
+					<input
+						type="number"
+						min="2"
+						max="30"
+						step="0.1"
+						bind:value={consumption}
+						on:change={saveSettings}
+					/>
+					L/100 km
+				</label>
+				<label>
+					Ordenar por
+					<select bind:value={order}>
+						<option value="preco">preço</option>
+						<option value="poupanca">poupança</option>
+					</select>
+				</label>
+			</fieldset>
+			{#if nearest && validSettings}
+				<p class="text-sm text-base-content-muted">
+					"Poupa" compara um depósito de {tank.toLocaleString('pt-PT')} L em cada posto com o
+					posto mais perto ({nearest.station_name}), já descontando o combustível da ida e volta
+					(a distância em linha reta × 1,3, com {consumption.toLocaleString('pt-PT')} L/100 km).
+				</p>
+			{/if}
+		{/if}
 	{/if}
 	<div bind:this={element} style="height: min({height}px, 60vh)" class="rounded border border-base-300" />
 	{#if breaks.length}
@@ -270,7 +381,8 @@
 					<th class="larga">Concelho</th>
 					<th class="num">Preço (€/L)</th>
 					<th class="num larga">Desde ontem</th>
-					{#if here}<th class="num">Distância</th>{/if}
+					{#if here}<th class="num larga">Distância</th>{/if}
+					{#if nearest && validSettings}<th class="num">Poupa</th>{/if}
 					<th class="larga">Atualizado</th>
 					<th><span class="sr-only">Caminho</span></th>
 				</tr>
@@ -285,7 +397,10 @@
 								{row.station_name}
 							</button>
 							<!-- No telemóvel, a marca, o concelho e a data vão aqui, em vez de colunas. -->
-							<span class="estreita">{row.brand} · {row.municipality} · {when(row.updated_at)}</span>
+							<span class="estreita"
+								>{row.brand} · {row.municipality}{here ? ` · ${km(distanceKm(here, row))}` : ''} ·
+								{when(row.updated_at)}</span
+							>
 						</td>
 						<td class="larga">{row.brand}</td>
 						<td class="larga">{row.municipality}</td>
@@ -301,7 +416,8 @@
 							<span aria-hidden="true">{change(row)}</span>
 							<span class="sr-only">{changeLabel(row)}</span>
 						</td>
-						{#if here}<td class="num">{km(distanceKm(here, row))}</td>{/if}
+						{#if here}<td class="num larga">{km(distanceKm(here, row))}</td>{/if}
+						{#if nearest && validSettings}<td class="num poupa {savingClass(row)}">{saving(row)}</td>{/if}
 						<td class="larga">{when(row.updated_at)}</td>
 						<td>
 							<a
@@ -360,6 +476,28 @@
 	}
 	.estreita {
 		display: none;
+	}
+	.poupanca {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.25rem;
+		margin: 0 0 0.5rem;
+	}
+	.poupanca input,
+	.poupanca select {
+		width: 4.5rem;
+		margin: 0 0.25rem;
+		padding: 0.15rem 0.35rem;
+		border: 1px solid rgba(127, 127, 127, 0.5);
+		border-radius: 0.25rem;
+		background: transparent;
+		color: inherit;
+	}
+	.poupanca select {
+		width: auto;
+	}
+	.poupa {
+		white-space: nowrap;
 	}
 	.variacao {
 		white-space: nowrap;
