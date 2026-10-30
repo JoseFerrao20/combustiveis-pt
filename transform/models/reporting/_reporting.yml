@@ -55,3 +55,12 @@ models:
       - unique_combination:
           arguments:
             columns: [station_id, competitor_id, fuel]
+  - name: rpt_price_forecast
+    description: >
+      A previsão de segunda-feira para as semanas depois do ajuste dos coeficientes (o período de
+      teste) e para a próxima, exportada para Parquet (FORECAST_EXPORT_PATH, por omissão
+      data/price_forecast.parquet).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [target_week, product]

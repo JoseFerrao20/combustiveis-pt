@@ -61,6 +61,16 @@ models:
           arguments:
             columns: [snapshot_date, station_id, fuel]
 
+  - name: fct_price_forecasts
+    description: >
+      A previsão da mudança do preço em Portugal a cada segunda-feira (euros por litro, com IVA,
+      sem mudanças do ISP), a partir das cotações em Nova Iorque das duas semanas antes e dos
+      coeficientes do seed forecast_coefficients, ao lado da mudança que o boletim publicou.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [target_week, product]
+
 unit_tests:
   - name: decomposes_the_portuguese_price
     description: Gasolina 95 em Portugal, semana de 19/10/2026, com os valores reais do boletim.
@@ -146,3 +156,25 @@ unit_tests:
       rows:
         - {week: 2022-12-26, tax_tables_gap: 8.0, tax_tables_issue: taxa em falta}
         - {week: 2024-01-01, tax_tables_gap: 0.0, tax_tables_issue: null}
+  - name: forecast_uses_the_two_previous_weeks
+    description: >
+      Cotações de 850, 900 e 1000 € nas três semanas antes de 19/10: a previsão é
+      0,5 × 100 + 0,2 × 50 = 60 € por 1000 L sem impostos, 0,075 € por litro com 25 % de IVA. O
+      boletim mostra uma subida de 50 € sem impostos e de 50 € com impostos.
+    model: fct_price_forecasts
+    given:
+      - input: ref('int_market_weeks')
+        rows:
+          - {product: euro95, week: 2026-09-28, eur_per_1000l: 850.0, days: 5, last_day: 2026-10-02}
+          - {product: euro95, week: 2026-10-05, eur_per_1000l: 900.0, days: 5, last_day: 2026-10-09}
+          - {product: euro95, week: 2026-10-12, eur_per_1000l: 1000.0, days: 3, last_day: 2026-10-14}
+      - input: ref('forecast_coefficients')
+        rows:
+          - {product: euro95, market_series: DGASNYH, beta_last_week: 0.5, beta_week_before: 0.2}
+      - input: ref('fct_fuel_prices')
+        rows:
+          - {week: 2026-10-12, country_code: PT, product: euro95, price_with_tax: 1950.0, price_without_tax: 950.0, vat_rate: 25}
+          - {week: 2026-10-19, country_code: PT, product: euro95, price_with_tax: 2000.0, price_without_tax: 1000.0, vat_rate: 25}
+    expect:
+      rows:
+        - {target_week: 2026-10-19, product: euro95, predicted_change: 0.075, actual_change_before_tax: 0.0625, actual_change: 0.05, market_days_last_week: 3, is_known: true}

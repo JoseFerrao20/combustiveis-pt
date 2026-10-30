@@ -1,0 +1,3 @@
+product,market_series,beta_last_week,beta_week_before,trained_from,trained_to
+euro95,DGASNYH,0.5441,0.2811,2012-01-02,2023-12-25
+diesel,DDFUELNYH,0.5247,0.0391,2012-01-02,2023-12-25

@@ -168,8 +168,17 @@
   - **Primeiro dia com duas fotografias (29/10, gasolina 95):** 34 postos subiram e 63 desceram; a média mudou −0,07 cêntimos.
   - **Lição:** o Evidence pode entregar uma data vazia como 1/1/1970: o componente trata as datas antes de 2000 como vazias.
 
+- **2026-10-30 (sessão cloud do Claude Code):** previsão do preço de segunda-feira ([análise](docs/analises/previsao-segunda-feira.md), [ADR 0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md)).
+  - **Fonte:** o FRED dá de graça, em CSV e sem chave, as cotações diárias da gasolina e do gasóleo em Nova Iorque, o Brent e o câmbio do euro. `combustiveis mercados` descarrega-as e valida-as (11 testes).
+  - **Modelo:** a mudança do preço sem impostos à segunda é uma parte da mudança da cotação da semana anterior, mais uma parte da semana antes, com o IVA no fim. Os coeficientes foram ajustados com 2012–2023 e ficam no seed `forecast_coefficients`.
+  - **Teste (147 semanas, de 2024 a outubro de 2026):** o erro médio é de 1,2 cêntimos na gasolina e 1,3 no gasóleo, contra 1,9 e 2,7 a dizer "fica igual". Acerta se sobe ou desce em 81 % e 86 % das semanas. Com o Brent, o erro é maior (1,6).
+  - **No painel:** a previsão no topo da página inicial e a página "Previsão para segunda-feira" (Análises), com o erro de todas as semanas de teste e os gráficos do previsto contra o real.
+  - **Primeira previsão:** para 2/11/2026, gasolina −1,4 cêntimos e gasóleo −6,4, com só 2 dias de cotações dessa semana.
+  - **Lições:** os coeficientes ficam num seed, e não no dbt, para o teste ser honesto e o CI funcionar com 5 semanas. Em outubro de 2026, Nova Iorque e a Europa separaram-se na gasolina, e a previsão errou mais; o painel mostra as semanas todas para isso se ver.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
-2. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 dias).
-3. **Talvez:** avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.
+2. **Ver como a previsão se sai nas próximas semanas;** voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
+3. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 dias).
+4. **Talvez:** avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.

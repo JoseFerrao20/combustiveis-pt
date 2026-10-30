@@ -24,4 +24,12 @@
 	:global(.capitalize) {
 		text-transform: none;
 	}
+	/* A previsão de segunda-feira, no topo da página inicial. */
+	:global(.previsao-segunda) {
+		border-left: 4px solid #d97706;
+		background: rgba(217, 119, 6, 0.08);
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.25rem;
+		margin: 0.75rem 0;
+	}
 </style>

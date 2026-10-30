@@ -39,6 +39,9 @@ jobs:
       # Falha se o boletim não tiver uma semana dos últimos 15 dias (falta mais de uma
       # publicação): é a forma de dar conta de uma fonte parada ou de um link que mudou.
       - run: uv run combustiveis ingest --idade-maxima 15
+      # As cotações da gasolina e do gasóleo em Nova Iorque e o câmbio (FRED), para a previsão
+      # de segunda-feira.
+      - run: uv run combustiveis mercados
       # O histórico da DGEG está no ramo dados (dgeg.yml); junta-se a fotografia de agora, para
       # o painel ter o dia de hoje mesmo que a fotografia da manhã tenha falhado. Se o portal
       # não responder, chega o histórico; sem nenhum dos dois, o passo falha.

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 title: Portugal e a Europa
 description: O preço dos combustíveis em Portugal comparado com Espanha e com a média da União Europeia.
 og:

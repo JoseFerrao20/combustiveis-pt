@@ -9,6 +9,7 @@ og:
 Para quem quer ir além do posto mais barato. As páginas estão no menu:
 
 - **Quanto do preço é imposto?** A parte do preço da gasolina e do gasóleo que é ISP e IVA, semana a semana desde 2005 (Weekly Oil Bulletin da Comissão Europeia).
+- **Previsão para segunda-feira:** quanto deve mudar o preço na próxima segunda, a partir dos mercados internacionais, e como a previsão se tem saído.
 - **Portugal e a Europa:** o preço em Portugal comparado com Espanha e com a média da União Europeia.
 - **Como se calcula:** de onde vêm os dados, as contas e os limites.
 

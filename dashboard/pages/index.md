@@ -25,6 +25,26 @@ where district like '${inputs.distrito.value}'
 order by municipality
 ```
 
+```sql previsao
+-- A previsão para a próxima segunda-feira (página Análises → Previsão para segunda-feira).
+select
+    'Previsão para segunda-feira, ' || strftime(max(target_week), '%d/%m') || ': '
+        || string_agg(
+            product_name || ' ' || case
+                when round(predicted_change * 100, 1) > 0 then '▲ +' || replace(printf('%.1f', predicted_change * 100), '.', ',')
+                when round(predicted_change * 100, 1) < 0 then '▼ −' || replace(printf('%.1f', -predicted_change * 100), '.', ',')
+                else '= 0,0'
+            end || ' cêntimos',
+            ', ' order by product = 'diesel'
+        ) || ' por litro (estimativa, sem mudanças do ISP).' as texto
+from combustiveis.previsao
+where target_week = (select max(target_week) from combustiveis.previsao)
+```
+
+{#if previsao.length > 0 && previsao[0].texto}
+<p class="previsao-segunda"><Value data={previsao} column=texto /> Ver como se calcula em Análises.</p>
+{/if}
+
 <Dropdown data={combustiveis} name=combustivel value=fuel label=fuel_name defaultValue="gasolina_95" title="Combustível" />
 <Dropdown data={distritos_lista} name=distrito value=district title="Distrito">
     <DropdownOption value="%" valueLabel="Todos" />

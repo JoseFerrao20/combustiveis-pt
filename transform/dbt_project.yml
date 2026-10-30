@@ -51,6 +51,14 @@ seeds:
         valid_from: date
         valid_to: date
         description: varchar
+    forecast_coefficients:
+      +column_types:
+        product: varchar
+        market_series: varchar
+        beta_last_week: double
+        beta_week_before: double
+        trained_from: date
+        trained_to: date
     products:
       +column_types:
         product: varchar
