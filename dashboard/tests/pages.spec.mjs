@@ -187,6 +187,12 @@ test('a previsão para segunda-feira aparece na página inicial e na sua página
 	// A comparação com os postos na própria segunda-feira (vazia até haver uma segunda com
 	// fotografias da DGEG, como na amostra do CI).
 	await expect(page.getByRole('heading', { name: 'Na própria segunda-feira, segundo os postos' })).toBeVisible();
+	// Sem nenhuma segunda-feira com fotografias da DGEG (a amostra do CI), a faixa da página
+	// inicial não fala dos postos.
+	if (await page.getByText('A primeira comparação é a de segunda-feira').isVisible()) {
+		await page.goto('');
+		await expect(page.locator('.previsao-segunda')).not.toContainText('Nos postos');
+	}
 });
 
 test('o método diz quantas semanas de dados há', async ({ page }) => {

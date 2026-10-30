@@ -41,6 +41,8 @@ select
         || coalesce(
             ' Nos postos, a mudança foi de ' || string_agg(
                 product_name || ' ' || case
+                    -- Sem fotografia de segunda-feira, o valor é nulo e o produto não entra.
+                    when dgeg_change is null then null
                     when round(dgeg_change * 100, 1) > 0 then '▲ +' || replace(printf('%.1f', dgeg_change * 100), '.', ',')
                     when round(dgeg_change * 100, 1) < 0 then '▼ −' || replace(printf('%.1f', -dgeg_change * 100), '.', ',')
                     else '= 0,0'
