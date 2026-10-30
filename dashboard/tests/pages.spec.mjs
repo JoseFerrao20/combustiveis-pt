@@ -7,6 +7,7 @@ const PAGES = [
 	['acompanhados/', 'Postos acompanhados'],
 	['analises/', 'Análises'],
 	['analises/impostos/', 'Quanto do preço é imposto?'],
+	['analises/previsao/', 'Previsão para segunda-feira'],
 	['analises/comparacao/', 'Portugal e a Europa'],
 	['analises/metodo/', 'Como se calcula']
 ];
@@ -152,6 +153,16 @@ test('a interface está em português', async ({ page }) => {
 	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
 	await expect(page.getByText('Feito com o Evidence')).toBeAttached();
 	await expect(page.getByText('Built with Evidence')).toHaveCount(0);
+});
+
+test('a previsão para segunda-feira aparece na página inicial e na sua página', async ({ page }) => {
+	await page.goto('');
+	await expect(page.locator('.previsao-segunda')).toContainText(
+		/Previsão para segunda-feira, \d\d\/\d\d: Gasolina 95 .* cêntimos, Gasóleo .* cêntimos/
+	);
+	await page.goto('analises/previsao/');
+	await expect(page.locator('main')).toContainText(/\d,\d cêntimos/);
+	await expect(page.getByRole('cell', { name: 'Gasóleo', exact: true })).toBeVisible();
 });
 
 test('o método diz quantas semanas de dados há', async ({ page }) => {

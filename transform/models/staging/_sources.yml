@@ -23,3 +23,15 @@ sources:
     tables:
       - name: station_prices
         description: Uma linha por dia, posto e combustível.
+
+  - name: fred
+    description: >
+      Preços diários dos mercados internacionais e câmbio do euro, do FRED (Federal Reserve Bank
+      of St. Louis), escritos por `combustiveis mercados`, para a previsão de segunda-feira.
+    meta:
+      external_location: "{{ env_var('LANDING_DIR', 'data/landing') }}/mercados.parquet"
+    tables:
+      - name: markets
+        description: >
+          Formato longo: uma linha por série e dia com cotação. DGASNYH e DDFUELNYH em dólares
+          por galão, DCOILBRENTEU em dólares por barril, DEXUSEU em dólares por euro.

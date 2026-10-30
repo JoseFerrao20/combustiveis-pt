@@ -14,6 +14,7 @@ from pathlib import Path
 import duckdb
 
 from .dgeg import StationPrice
+from .markets import MarketValue
 from .parse import Bulletin
 
 PRICES_SCHEMA = {
@@ -48,6 +49,8 @@ STATIONS_SCHEMA = {
     "price": "DOUBLE",
     "updated_at": "TIMESTAMP",
 }
+
+MARKETS_SCHEMA = {"series": "VARCHAR", "day": "DATE", "value": "DOUBLE"}
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,4 +105,11 @@ def write_station_snapshot(prices: list[StationPrice], directory: Path) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
     target = directory / f"{days.pop().isoformat()}.parquet"
     write_parquet([asdict(p) for p in prices], STATIONS_SCHEMA, target)
+    return target
+
+
+def write_markets(values: list[MarketValue], target: Path) -> Path:
+    """Escreve as séries dos mercados (formato longo: série, dia, valor) num Parquet."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    write_parquet([asdict(v) for v in values], MARKETS_SCHEMA, target)
     return target
