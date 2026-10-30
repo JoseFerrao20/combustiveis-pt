@@ -186,6 +186,15 @@
   - **Exemplo (Lisboa, Avenida da República, gasolina 95):** o PRIO de Arroios, a 1 km, poupa 9,29 € num depósito de 50 L face ao posto mais perto; o MOEVE da Pontinha, a 6,4 km, é mais barato, mas a viagem come parte da diferença (8,78 €).
   - **Decisão:** a distância em linha reta × 1,3 em vez de um serviço de rotas, para não depender de mais um serviço nem enviar a localização a ninguém.
 
+- **2026-10-30 (sessão cloud do Claude Code):** README de portfólio.
+  - **Feito:** o README abre com o que o site faz para quem abastece (mapa e tabela, "Perto de mim", poupança, "Desde ontem", previsão), com capturas novas:
+    - duas vistas no telemóvel, lado a lado;
+    - o mapa com a tabela no computador;
+    - a previsão;
+    - os impostos e a comparação com a Europa, já com o menu "Análises".
+
+    Tem também uma secção de destaques técnicos, a arquitetura com as três fontes e a vigilância, e a lista das quatro decisões (ADR). As capturas antigas que já não se usam saíram, e a dos impostos passou a `painel-impostos.png`.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
