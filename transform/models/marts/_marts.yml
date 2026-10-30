@@ -175,6 +175,9 @@ unit_tests:
         rows:
           - {week: 2026-10-12, country_code: PT, product: euro95, price_with_tax: 1950.0, price_without_tax: 950.0, vat_rate: 25}
           - {week: 2026-10-19, country_code: PT, product: euro95, price_with_tax: 2000.0, price_without_tax: 1000.0, vat_rate: 25}
+      - input: ref('int_dgeg_monday_changes')
+        rows:
+          - {target_week: 2026-10-19, product: euro95, previous_snapshot_date: 2026-10-18, dgeg_change: 0.06, dgeg_stations: 100}
     expect:
       rows:
-        - {target_week: 2026-10-19, product: euro95, predicted_change: 0.075, actual_change_before_tax: 0.0625, actual_change: 0.05, market_days_last_week: 3, is_known: true}
+        - {target_week: 2026-10-19, product: euro95, predicted_change: 0.075, actual_change_before_tax: 0.0625, actual_change: 0.05, market_days_last_week: 3, is_known: true, dgeg_change: 0.06, dgeg_stations: 100}

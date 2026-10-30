@@ -38,6 +38,34 @@ select * from ${proxima} where product = 'euro95'
 
 Mudança prevista no preço por litro, com IVA, sem contar com uma eventual mudança do ISP. Com menos de 5 dias de cotações, a previsão ainda pode mudar até ao fim da semana.
 
+## Na própria segunda-feira, segundo os postos
+
+O boletim europeu só sai à quinta-feira. Mas a DGEG mostra os preços de cada posto todos os dias, e a fotografia de segunda de manhã já tem os preços novos. Por isso, a previsão compara-se também com a mudança média dos postos, no próprio dia (só os postos com o preço atualizado nos dois dias; ISP incluído).
+
+```sql na_segunda
+select
+    target_week as semana,
+    product_name as combustivel,
+    predicted_change * 100 as prevista,
+    dgeg_change * 100 as postos,
+    (predicted_change - dgeg_change) * 100 as diferenca,
+    dgeg_stations as n_postos,
+    dgeg_share_changed as mudaram
+from combustiveis.previsao
+where dgeg_change is not null
+order by semana desc, product desc
+```
+
+<DataTable data={na_segunda} emptySet="pass" emptyMessage="A primeira comparação é a de segunda-feira, 2/11/2026: as fotografias diárias da DGEG começaram a 28/10.">
+    <Column id=semana title="Segunda-feira" fmt="dd/mm/yyyy" />
+    <Column id=combustivel title="Combustível" />
+    <Column id=prevista title="Prevista (cêntimos)" fmt='+0.0;-0.0' />
+    <Column id=postos title="Nos postos (cêntimos)" fmt='+0.0;-0.0' />
+    <Column id=diferenca title="Diferença" fmt='+0.0;-0.0' />
+    <Column id=n_postos title="Postos" fmt="#,##0" />
+    <Column id=mudaram title="Mudaram de preço" fmt=pct0 />
+</DataTable>
+
 ## Como se tem saído
 
 ```sql historico
