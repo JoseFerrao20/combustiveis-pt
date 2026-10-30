@@ -120,6 +120,27 @@ test('"Perto de mim" centra o mapa na localização e mostra a distância', asyn
 	expect(errors).toEqual([]);
 });
 
+test('com a localização, a tabela diz quanto se poupa face ao posto mais perto', async ({ page, context }) => {
+	await context.grantPermissions(['geolocation']);
+	await context.setGeolocation({ latitude: 41.1734, longitude: -8.565 });
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	await page.getByRole('button', { name: 'Perto de mim' }).click();
+
+	await expect(mapa.getByRole('columnheader', { name: 'Poupa' })).toBeVisible();
+	await expect(mapa.getByRole('cell', { name: 'o mais perto' })).toBeVisible();
+	await expect(mapa.locator('td.poupa').filter({ hasText: /[+−]\d+,\d\d €/ }).first()).toBeVisible();
+
+	// O depósito fica guardado no browser.
+	await page.getByLabel('Depósito').fill('40');
+	await page.getByLabel('Depósito').blur();
+	await expect(page.getByText(/um depósito de 40 L/)).toBeVisible();
+	await page.reload();
+	await page.getByRole('button', { name: 'Perto de mim' }).click();
+	await expect(page.getByLabel('Depósito')).toHaveValue('40');
+});
+
 test('as páginas têm a descrição e a imagem para a partilha do link', async ({ page }) => {
 	await page.goto('');
 	await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /.+/);
