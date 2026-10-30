@@ -186,6 +186,12 @@
   - **Exemplo (Lisboa, Avenida da República, gasolina 95):** o PRIO de Arroios, a 1 km, poupa 9,29 € num depósito de 50 L face ao posto mais perto; o MOEVE da Pontinha, a 6,4 km, é mais barato, mas a viagem come parte da diferença (8,78 €).
   - **Decisão:** a distância em linha reta × 1,3 em vez de um serviço de rotas, para não depender de mais um serviço nem enviar a localização a ninguém.
 
+- **2026-10-30 (sessão cloud do Claude Code):** página inicial mais leve.
+  - **O problema:** a página inicial descarregava cerca de 16 MB. O Evidence descarrega todas as fontes em todas as páginas (regista cada Parquet sem leitura parcial), e o histórico europeu (2,5 MB) vinha também na página dos postos. Além disso, guarda o resultado de cada consulta, e duas consultas intermédias (`zona` e `concorrencia_base`) levavam todas as colunas dos ~3000 postos (1,8 MB).
+  - **Feito:** o `rpt_road_fuel_prices` só leva todas as semanas de Portugal, Espanha e da média da UE, e a última semana dos outros países (o que as páginas mostram), com os valores arredondados ao décimo de milésimo de euro: de 3,6 MB para 215 KB. As duas consultas passaram a escolher só as colunas que usam.
+  - **Resultado:** os dados da página inicial passaram de cerca de 4,9 MB para 1,5 MB. O resto (uns 8 MB, comprimidos na transferência) é o código do Evidence e do DuckDB-WASM, que é igual em todas as páginas e fica em cache.
+  - **Lição:** no Evidence, o tamanho de uma página depende de todas as fontes do projeto e de todas as consultas da página, mesmo das que só servem de passo intermédio.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
