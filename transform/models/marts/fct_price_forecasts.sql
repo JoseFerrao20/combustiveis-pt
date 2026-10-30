@@ -7,11 +7,14 @@
 --           + beta_week_before × (a mesma diferença uma semana antes)
 -- Os coeficientes vêm do seed forecast_coefficients (ajustados com scripts/fit_forecast.py).
 -- A previsão em euros por litro já leva o IVA, mas não uma eventual mudança do ISP: em
--- `actual_change` está a mudança do preço com impostos que o boletim publicou, ISP incluído.
+-- `actual_change` está a mudança do preço com impostos que o boletim publicou, ISP incluído, e
+-- em `dgeg_change` a mudança média dos postos na segunda-feira (fotografias da DGEG), que se
+-- conhece no próprio dia.
 with
 
 weeks as (select * from {{ ref('int_market_weeks') }}),
 coefficients as (select * from {{ ref('forecast_coefficients') }}),
+dgeg as (select * from {{ ref('int_dgeg_monday_changes') }}),
 prices as (
     select week, product, price_with_tax, price_without_tax, vat_rate
     from {{ ref('fct_fuel_prices') }}
@@ -62,5 +65,10 @@ select
     actual_change_with_tax_1000l / 1000 as actual_change,
     market_days_last_week,
     last_market_day,
-    actual_change_before_tax is not null as is_known
+    actual_change_before_tax is not null as is_known,
+    dgeg.dgeg_change,
+    dgeg.dgeg_stations,
+    dgeg.dgeg_share_changed,
+    dgeg.previous_snapshot_date as dgeg_previous_snapshot_date
 from with_prices
+left join dgeg using (target_week, product)

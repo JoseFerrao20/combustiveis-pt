@@ -176,9 +176,14 @@
   - **Primeira previsão:** para 2/11/2026, gasolina −1,4 cêntimos e gasóleo −6,4, com só 2 dias de cotações dessa semana.
   - **Lições:** os coeficientes ficam num seed, e não no dbt, para o teste ser honesto e o CI funcionar com 5 semanas. Em outubro de 2026, Nova Iorque e a Europa separaram-se na gasolina, e a previsão errou mais; o painel mostra as semanas todas para isso se ver.
 
+- **2026-10-30 (sessão cloud do Claude Code):** a previsão comparada com os postos no próprio dia.
+  - **Feito:** `int_dgeg_monday_changes` (com um teste unitário) calcula a mudança média dos postos em cada segunda-feira, a partir das fotografias da DGEG, face à fotografia anterior (até 3 dias antes), só com os preços atualizados nos dois dias. O `fct_price_forecasts` junta-a à previsão (`dgeg_change`).
+  - **No painel:** a página da previsão tem uma tabela "Na própria segunda-feira, segundo os postos" (prevista, nos postos, diferença, quantos postos mudaram). Na segunda de manhã, a faixa da página inicial acrescenta "Nos postos, a mudança foi de…".
+  - **Ainda vazio:** as fotografias começaram a 28/10, por isso a primeira comparação é a de 2/11/2026. Testado com uma segunda-feira simulada (cópias da fotografia de 29/10, com o gasóleo a −5 cêntimos): a página e a faixa mostram a comparação.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
-2. **Ver como a previsão se sai nas próximas semanas;** voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
+2. **Ver como a previsão se sai nas próximas semanas** (a primeira comparação com os postos é a 2/11); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
 3. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 dias).
 4. **Talvez:** avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.
