@@ -66,7 +66,12 @@ where target_week = (select max(target_week) from combustiveis.previsao)
 </Dropdown>
 
 ```sql zona
-select *
+-- Só as colunas que as consultas abaixo usam: o Evidence guarda o resultado de cada consulta no
+-- site, e a página fica mais leve.
+select
+    snapshot_date, station_name, brand, brand_segment, station_type, district, municipality,
+    latitude, longitude, price, updated_at, is_current,
+    change_since_previous, last_change_date, history_7d
 from combustiveis.postos
 where fuel = '${inputs.combustivel.value}'
     and district like '${inputs.distrito.value}'
@@ -243,7 +248,9 @@ Um posto sem concorrentes por perto pode cobrar mais? Para cada posto, conta-se 
 
 ```sql concorrencia_base
 select
-    *,
+    brand_segment,
+    competitors_5km,
+    price,
     case
         when competitors_5km = 0 then '0'
         when competitors_5km <= 2 then '1 a 2'
