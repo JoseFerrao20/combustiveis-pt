@@ -36,7 +36,19 @@ select
                 else '= 0,0'
             end || ' cêntimos',
             ', ' order by product = 'diesel'
-        ) || ' por litro (estimativa, sem mudanças do ISP).' as texto
+        ) || ' por litro (estimativa, sem mudanças do ISP).'
+        -- Na segunda-feira, a fotografia da DGEG já diz quanto os postos mudaram.
+        || coalesce(
+            ' Nos postos, a mudança foi de ' || string_agg(
+                product_name || ' ' || case
+                    when round(dgeg_change * 100, 1) > 0 then '▲ +' || replace(printf('%.1f', dgeg_change * 100), '.', ',')
+                    when round(dgeg_change * 100, 1) < 0 then '▼ −' || replace(printf('%.1f', -dgeg_change * 100), '.', ',')
+                    else '= 0,0'
+                end,
+                ', ' order by product = 'diesel'
+            ) || ' cêntimos.',
+            ''
+        ) as texto
 from combustiveis.previsao
 where target_week = (select max(target_week) from combustiveis.previsao)
 ```

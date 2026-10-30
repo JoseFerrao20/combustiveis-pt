@@ -30,6 +30,10 @@ Dá para prever quanto muda o preço da gasolina e do gasóleo em Portugal na pr
 - **Contra o preço com impostos que o boletim publicou** (ISP incluído), o erro médio é de 1,1 cêntimos nos dois combustíveis. As mudanças do ISP de 2026 compensaram parte das subidas e das descidas.
 - **Outubro de 2026 foi difícil para a gasolina:** em 12/10, a previsão era −4,5 cêntimos, e a mudança sem impostos foi de +4,0. Nas semanas em que Nova Iorque e a Europa se separam, a previsão erra mais. O painel mostra as semanas todas, para se ver isso.
 
+## Validação no próprio dia
+
+A partir de 2/11/2026, a previsão compara-se também com a mudança média dos postos na segunda-feira, a partir das fotografias diárias da DGEG (`int_dgeg_monday_changes`). Compara-se cada posto com a fotografia anterior, até 3 dias antes, e só os postos com o preço atualizado nos dois dias. Não é bem a mesma coisa que o boletim: é a média dos postos, e não a média ponderada pelas vendas. Mas sai na segunda de manhã, três dias antes do boletim.
+
 ## O que mudou no projeto
 
 - `combustiveis mercados` (`markets.py`, com testes), o seed `forecast_coefficients` e `scripts/fit_forecast.py`.

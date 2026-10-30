@@ -18,6 +18,15 @@ models:
       - unique_combination:
           arguments:
             columns: [station_id, fuel]
+  - name: int_dgeg_monday_changes
+    description: >
+      A mudança média dos preços dos postos (gasolina 95 e gasóleo) em cada segunda-feira com
+      fotografia da DGEG, face à fotografia anterior (até 3 dias antes), só com os postos que
+      têm o preço atualizado nos dois dias.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [target_week, product]
 
 unit_tests:
   - name: counts_neighbours_by_straight_line_distance
@@ -66,3 +75,26 @@ unit_tests:
           price_7d: null
           last_change_date: null
           history_7d: "29/10: 1,800"
+
+  - name: monday_changes_compare_with_the_previous_snapshot
+    description: >
+      Segunda-feira, 2/11/2026, com fotografias a 31/10 e 1/11: compara com 1/11. O posto 1
+      desce 2 cêntimos, o posto 2 fica igual; o posto 3 tem o preço desatualizado e fica de fora.
+      O dia 31/10 é um sábado e não conta como segunda-feira.
+    model: int_dgeg_monday_changes
+    given:
+      - input: ref('fct_station_prices')
+        rows:
+          - {snapshot_date: 2026-10-31, station_id: 1, fuel: gasoleo, price: 1.900, is_current: true}
+          - {snapshot_date: 2026-11-01, station_id: 1, fuel: gasoleo, price: 1.900, is_current: true}
+          - {snapshot_date: 2026-11-02, station_id: 1, fuel: gasoleo, price: 1.880, is_current: true}
+          - {snapshot_date: 2026-11-01, station_id: 2, fuel: gasoleo, price: 1.950, is_current: true}
+          - {snapshot_date: 2026-11-02, station_id: 2, fuel: gasoleo, price: 1.950, is_current: true}
+          - {snapshot_date: 2026-11-01, station_id: 3, fuel: gasoleo, price: 1.700, is_current: false}
+          - {snapshot_date: 2026-11-02, station_id: 3, fuel: gasoleo, price: 1.600, is_current: false}
+      - input: ref('dgeg_fuels')
+        rows:
+          - {fuel: gasoleo, wob_product: diesel}
+    expect:
+      rows:
+        - {target_week: 2026-11-02, product: diesel, previous_snapshot_date: 2026-11-01, dgeg_stations: 2, dgeg_share_changed: 0.5}

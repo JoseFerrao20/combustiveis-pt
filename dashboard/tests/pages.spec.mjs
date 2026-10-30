@@ -163,6 +163,9 @@ test('a previsão para segunda-feira aparece na página inicial e na sua página
 	await page.goto('analises/previsao/');
 	await expect(page.locator('main')).toContainText(/\d,\d cêntimos/);
 	await expect(page.getByRole('cell', { name: 'Gasóleo', exact: true })).toBeVisible();
+	// A comparação com os postos na própria segunda-feira (vazia até haver uma segunda com
+	// fotografias da DGEG, como na amostra do CI).
+	await expect(page.getByRole('heading', { name: 'Na própria segunda-feira, segundo os postos' })).toBeVisible();
 });
 
 test('o método diz quantas semanas de dados há', async ({ page }) => {
