@@ -71,7 +71,7 @@ where target_week = (select max(target_week) from combustiveis.previsao)
 -- Só as colunas que as consultas abaixo usam: o Evidence guarda o resultado de cada consulta no
 -- site, e a página fica mais leve.
 select
-    snapshot_date, station_name, brand, brand_segment, station_type, district, municipality,
+    snapshot_date, station_id, station_name, brand, brand_segment, station_type, district, municipality,
     latitude, longitude, price, updated_at, is_current,
     change_since_previous, last_change_date, history_7d
 from combustiveis.postos
@@ -82,7 +82,7 @@ where fuel = '${inputs.combustivel.value}'
 
 ```sql mapa
 select
-    station_name, brand, municipality, price, latitude, longitude, updated_at,
+    station_id, station_name, brand, municipality, price, latitude, longitude, updated_at,
     change_since_previous, last_change_date, history_7d
 from ${zona}
 where is_current and latitude is not null

@@ -15,7 +15,10 @@
 	posto mais perto, já descontando o combustível da ida e volta (distância em linha reta × 1,3,
 	uma aproximação da distância por estrada). O depósito e o consumo ficam no browser.
 
-	Colunas de `data`: station_name, brand, municipality, price, updated_at, latitude, longitude,
+	A estrela de cada posto guarda-o em "Os meus postos" (lista no topo, com o preço de hoje e a
+	mudança desde ontem). Os favoritos ficam no browser, pelo id da DGEG.
+
+	Colunas de `data`: station_id, station_name, brand, municipality, price, updated_at, latitude, longitude,
 	e, se houver histórico, change_since_previous, last_change_date e history_7d.
 -->
 <script>
@@ -53,6 +56,33 @@
 	/** A distância por estrada é, em média, cerca de 1,3 vezes a distância em linha reta. */
 	const ROAD_FACTOR = 1.3;
 	const SETTINGS_KEY = 'combustiveis-pt:poupanca';
+	const FAVORITES_KEY = 'combustiveis-pt:favoritos';
+	/** Os ids da DGEG dos postos guardados, pela ordem em que foram guardados. */
+	let favorites = [];
+
+	function loadFavorites() {
+		try {
+			const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? '[]');
+			if (Array.isArray(saved)) favorites = saved.map(Number).filter(Number.isFinite);
+		} catch {
+			// Sem acesso ao armazenamento do browser: a lista começa vazia.
+		}
+	}
+
+	function toggleFavorite(row) {
+		const id = Number(row.station_id);
+		favorites = favorites.includes(id) ? favorites.filter((f) => f !== id) : [...favorites, id];
+		try {
+			localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+		} catch {
+			// Idem: a estrela funciona até fechar a página, só não fica guardada.
+		}
+	}
+
+	$: favoriteRows = favorites
+		.map((id) => rows.find((row) => Number(row.station_id) === id))
+		.filter(Boolean);
+	$: missingFavorites = favorites.length - favoriteRows.length;
 	let tank = 50;
 	let consumption = 6.5;
 	let order = 'preco';
@@ -291,12 +321,62 @@
 		map.setView([39.6, -8.0], 7);
 		map.on('moveend', update);
 		loadSettings();
+		loadFavorites();
 	});
 
 	onDestroy(() => map?.remove());
 </script>
 
 <div class="mapa-postos my-4" data-postos={drawn === null ? undefined : rows.length}>
+	<section class="meus-postos" aria-labelledby="meus-postos-titulo">
+		<h2 id="meus-postos-titulo" class="text-lg font-semibold">Os meus postos</h2>
+		{#if favoriteRows.length}
+			<ul>
+				{#each favoriteRows as row (row.key)}
+					<li>
+						<button type="button" class="nome" on:click={() => focus(row)} title="Ver no mapa">
+							<span class="cor" style="background: {color(row.price)}" />
+							{row.station_name}
+						</button>
+						<span class="text-sm text-base-content-muted marca">{row.brand} · {row.municipality}</span>
+						<span class="preco">{euros(row.price)}</span>
+						<span class="variacao {changeClass(row)}">
+							<span aria-hidden="true">{change(row)}</span>
+							<span class="sr-only">{changeLabel(row)}</span>
+						</span>
+						<a
+							class="ir"
+							href={directions(row)}
+							target="_blank"
+							rel="noopener"
+							aria-label="Ir até {row.station_name} (Google Maps)">Ir</a
+						>
+						<button
+							type="button"
+							class="estrela"
+							aria-pressed="true"
+							on:click={() => toggleFavorite(row)}
+							><span aria-hidden="true">★</span><span class="sr-only"
+								>Tirar {row.station_name} dos meus postos</span
+							></button
+						>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+		<p class="text-sm text-base-content-muted">
+			{#if !favorites.length}
+				Toque na estrela (☆) de um posto, na tabela por baixo do mapa, para o guardar aqui. A
+				lista fica só neste telemóvel ou computador.
+			{:else if missingFavorites > 0}
+				{missingFavorites === 1 ? 'Um dos seus postos não aparece' : `${missingFavorites} dos seus postos não aparecem`}
+				com o combustível, o distrito e o concelho escolhidos (ou não têm o preço atualizado).
+			{:else}
+				A lista fica só neste telemóvel ou computador.
+			{/if}
+		</p>
+	</section>
+
 	{#if canLocate}
 		<p class="perto">
 			<button type="button" class="perto-botao" on:click={locate} disabled={locating || !map}>
@@ -376,6 +456,7 @@
 			<thead>
 				<tr>
 					<th class="num">#</th>
+					<th><span class="sr-only">Os meus postos</span></th>
 					<th>Posto</th>
 					<th class="larga">Marca</th>
 					<th class="larga">Concelho</th>
@@ -392,6 +473,17 @@
 					<tr>
 						<td class="num">{index + 1}</td>
 						<td>
+							<button
+								type="button"
+								class="estrela"
+								aria-pressed={favorites.includes(Number(row.station_id))}
+								on:click={() => toggleFavorite(row)}
+								><span aria-hidden="true"
+									>{favorites.includes(Number(row.station_id)) ? '★' : '☆'}</span
+								><span class="sr-only">Guardar {row.station_name} nos meus postos</span></button
+							>
+						</td>
+						<td>
 							<button type="button" on:click={() => focus(row)} title="Ver no mapa">
 								<span class="cor" style="background: {color(row.price)}" />
 								{row.station_name}
@@ -404,7 +496,7 @@
 						</td>
 						<td class="larga">{row.brand}</td>
 						<td class="larga">{row.municipality}</td>
-						<td class="num">
+						<td class="num preco-celula">
 							{euros(row.price).replace(' €', '')}
 							<!-- No telemóvel, a variação vai debaixo do preço. -->
 							<span class="estreita variacao {changeClass(row)}">
@@ -528,6 +620,58 @@
 		.tabela-postos th {
 			padding: 0.35rem 0.25rem;
 		}
+	}
+	.meus-postos {
+		margin-bottom: 1rem;
+	}
+	.meus-postos ul {
+		list-style: none;
+		padding: 0;
+		margin: 0.5rem 0;
+	}
+	/* Duas linhas: o nome em cima; a marca, o preço, a mudança, "Ir" e a estrela em baixo. */
+	.meus-postos li {
+		display: grid;
+		grid-template-columns: 1fr auto auto auto auto;
+		grid-template-areas:
+			'nome nome nome nome nome'
+			'marca preco variacao ir estrela';
+		align-items: center;
+		gap: 0.25rem 0.75rem;
+		padding: 0.5rem 0;
+		border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+	}
+	.meus-postos .nome {
+		grid-area: nome;
+		font-weight: 600;
+		text-align: left;
+	}
+	.meus-postos .marca {
+		grid-area: marca;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.meus-postos .preco {
+		grid-area: preco;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+	.meus-postos .variacao {
+		grid-area: variacao;
+	}
+	.meus-postos .ir {
+		grid-area: ir;
+	}
+	.meus-postos .estrela {
+		grid-area: estrela;
+	}
+	.estrela {
+		color: #d97706;
+		font-size: 1.15rem;
+		line-height: 1;
+		padding: 0.25rem;
 	}
 	/* No tema escuro, o azul de "Ir" precisa de ser mais claro para ter contraste. */
 	:global([data-theme='dark']) .ir {

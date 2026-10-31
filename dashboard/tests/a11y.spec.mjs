@@ -37,3 +37,20 @@ for (const path of PAGES) {
 		});
 	}
 }
+
+test('"Os meus postos" com postos guardados cumpre a WCAG 2.2 AA', async ({ page }) => {
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	await page.getByRole('button', { name: /^Guardar .* nos meus postos$/ }).first().click();
+	await expect(page.locator('.meus-postos').getByRole('listitem')).toHaveCount(1);
+	for (const scheme of ['light', 'dark']) {
+		await page.emulateMedia({ colorScheme: scheme });
+		const results = await new AxeBuilder({ page })
+			.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+			.include('.mapa-postos')
+			.exclude('.leaflet-tile-pane')
+			.analyze();
+		expect(summary(results.violations)).toEqual([]);
+	}
+});
