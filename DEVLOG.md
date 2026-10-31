@@ -201,6 +201,11 @@
 
     Tem também uma secção de destaques técnicos, a arquitetura com as três fontes e a vigilância, e a lista das quatro decisões (ADR). As capturas antigas que já não se usam saíram, e a dos impostos passou a `painel-impostos.png`.
 
+- **2026-10-31 (sessão cloud do Claude Code):** "Os meus postos".
+  - **Feito:** cada posto da tabela tem uma estrela. Os postos guardados aparecem numa lista no topo, com o preço de hoje, a mudança desde ontem, o "Ir" e a estrela para os tirar. Tocar no nome aproxima o mapa. A lista fica no browser, pelo id da DGEG (o `station_id` passou a ir para a consulta do mapa). Com um distrito ou concelho escolhido, a lista avisa quando algum dos postos guardados fica de fora.
+  - **Testes:** um teste novo guarda um posto, recarrega a página e tira-o. O teste da tabela passou a encontrar o nome e o preço por classe e título, e não pela posição da coluna: com a coluna da estrela, lia o concelho em vez do preço e passava na mesma (números `NaN` ordenados).
+  - **Lição:** um teste que compara uma lista com ela própria ordenada passa com uma lista de `NaN`. Agora confirma também que os preços estão entre 0,50 € e 4 €.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
