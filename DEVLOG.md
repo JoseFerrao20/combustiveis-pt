@@ -201,6 +201,17 @@
 
     Tem também uma secção de destaques técnicos, a arquitetura com as três fontes e a vigilância, e a lista das quatro decisões (ADR). As capturas antigas que já não se usam saíram, e a dos impostos passou a `painel-impostos.png`.
 
+- **2026-10-31 (sessão cloud do Claude Code):** acessibilidade.
+  - **Feito:** `dashboard/tests/a11y.spec.mjs` corre o axe (WCAG 2.2 AA) nas 7 páginas, nos temas claro e escuro (14 testes), e o CI passa a exigi-lo. Os problemas encontrados vinham quase todos dos componentes do Evidence e foram corrigidos com o patch que já traduzia a interface:
+    - os filtros diziam-se "combobox" sem `aria-controls`. Abrem um diálogo, por isso passaram a botões normais, com o texto visível como nome;
+    - o link do GitHub, só com o ícone, não tinha nome ("Código no GitHub");
+    - a caixa de deslocamento das tabelas não se alcançava com o teclado (`tabindex="0"`, com nome);
+    - a escala de cores (`colorScale=negative`) ficava abaixo de 4,5:1. Passou a branco → `#fca5a5`, com o texto branco no tema escuro, onde o Evidence escurece a escala;
+    - o "Ir" azul no tema escuro tinha contraste 3,8 (passou a `#60a5fa`).
+
+    Também se traduziram "Fullscreen" e os nomes dos botões da paginação.
+  - **Lição:** a amostra do CI e os dados reais dão páginas diferentes (tabelas que cabem ou não, máximos da escala de cores). O axe tem de passar nas duas, e duas das falhas só apareciam com a amostra.
+
 - **2026-10-31 (sessão cloud do Claude Code):** "Os meus postos".
   - **Feito:** cada posto da tabela tem uma estrela. Os postos guardados aparecem numa lista no topo, com o preço de hoje, a mudança desde ontem, o "Ir" e a estrela para os tirar. Tocar no nome aproxima o mapa. A lista fica no browser, pelo id da DGEG (o `station_id` passou a ir para a consulta do mapa). Com um distrito ou concelho escolhido, a lista avisa quando algum dos postos guardados fica de fora.
   - **Testes:** um teste novo guarda um posto, recarrega a página e tira-o. O teste da tabela passou a encontrar o nome e o preço por classe e título, e não pela posição da coluna: com a coluna da estrela, lia o concelho em vez do preço e passava na mesma (números `NaN` ordenados).

@@ -1,3 +1,33 @@
+diff --git a/node_modules/@evidence-dev/core-components/dist/atoms/inputs/dropdown/Dropdown.svelte b/node_modules/@evidence-dev/core-components/dist/atoms/inputs/dropdown/Dropdown.svelte
+index cac96a3..9fd19a5 100644
+--- a/node_modules/@evidence-dev/core-components/dist/atoms/inputs/dropdown/Dropdown.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/atoms/inputs/dropdown/Dropdown.svelte
+@@ -282,10 +282,8 @@
+ 					<Button
+ 						builders={[builder]}
+ 						variant="outline"
+-						role="combobox"
+ 						size="sm"
+ 						class="min-w-5 h-8 border border-base-300"
+-						aria-label={title ?? formatTitle(name)}
+ 					>
+ 						{#if title && !multiple}
+ 							{title}
+diff --git a/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/Header.svelte b/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/Header.svelte
+index aa8da7f..219b7f1 100644
+--- a/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/Header.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/Header.svelte
+@@ -81,8 +81,9 @@
+ 						class="hover:bg-base-200 rounded-lg p-2 transition-all duration-200"
+ 						target="_blank"
+ 						rel="noreferrer"
++						aria-label="Código no GitHub"
+ 					>
+-						<Icon src={GithubLogo} class="w-4 h-4 text-base-content" />
++						<Icon src={GithubLogo} class="w-4 h-4 text-base-content" aria-hidden="true" />
+ 					</a>
+ 				{/if}
+ 				{#if xProfile}
 diff --git a/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/KebabMenu.svelte b/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/KebabMenu.svelte
 index af6ace1..e0c6663 100644
 --- a/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/KebabMenu.svelte
@@ -73,11 +103,42 @@ index bfeb20c..ab641b6 100644
  	export let value;
  	export let searchFunction;
  </script>
+diff --git a/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/EnterFullScreen.svelte b/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/EnterFullScreen.svelte
+index bf1c0c2..31fed78 100644
+--- a/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/EnterFullScreen.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/EnterFullScreen.svelte
+@@ -8,8 +8,8 @@
+ 
+ {#if display}
+ 	<div transition:fade|local={{ duration: 200 }}>
+-		<button type="button" aria-label="Enter Fullscreen" on:click>
+-			<span>Fullscreen</span>
++		<button type="button" aria-label="Ver em ecrã inteiro" on:click>
++			<span>Ecrã inteiro</span>
+ 			<Icon class="w-3 h-3" src={EnterFullScreen} />
+ 		</button>
+ 	</div>
 diff --git a/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/_DataTable.svelte b/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/_DataTable.svelte
-index ab6494f..a61b9c3 100644
+index ab6494f..84578b6 100644
 --- a/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/_DataTable.svelte
 +++ b/node_modules/@evidence-dev/core-components/dist/unsorted/viz/table/_DataTable.svelte
-@@ -688,7 +688,7 @@
+@@ -570,7 +570,14 @@
+ 			<SearchBar bind:value={searchValue} searchFunction={() => {}} />
+ 		{/if}
+ 
+-		<div class="scrollbox pretty-scrollbar" style:background-color={$backgroundColorStore}>
++		<!-- Focável e com nome, para se poder percorrer com o teclado quando não cabe (WCAG 2.1.1). -->
++		<div
++			class="scrollbox pretty-scrollbar"
++			style:background-color={$backgroundColorStore}
++			tabindex="0"
++			role="region"
++			aria-label={title ?? 'Tabela'}
++		>
+ 			<table>
+ 				<TableHeader
+ 					{rowNumbers}
+@@ -688,13 +695,13 @@
  			</table>
  		</div>
  
@@ -86,7 +147,23 @@ index ab6494f..a61b9c3 100644
  
  		{#if paginated && pageCount > 1}
  			<div class="pagination">
-@@ -716,7 +716,7 @@
+ 				<div class="page-labels mr-auto">
+ 					<button
+-						aria-label="first-page"
++						aria-label="Primeira página"
+ 						class="page-changer"
+ 						class:hovering
+ 						disabled={currentPage === 1}
+@@ -705,7 +712,7 @@
+ 						</div>
+ 					</button>
+ 					<button
+-						aria-label="previous-page"
++						aria-label="Página anterior"
+ 						class="page-changer"
+ 						class:hovering
+ 						disabled={currentPage === 1}
+@@ -716,7 +723,7 @@
  						</div>
  					</button>
  					<span class="page-count">
@@ -95,7 +172,7 @@ index ab6494f..a61b9c3 100644
  						<input
  							class="page-input"
  							class:hovering
-@@ -732,7 +732,7 @@
+@@ -732,10 +739,10 @@
  						<span class="page-count ml-1">{pageCount.toLocaleString()}</span>
  					</span>
  					<span class="print-page-count">
@@ -103,4 +180,17 @@ index ab6494f..a61b9c3 100644
 +						{displayedPageLength.toLocaleString()} de {totalRows.toLocaleString()} linhas
  					</span>
  					<button
- 						aria-label="next-page"
+-						aria-label="next-page"
++						aria-label="Página seguinte"
+ 						class="page-changer"
+ 						class:hovering
+ 						disabled={currentPage === pageCount}
+@@ -746,7 +753,7 @@
+ 						</div>
+ 					</button>
+ 					<button
+-						aria-label="last-page"
++						aria-label="Última página"
+ 						class="page-changer"
+ 						class:hovering
+ 						disabled={currentPage === pageCount}

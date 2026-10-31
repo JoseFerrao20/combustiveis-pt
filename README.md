@@ -48,7 +48,7 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **Testes em todas as camadas**, todos no CI:
   - 57 testes em Python (98 % de cobertura);
   - 83 testes de dados e testes unitários no dbt;
-  - 19 testes do site com o Playwright: as páginas, os filtros, o "Perto de mim" com a localização simulada e a poupança.
+  - 35 testes do site com o Playwright: as páginas, os filtros, o "Perto de mim" com a localização simulada, a poupança e "Os meus postos", e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 

@@ -24,6 +24,11 @@
 	:global(.capitalize) {
 		text-transform: none;
 	}
+	/* Escala de cores das tabelas (contentType=colorscale): no tema escuro, o Evidence leva o
+	   máximo a um vermelho escuro (#bb0001), e o texto cinzento claro fica abaixo de 4,5:1. */
+	:global([data-theme='dark'] td[style*='background-color']) {
+		color: #ffffff !important;
+	}
 	/* A previsão de segunda-feira, no topo da página inicial. */
 	:global(.previsao-segunda) {
 		border-left: 4px solid #d97706;

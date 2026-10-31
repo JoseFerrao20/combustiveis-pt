@@ -158,7 +158,7 @@ O posto acompanhado é o ponto vermelho; os concorrentes têm a cor do preço.
     <Column id=station_name title="Posto" />
     <Column id=brand title="Marca" />
     <Column id=distance_km title="Distância (km)" fmt='0.0' />
-    <Column id='Preço (€/L)' fmt='0.000' contentType=colorscale colorScale=negative />
+    <Column id='Preço (€/L)' fmt='0.000' contentType=colorscale scaleColor={['#ffffff', '#fca5a5']} />
     <Column id=updated_at title="Atualizado" fmt='dd/mm/yyyy hh:mm' />
 </DataTable>
 

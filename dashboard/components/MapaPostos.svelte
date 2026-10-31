@@ -673,6 +673,11 @@
 		line-height: 1;
 		padding: 0.25rem;
 	}
+	/* No tema escuro, o azul de "Ir" precisa de ser mais claro para ter contraste. */
+	:global([data-theme='dark']) .ir {
+		color: #60a5fa;
+		border-color: #60a5fa;
+	}
 	.sr-only {
 		position: absolute;
 		width: 1px;

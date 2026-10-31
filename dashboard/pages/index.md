@@ -175,7 +175,7 @@ order by media
 <DataTable data={marcas} rows=30 emptySet="pass" emptyMessage="Nenhuma marca com pelo menos 3 postos nesta zona.">
     <Column id=marca title="Marca" />
     <Column id=postos title="Postos" fmt="#,##0" />
-    <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale colorScale=negative />
+    <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale scaleColor={['#ffffff', '#fca5a5']} />
     <Column id=minimo title="Mínimo" fmt='0.000' />
     <Column id=maximo title="Máximo" fmt='0.000' />
 </DataTable>
@@ -209,7 +209,7 @@ order by media
             <Column id=concelho title="Concelho" />
             <Column id=distrito title="Distrito" />
             <Column id=postos title="Postos" fmt="#,##0" />
-            <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale colorScale=negative />
+            <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale scaleColor={['#ffffff', '#fca5a5']} />
             <Column id=minimo title="Mais barato" fmt='0.000' />
         </DataTable>
     </Tab>
@@ -217,7 +217,7 @@ order by media
         <DataTable data={distritos} rows=20>
             <Column id=distrito title="Distrito" />
             <Column id=postos title="Postos" fmt="#,##0" />
-            <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale colorScale=negative />
+            <Column id=media title="Média (€/L)" fmt='0.000' contentType=colorscale scaleColor={['#ffffff', '#fca5a5']} />
         </DataTable>
     </Tab>
 </Tabs>
