@@ -81,11 +81,12 @@ test('a tabela por baixo do mapa vai do mais barato para o mais caro e segue o m
 	await page.waitForLoadState('networkidle');
 
 	const precos = async () =>
-		(await mapa.locator('tbody td:nth-child(5)').allInnerTexts()).map((t) =>
-			Number(t.replace(',', '.'))
+		(await mapa.locator('tbody td.preco-celula').allInnerTexts()).map((t) =>
+			Number(t.trim().split(/\s/)[0].replace(',', '.'))
 		);
 	const primeiros = await precos();
 	expect(primeiros.length).toBeGreaterThan(0);
+	expect(primeiros.every((preco) => preco > 0.5 && preco < 4)).toBe(true);
 	expect(primeiros).toEqual([...primeiros].sort((a, b) => a - b));
 
 	const contagem = async () =>
@@ -93,7 +94,7 @@ test('a tabela por baixo do mapa vai do mais barato para o mais caro e segue o m
 	const todos = await contagem();
 	// Escolher um posto na tabela aproxima o mapa dele: a tabela fica só com os que se veem.
 	await expect(mapa.getByRole('columnheader', { name: 'Desde ontem' })).toBeVisible();
-	await mapa.locator('tbody button').first().click();
+	await mapa.locator('tbody button[title="Ver no mapa"]').first().click();
 	await expect(page.locator('.leaflet-popup-content')).toContainText(EURO);
 	// Os preços das últimas fotografias ("28/10: 1,919"), mesmo com uma só (a amostra do CI).
 	await expect(page.locator('.leaflet-popup-content')).toContainText(/Últimos dias: \d\d\/\d\d: \d,\d{3}/);
@@ -139,6 +140,26 @@ test('com a localização, a tabela diz quanto se poupa face ao posto mais perto
 	await page.reload();
 	await page.getByRole('button', { name: 'Perto de mim' }).click();
 	await expect(page.getByLabel('Depósito')).toHaveValue('40');
+});
+
+test('a estrela guarda o posto em "Os meus postos", também depois de recarregar', async ({ page }) => {
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	const meus = page.locator('.meus-postos');
+	await expect(meus).toContainText('Toque na estrela');
+
+	const nome = (await mapa.locator('tbody tr').first().locator('button[title="Ver no mapa"]').innerText()).trim();
+	await page.getByRole('button', { name: `Guardar ${nome} nos meus postos` }).click();
+	await expect(meus.getByRole('listitem')).toHaveCount(1);
+	await expect(meus).toContainText(nome);
+	await expect(meus).toContainText(EURO);
+
+	await page.reload();
+	await expect(meus.getByRole('listitem')).toHaveCount(1);
+	await meus.getByRole('button', { name: `Tirar ${nome} dos meus postos` }).click();
+	await expect(meus.getByRole('listitem')).toHaveCount(0);
+	await expect(meus).toContainText('Toque na estrela');
 });
 
 test('as páginas têm a descrição e a imagem para a partilha do link', async ({ page }) => {

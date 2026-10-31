@@ -13,6 +13,7 @@
 
 - **Mapa e tabela de todos os postos** (mais de 3000), do mais barato para o mais caro. A tabela segue o mapa: ao aproximar, ou ao escolher o distrito e o concelho, fica só com os postos que se veem.
 - **"Perto de mim":** centra o mapa onde a pessoa está. Para cada posto, mostra a distância e quanto se poupa num depósito face ao posto mais perto, já descontando a ida e volta. O botão "Ir" abre o caminho no Google Maps. A localização não sai do telemóvel.
+- **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço de hoje, a mudança desde ontem e o "Ir". A lista fica só no telemóvel.
 - **"Desde ontem":** quanto cada posto subiu ou desceu, e os preços dos últimos dias.
 - **Previsão para segunda-feira:** quanto deve mudar o preço, a partir dos mercados da semana anterior, com o erro de todas as semanas desde 2024 à vista. Na segunda de manhã, compara-se com a mudança real nos postos.
 
