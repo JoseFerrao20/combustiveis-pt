@@ -20,6 +20,12 @@
 		<link rel="icon" href="/combustiveis-pt/icon.svg" type="image/svg+xml" />
 		<link rel="apple-touch-icon" href="/combustiveis-pt/apple-touch-icon.png" />
 		<link rel="manifest" href="/combustiveis-pt/manifest.webmanifest" />
+		<!-- Instalar como aplicação ("Adicionar ao ecrã principal"): o manifesto vem de app/public/
+		     e substitui o do Evidence no build. -->
+		<meta name="theme-color" content="#2563eb" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-title" content="Combustível" />
 		<link rel="preload" href="/combustiveis-pt/dados/resumo.json" as="fetch" crossorigin />
 	</head>
 	<body>

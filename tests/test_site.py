@@ -6,7 +6,7 @@ import duckdb
 import pytest
 
 from combustiveis import __main__ as cli
-from combustiveis.site import COLUMNS, export_site, forecast_text
+from combustiveis.site import COLUMNS, export_site, forecast_summary, forecast_text
 
 STATIONS = """
 select * from (values
@@ -84,6 +84,13 @@ def test_the_summary_has_the_fuels_districts_and_forecast(
     ]
     assert summary["districts"] == {"Lisboa": ["Lisboa"], "Porto": ["Maia", "Porto"]}
     assert summary["forecast"].startswith("Previsão para segunda-feira, 02/11: Gasolina 95")
+    assert summary["forecast_summary"] == {
+        "week": "2026-11-02",
+        "items": [
+            {"name": "Gasolina 95", "predicted": -1.4, "observed": None},
+            {"name": "Gasóleo", "predicted": -6.4, "observed": -5.1},
+        ],
+    }
 
 
 def test_forecast_text() -> None:
@@ -104,6 +111,7 @@ def test_forecast_text() -> None:
     rows[1]["predicted_change"] = 0.015
     assert "Gasolina 95 ▲ +1,5 cêntimos" in (forecast_text(rows) or "")
     assert forecast_text([]) is None
+    assert forecast_summary([]) is None
 
 
 def test_command_line(
