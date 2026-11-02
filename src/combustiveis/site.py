@@ -75,15 +75,41 @@ def _cents(value: float) -> str:
     return "= 0,0"
 
 
-def forecast_text(rows: list[dict[str, Any]]) -> str | None:
-    """O texto da previsão para a última semana prevista, como na faixa do painel."""
-    if not rows:
-        return None
+def _latest_forecast(rows: list[dict[str, Any]]) -> tuple[date, list[dict[str, Any]]]:
+    """A última semana prevista e as suas linhas, com a gasolina antes do gasóleo."""
     week = max(row["target_week"] for row in rows)
     latest = sorted(
         (row for row in rows if row["target_week"] == week),
         key=lambda row: row["product"] == "diesel",
     )
+    return week, latest
+
+
+def forecast_summary(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """A previsão em números, para a linha curta da página inicial (cêntimos por litro)."""
+    if not rows:
+        return None
+    week, latest = _latest_forecast(rows)
+    return {
+        "week": week.isoformat(),
+        "items": [
+            {
+                "name": row["product_name"],
+                "predicted": round(float(row["predicted_change"]) * 100, 1),
+                "observed": None
+                if row["dgeg_change"] is None
+                else round(float(row["dgeg_change"]) * 100, 1),
+            }
+            for row in latest
+        ],
+    }
+
+
+def forecast_text(rows: list[dict[str, Any]]) -> str | None:
+    """O texto da previsão para a última semana prevista, como na faixa do painel."""
+    if not rows:
+        return None
+    week, latest = _latest_forecast(rows)
     predicted = ", ".join(
         f"{row['product_name']} {_cents(row['predicted_change'])} cêntimos" for row in latest
     )
@@ -155,7 +181,8 @@ def export_site(stations: Path, forecast: Path, target: Path) -> SiteData:
         [str(forecast)],
     )
     names = [column[0] for column in cursor.description]
-    text = forecast_text([dict(zip(names, row, strict=True)) for row in cursor.fetchall()])
+    forecast_rows = [dict(zip(names, row, strict=True)) for row in cursor.fetchall()]
+    text = forecast_text(forecast_rows)
     _write_json(
         target / "resumo.json",
         {
@@ -166,6 +193,7 @@ def export_site(stations: Path, forecast: Path, target: Path) -> SiteData:
             ],
             "districts": districts,
             "forecast": text,
+            "forecast_summary": forecast_summary(forecast_rows),
         },
     )
     return SiteData(snapshot_date=snapshot_date, stations=counts, forecast=text)

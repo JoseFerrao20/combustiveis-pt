@@ -262,6 +262,35 @@
     - o modo offline do Playwright nem sempre chega ao service worker. A página mostra também o aviso com `navigator.onLine` falso, e o teste confirma o que ficou na cache. O teste a sério fez-se à mão, com o servidor desligado;
     - o `expect.poll` do teste do resumo aceitava o 0 que aparece enquanto a consulta corre. Agora espera por um número entre 0 e o total.
 
+- **2026-11-02 (sessão cloud do Claude Code):** a página inicial pensada para o telemóvel.
+  - **Antes:** num telemóvel com 390 px de largura, o mapa só começava aos 980 px, e "Perto de mim" não aparecia no primeiro ecrã. O cabeçalho ocupava 100 px (3 linhas de links), havia muito texto antes do essencial, e "Ver no mapa" abria o balão num mapa 700 px acima.
+  - **Feito:**
+    - **Primeiro ecrã:**
+      - o combustível e "Perto de mim" lado a lado, a procura por baixo, e o distrito, o concelho, a marca, as autoestradas, o depósito e o consumo num só "Filtros" (com quantos estão escolhidos);
+      - a previsão numa linha ("Gasolina 95 ▼ 1,4 c · Gasóleo ▼ 6,4 c"), que abre o texto todo;
+      - o cabeçalho numa linha, com "Menu";
+      - "Os meus postos" só aparece quando há algum.
+    - **Localização lembrada:** depois do primeiro "Perto de mim", a página abre já ali, se o browser a tiver autorizado. "Não abrir aqui" esquece. A lista também se pode ordenar pela distância.
+    - **"Lista" e "Mapa" em separadores**, até 640 px. "Ver no mapa" muda para o mapa e abre o balão.
+    - **Instalar como aplicação:** um manifesto próprio (nome, `start_url`, `standalone`, cor), que substitui o do Evidence.
+    - **Leitura:**
+      - os nomes sem as maiúsculas todas da DGEG ("Intermarche Gafanha da Nazare", sem os acentos, que a DGEG também não tem);
+      - "Genérico" passa a "Sem marca", e a marca não se repete quando já está no nome;
+      - as datas como "hoje, 12:25" ou "28/10, 08:35", com um aviso para os preços com mais de uma semana;
+      - "▼ 2,0 c";
+      - no telemóvel, os nomes têm no máximo duas linhas e a coluna "#" sai.
+  - **Testes:** 3 novos no Playwright (48 ao todo):
+    - os separadores no telemóvel, com o primeiro ecrã;
+    - a localização lembrada e a ordem pela distância;
+    - o manifesto.
+    Os testes dos filtros passaram a procurar cada um pelo nome, depois de abrir o "Filtros".
+  - **Decisões:**
+    - O mapa escondido fica fora do ecrã com o mesmo tamanho (com `inert`), e não com `display: none`: a lista são os postos da parte do mapa que se vê, e com tamanho 0 a lista ficava vazia.
+    - A localização só se usa sozinha com a autorização do browser, e nunca com "denied".
+  - **Lições:**
+    - na amostra do CI, a primeira marca é "Genérico", que a tabela mostrava como "Sem marca" e o filtro não. O nome de cada marca passou a vir de uma função só (`brandLabel`);
+    - o teste da previsão falhou com os dados reais desta segunda, porque o gasóleo aparece em duas tabelas.
+
 ## Plano
 
 1. **Capturas do README com a página inicial nova** (`docs/images/painel-telemovel.png` e `painel-mapa-tabela.png`): o aspeto mudou pouco (o cabeçalho e os filtros), mas já não é o do Evidence.

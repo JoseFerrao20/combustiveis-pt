@@ -14,6 +14,12 @@ const PAGES = [
 ];
 const EURO = /\d,\d{3} €/;
 
+/** Abre "Filtros" (distrito, concelho, marca, autoestradas, depósito e consumo). */
+async function abrirFiltros(page) {
+	const filtros = page.locator('details.filtros-postos');
+	if ((await filtros.getAttribute('open')) === null) await filtros.locator('summary').click();
+}
+
 /** Falha o teste com erros de JavaScript ou ficheiros do próprio site que não carregam. */
 function watchErrors(page) {
 	const errors = [];
@@ -137,13 +143,15 @@ test('com a localização, a tabela diz quanto se poupa face ao posto mais perto
 	await expect(mapa.getByRole('cell', { name: 'o mais perto' })).toBeVisible();
 	await expect(mapa.locator('td.poupa').filter({ hasText: /[+−]\d+,\d\d €/ }).first()).toBeVisible();
 
-	// O depósito fica guardado no browser.
-	await page.getByLabel('Depósito').fill('40');
-	await page.getByLabel('Depósito').blur();
+	// O depósito (em "Filtros") fica guardado no browser.
+	await abrirFiltros(page);
+	await page.getByLabel('Depósito (L)').fill('40');
+	await page.getByLabel('Depósito (L)').blur();
 	await expect(page.getByText(/um depósito de 40 L/)).toBeVisible();
 	await page.reload();
 	await page.getByRole('button', { name: 'Perto de mim' }).click();
-	await expect(page.getByLabel('Depósito')).toHaveValue('40');
+	await abrirFiltros(page);
+	await expect(page.getByLabel('Depósito (L)')).toHaveValue('40');
 });
 
 test('a estrela guarda o posto em "Os meus postos", também depois de recarregar', async ({ page }) => {
@@ -151,7 +159,8 @@ test('a estrela guarda o posto em "Os meus postos", também depois de recarregar
 	const mapa = page.locator('.mapa-postos[data-postos]');
 	await expect(mapa.locator('tbody tr').first()).toBeVisible();
 	const meus = page.locator('.meus-postos');
-	await expect(meus).toContainText('Toque na estrela');
+	await expect(meus).toHaveCount(0);
+	await expect(page.getByText('Toque na estrela')).toBeVisible();
 
 	const nome = (await mapa.locator('tbody tr').first().locator('button[title="Ver no mapa"]').innerText()).trim();
 	await page.getByRole('button', { name: `Guardar ${nome} nos meus postos` }).click();
@@ -164,8 +173,8 @@ test('a estrela guarda o posto em "Os meus postos", também depois de recarregar
 	await page.reload();
 	await expect(meus.getByRole('listitem')).toHaveCount(1);
 	await meus.getByRole('button', { name: `Tirar ${nome} dos meus postos` }).click();
-	await expect(meus.getByRole('listitem')).toHaveCount(0);
-	await expect(meus).toContainText('Toque na estrela');
+	await expect(meus).toHaveCount(0);
+	await expect(page.getByText('Toque na estrela')).toBeVisible();
 });
 
 test('com o mapa afastado, os postos próximos juntam-se, e tocar num grupo aproxima o mapa', async ({ page }) => {
@@ -214,23 +223,29 @@ test('a marca, as autoestradas e o combustível ficam guardados', async ({ page 
 	await expect(mapa.locator('tbody tr').first()).toBeVisible();
 
 	// Outro combustível: volta a aparecer depois de recarregar, também no resumo.
-	const combustivel = page.locator('.filtros select').first();
+	const combustivel = page.getByRole('combobox', { name: 'Combustível' });
 	await combustivel.selectOption({ index: 1 });
 	const escolhido = await combustivel.inputValue();
 	const nome = (await combustivel.locator('option:checked').innerText()).trim();
 	await expect(mapa.locator('tbody tr').first()).toBeVisible();
 
-	const marca = page.locator('.filtros-postos select');
-	const primeira = await marca.locator('option').nth(1).getAttribute('value');
+	await abrirFiltros(page);
+	const marca = page.getByRole('combobox', { name: 'Marca' });
+	const opcao = marca.locator('option').nth(1);
+	const primeira = await opcao.getAttribute('value');
+	// O nome da marca como aparece (sem as maiúsculas todas da DGEG), sem a contagem.
+	const rotulo = (await opcao.innerText()).replace(/\s*\(\d+\)\s*$/, '').trim();
 	await marca.selectOption(primeira);
 	await page.getByLabel('Sem postos de autoestrada').check();
-	await expect(mapa.locator('p[aria-live]')).toContainText(`só ${primeira}, sem autoestradas`);
+	await expect(mapa.locator('p[aria-live]')).toContainText(`só ${rotulo}, sem autoestradas`);
 	const marcas = await mapa.locator('tbody td:nth-child(4)').allInnerTexts();
-	expect(marcas.every((m) => m.trim() === primeira)).toBe(true);
+	expect(marcas.every((m) => m.trim() === rotulo)).toBe(true);
 
 	await page.reload();
-	await expect(mapa.locator('p[aria-live]')).toContainText(`só ${primeira}, sem autoestradas`);
+	await expect(mapa.locator('p[aria-live]')).toContainText(`só ${rotulo}, sem autoestradas`);
 	await expect(combustivel).toHaveValue(escolhido);
+	await expect(page.locator('details.filtros-postos summary')).toContainText('2 escolhidos');
+	await abrirFiltros(page);
 	await expect(marca).toHaveValue(primeira);
 	await expect(page.getByLabel('Sem postos de autoestrada')).toBeChecked();
 	await page.goto('resumo/');
@@ -245,7 +260,9 @@ test('na página inicial, o distrito e o concelho reduzem a lista', async ({ pag
 	const contagem = async () =>
 		Number((await mapa.locator('p[aria-live]').innerText()).match(/^[\d\s\u00a0]+/)[0].replace(/\D/g, ''));
 	const todos = await contagem();
-	const [, distrito, concelho] = await page.locator('.filtros select').all();
+	await abrirFiltros(page);
+	const distrito = page.getByRole('combobox', { name: 'Distrito' });
+	const concelho = page.getByRole('combobox', { name: 'Concelho' });
 	await distrito.selectOption({ index: 1 });
 	await expect.poll(contagem).toBeLessThan(todos);
 	const noDistrito = await contagem();
@@ -253,6 +270,63 @@ test('na página inicial, o distrito e o concelho reduzem a lista', async ({ pag
 	await concelho.selectOption({ index: 1 });
 	await expect.poll(contagem).toBeLessThanOrEqual(noDistrito);
 	expect(errors).toEqual([]);
+});
+
+test('no telemóvel, a lista e o mapa são separadores, e "Ver no mapa" muda para o mapa', async ({ browser }) => {
+	const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+	const page = await context.newPage();
+	const errors = watchErrors(page);
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	// O combustível e "Perto de mim" no primeiro ecrã.
+	await expect(page.getByRole('button', { name: 'Perto de mim' })).toBeInViewport();
+	await expect(page.getByRole('combobox', { name: 'Combustível' })).toBeInViewport();
+	await expect(page.getByRole('button', { name: 'Lista' })).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.locator('.leaflet-container')).not.toBeInViewport();
+
+	await mapa.locator('tbody button[title="Ver no mapa"]').first().click();
+	await expect(page.getByRole('button', { name: 'Mapa' })).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.locator('.leaflet-popup-content')).toContainText(EURO);
+	await expect(mapa.locator('tbody')).toBeHidden();
+	await page.getByRole('button', { name: 'Lista' }).click();
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	expect(errors).toEqual([]);
+	await context.close();
+});
+
+test('quem já usou "Perto de mim" volta a abrir a página no sítio onde está', async ({ page, context }) => {
+	await context.grantPermissions(['geolocation']);
+	await context.setGeolocation({ latitude: 41.1734, longitude: -8.565 });
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	// Com a localização autorizada, nem é preciso carregar no botão.
+	await expect(mapa.getByRole('columnheader', { name: 'Distância' })).toBeVisible();
+	await expect(mapa.locator('p[aria-live]')).toContainText('à volta');
+	// Ordenar pela distância: o primeiro é o mais perto.
+	await page.getByRole('combobox', { name: 'Ordenar por' }).selectOption('distancia');
+	const distancias = (await mapa.locator('tbody td.num.larga').filter({ hasText: /km$/ }).allInnerTexts()).map((t) =>
+		Number(t.replace(' km', '').replace(',', '.'))
+	);
+	expect(distancias.length).toBeGreaterThan(1);
+	expect(distancias).toEqual([...distancias].sort((a, b) => a - b));
+	// "Não abrir aqui" esquece a escolha (a autorização do browser fica, e é ele que manda).
+	await page.getByRole('button', { name: 'Não abrir aqui' }).click();
+	expect(await page.evaluate(() => localStorage.getItem('combustiveis-pt:localizacao'))).toBeNull();
+});
+
+test('o site pode instalar-se como aplicação', async ({ page, request }) => {
+	await page.goto('');
+	const href = await page.locator('link[rel="manifest"]').getAttribute('href');
+	const manifest = await (await request.get(new URL(href, page.url()).href)).json();
+	expect(manifest).toMatchObject({
+		name: 'Combustível mais barato',
+		start_url: '/combustiveis-pt/',
+		display: 'standalone'
+	});
+	expect(manifest.icons.map((icon) => icon.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']));
+	await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', /^#/);
 });
 
 test('a página inicial não descarrega o Evidence nem o DuckDB', async ({ page }) => {
@@ -342,7 +416,8 @@ test('a previsão para segunda-feira aparece na página inicial e na sua página
 	);
 	await page.goto('analises/previsao/');
 	await expect(page.locator('main')).toContainText(/\d,\d cêntimos/);
-	await expect(page.getByRole('cell', { name: 'Gasóleo', exact: true })).toBeVisible();
+	// Com uma segunda-feira com fotografias, o gasóleo aparece também na comparação com os postos.
+	await expect(page.getByRole('cell', { name: 'Gasóleo', exact: true }).first()).toBeVisible();
 	// A comparação com os postos na própria segunda-feira (vazia até haver uma segunda com
 	// fotografias da DGEG, como na amostra do CI).
 	await expect(page.getByRole('heading', { name: 'Na própria segunda-feira, segundo os postos' })).toBeVisible();

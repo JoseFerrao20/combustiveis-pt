@@ -30,7 +30,7 @@
 	e, se houver histórico, change_since_previous, previous_snapshot_date, last_change_date e recent_history.
 -->
 <script>
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
 
 	/** Resultado de uma consulta do Evidence (um store com as linhas). */
@@ -40,6 +40,8 @@
 	export let pageSize = 15;
 	/** O combustível escolhido no filtro da página, para o guardar e voltar a escolhê-lo. */
 	export let combustivel = undefined;
+	/** Quantos filtros da zona (distrito, concelho) a página tem escolhidos, para o "Filtros". */
+	export let zoneFilters = 0;
 
 	// Do mais barato para o mais caro (5 classes, pelos quintis dos preços da zona escolhida).
 	const COLORS = ['#1a9850', '#91cf60', '#fee08b', '#fc8d59', '#d73027'];
@@ -62,6 +64,39 @@
 	let locating = false;
 	let locationError = '';
 	const canLocate = typeof navigator !== 'undefined' && 'geolocation' in navigator;
+	/** Marca no browser que a pessoa já usou "Perto de mim", para a página abrir logo ali. */
+	const LOCATION_KEY = 'combustiveis-pt:localizacao';
+	let remembersLocation = false;
+	let triedAutoLocate = false;
+
+	/**
+	 * Ao abrir, usa logo a localização se o browser já a deu a este site (ou, sem essa
+	 * informação, se a pessoa a usou da última vez). Nunca pergunta a quem disse que não.
+	 */
+	async function autoLocate() {
+		if (!canLocate) return;
+		try {
+			remembersLocation = localStorage.getItem(LOCATION_KEY) === '1';
+		} catch {
+			remembersLocation = false;
+		}
+		let state = 'unknown';
+		try {
+			state = (await navigator.permissions?.query({ name: 'geolocation' }))?.state ?? 'unknown';
+		} catch {
+			// Sem a API das permissões: conta só a escolha guardada.
+		}
+		if (state === 'granted' || (state !== 'denied' && remembersLocation)) locate();
+	}
+
+	function forgetLocation() {
+		remembersLocation = false;
+		try {
+			localStorage.removeItem(LOCATION_KEY);
+		} catch {
+			// Nada a esquecer.
+		}
+	}
 
 	/** A distância por estrada é, em média, cerca de 1,3 vezes a distância em linha reta. */
 	const ROAD_FACTOR = 1.3;
@@ -310,6 +345,61 @@
 		return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
 	}
 
+	/** O dia de hoje em Lisboa (AAAA-MM-DD): as horas dos preços são de Lisboa. */
+	const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon' }).format(new Date());
+
+	/** Quantos dias passaram desde a atualização do preço (pela data de Lisboa). */
+	function ageDays(value) {
+		if (value == null) return null;
+		const date = value instanceof Date ? value : new Date(value);
+		if (Number.isNaN(date.getTime())) return null;
+		return Math.round((Date.parse(today) - Date.parse(date.toISOString().slice(0, 10))) / 86400000);
+	}
+
+	/** "hoje, 12:25", "ontem, 08:10" ou "28/10, 08:35": a data e a hora, curtas. */
+	function whenShort(value) {
+		if (value == null) return '';
+		const date = value instanceof Date ? value : new Date(value);
+		const pad = (n) => String(n).padStart(2, '0');
+		const time = `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
+		const age = ageDays(value);
+		if (age === 0) return `hoje, ${time}`;
+		if (age === 1) return `ontem, ${time}`;
+		return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}, ${time}`;
+	}
+
+	/** Um preço com mais de uma semana pode já não estar em vigor. */
+	const isOld = (value) => (ageDays(value) ?? 0) > 7;
+
+	// Os nomes vêm da DGEG muitas vezes só em maiúsculas: passam a maiúscula só no início de
+	// cada palavra, com as siglas (BP, DPP) e os números romanos como estão.
+	const SMALL_WORDS = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'a', 'o', 'em', 'na', 'no']);
+	const ROMAN = /^(i{1,3}|iv|v|vi{1,3}|ix|x)$/;
+	function tidy(text) {
+		if (!text) return '';
+		const allCaps = !/[a-zà-ÿ]/.test(text);
+		let first = true;
+		return text.replace(/[^\s.\-/()]+/g, (original) => {
+			const isFirst = first;
+			first = false;
+			// Num nome misto ("AUCHAN Gondomar"), só mudam as palavras longas em maiúsculas.
+			if (!allCaps && (/[a-zà-ÿ]/.test(original) || original.length < 4)) return original;
+			const word = original.toLowerCase();
+			if (!isFirst && SMALL_WORDS.has(word)) return word;
+			if (ROMAN.test(word) || (word.length <= 3 && !/[aeiouáéíóúâêôãõà]/.test(word))) {
+				return word.toUpperCase();
+			}
+			return word[0].toUpperCase() + word.slice(1);
+		});
+	}
+	const nameOf = (row) => tidy(row.station_name);
+	/** O nome de uma marca como aparece: "Genérico" (assim na DGEG) é "Sem marca". */
+	const brandLabel = (name) => (name === 'Genérico' ? 'Sem marca' : tidy(name));
+	const brandOf = (row) => brandLabel(row.brand);
+	/** A marca, só se não estiver já no nome do posto (e sem "Genérico"). */
+	const brandIfNew = (row) =>
+		row.brand === 'Genérico' || plain(row.station_name).includes(plain(row.brand)) ? '' : brandOf(row);
+
 	/** Distância em linha reta, em km (haversine, como no dbt). */
 	function distanceKm(a, b) {
 		const rad = (deg) => (deg * Math.PI) / 180;
@@ -341,6 +431,12 @@
 			(position) => {
 				locating = false;
 				here = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+				remembersLocation = true;
+				try {
+					localStorage.setItem(LOCATION_KEY, '1');
+				} catch {
+					// Não fica lembrada, mas funciona.
+				}
 				hereMarker?.remove();
 				hereMarker = L.circleMarker([here.latitude, here.longitude], {
 					radius: 8,
@@ -378,6 +474,14 @@
 		return `${cents > 0 ? '▲' : '▼'} ${text}`;
 	}
 
+	/** "▼ 2,0 c", com a unidade (cêntimos), ou "=". */
+	function changeShort(row) {
+		const text = change(row);
+		return text && text !== '=' ? `${text} c` : text;
+	}
+
+	$: activeFilters = zoneFilters + (brand ? 1 : 0) + (noMotorway ? 1 : 0);
+
 	const changeClass = (row) =>
 		row.change_since_previous > 0 ? 'subiu' : row.change_since_previous < 0 ? 'desceu' : '';
 
@@ -407,7 +511,7 @@
 	}
 
 	function popup(row) {
-		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.recent_history ? `<br><small>Últimas fotografias: ${escape(row.recent_history)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
+		return `<strong>${escape(nameOf(row))}</strong><br>${escape(brandOf(row))} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.recent_history ? `<br><small>Últimas fotografias: ${escape(row.recent_history)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
 	}
 
 	let fitted = null;
@@ -429,6 +533,10 @@
 		}
 		drawMarkers();
 		update();
+		if (!triedAutoLocate && rows.length) {
+			triedAutoLocate = true;
+			autoLocate();
+		}
 	}
 
 	/**
@@ -524,19 +632,33 @@
 		if (order === 'poupanca' && savings.size) {
 			return list.sort((a, b) => savings.get(b.key) - savings.get(a.key) || byPrice(a, b));
 		}
+		if (order === 'distancia' && here) {
+			return list.sort((a, b) => distanceKm(here, a) - distanceKm(here, b) || byPrice(a, b));
+		}
 		return list.sort(byPrice);
 	}
 
 	// Ao mudar a ordem, o depósito ou o consumo, a tabela reordena-se sem mexer no mapa.
 	$: if (map) {
-		order, savings;
+		order, savings, here;
 		visible = sortRows([...visible]);
 	}
 
-	function focus(row) {
+	/** No telemóvel (até 640 px), a lista e o mapa são separadores; no computador, os dois. */
+	let narrow = false;
+	let view = 'lista';
+	$: showList = !narrow || view === 'lista';
+	$: showMap = !narrow || view === 'mapa';
+
+	async function focus(row) {
+		if (narrow && view !== 'mapa') {
+			view = 'mapa';
+			await tick();
+		}
 		// Sem animação, o mapa redesenha-se logo com os postos soltos (zoom 14), e o balão abre.
 		map.setView([row.latitude, row.longitude], Math.max(map.getZoom(), 14), { animate: false });
 		markers.get(row.key)?.openPopup();
+		element.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
 	}
 
 	onMount(async () => {
@@ -552,96 +674,41 @@
 		loadSettings();
 		loadFavorites();
 		loadFilters();
+		const media = window.matchMedia('(max-width: 640px)');
+		const onMedia = () => (narrow = media.matches);
+		onMedia();
+		media.addEventListener('change', onMedia);
 	});
 
 	onDestroy(() => map?.remove());
 </script>
 
 <div class="mapa-postos my-4" data-postos={drawn === null ? undefined : rows.length}>
-	<section class="meus-postos" aria-labelledby="meus-postos-titulo">
-		<h2 id="meus-postos-titulo" class="text-lg font-semibold">Os meus postos</h2>
-		{#if favoriteRows.length}
-			<ul>
-				{#each favoriteRows as row (row.key)}
-					<li>
-						<button type="button" class="nome" on:click={() => focus(row)} title="Ver no mapa">
-							<span class="cor" style="background: {color(row.price)}" />
-							{row.station_name}
-						</button>
-						<span class="text-sm text-base-content-muted marca">{row.brand} · {row.municipality}</span>
-						<span class="preco">{euros(row.price)}</span>
-						<span class="variacao {changeClass(row)}">
-							<span aria-hidden="true">{change(row)}</span>
-							<span class="sr-only">{changeLabel(row)}</span>
-						</span>
-						<a
-							class="ir"
-							href={directions(row)}
-							target="_blank"
-							rel="noopener"
-							aria-label="Ir até {row.station_name} (Google Maps)">Ir</a
-						>
-						<button
-							type="button"
-							class="estrela"
-							aria-pressed="true"
-							on:click={() => toggleFavorite(row)}
-							><span aria-hidden="true">★</span><span class="sr-only"
-								>Tirar {row.station_name} dos meus postos</span
-							></button
-						>
-						{#if competitors.get(row.key)}
-							{@const info = competitors.get(row.key)}
-							<p class="concorrentes text-sm">
-								{#if info.count === 0}
-									Nenhum outro posto a {NEAR_KM} km com este combustível.
-								{:else if info.position === 1 && info.cheapest.row.price > row.price}
-									<strong>O mais barato</strong> dos {info.count + 1} postos a {NEAR_KM} km. O seguinte custa
-									mais {cents(info.cheapest.row.price - row.price)} (<button
-										type="button"
-										class="ligacao"
-										on:click={() => focus(info.cheapest.row)}>{info.cheapest.row.station_name}</button
-									>, a {km(info.cheapest.distance)}).
-								{:else if info.position === 1}
-									<strong>Um dos mais baratos</strong> dos {info.count + 1} postos a {NEAR_KM} km: o mesmo
-									preço que <button type="button" class="ligacao" on:click={() => focus(info.cheapest.row)}
-										>{info.cheapest.row.station_name}</button
-									>, a {km(info.cheapest.distance)}.
-								{:else}
-									<strong>{info.position}.º</strong> mais barato dos {info.count + 1} postos a {NEAR_KM} km.
-									O mais barato é
-									<button type="button" class="ligacao" on:click={() => focus(info.cheapest.row)}
-										>{info.cheapest.row.station_name}</button
-									>, a {km(info.cheapest.distance)}: menos {cents(row.price - info.cheapest.row.price)}.
-								{/if}
-							</p>
-						{/if}
-					</li>
-				{/each}
-			</ul>
+	<!-- O primeiro ecrã: o combustível (da página) e "Perto de mim", a procura e os filtros. -->
+	<div class="topo-postos">
+		<slot name="combustivel" />
+		{#if canLocate}
+			<button type="button" class="perto-botao" on:click={locate} disabled={locating || !map}>
+				<span aria-hidden="true">◎</span>
+				{locating ? 'A procurar…' : 'Perto de mim'}
+			</button>
 		{/if}
-		<p class="text-sm text-base-content-muted">
-			{#if !favorites.length}
-				Toque na estrela (☆) de um posto, na tabela por baixo do mapa, para o guardar aqui. A
-				lista fica só neste telemóvel ou computador.
-			{:else if missingFavorites > 0}
-				{missingFavorites === 1 ? 'Um dos seus postos não aparece' : `${missingFavorites} dos seus postos não aparecem`}
-				com o combustível, o distrito e o concelho escolhidos (ou não têm o preço atualizado).
-			{:else}
-				A lista fica só neste telemóvel ou computador.
-			{/if}
+	</div>
+	{#if locationError}<p class="text-sm" role="alert">{locationError}</p>{/if}
+	{#if here && remembersLocation}
+		<p class="text-sm text-base-content-muted lembrar">
+			A página abre já aqui da próxima vez (a localização não sai do telemóvel).
+			<button type="button" class="ligacao" on:click={forgetLocation}>Não abrir aqui</button>
 		</p>
-	</section>
+	{/if}
 
 	<div class="procurar">
-		<label for="procurar-postos" class="text-sm font-semibold"
-			>Procurar uma localidade ou um posto</label
-		>
+		<label for="procurar-postos" class="sr-only">Procurar uma localidade ou um posto</label>
 		<input
 			id="procurar-postos"
 			type="search"
 			bind:value={query}
-			placeholder="Ex.: Rio Tinto, Galp Areeiro"
+			placeholder="Procurar uma localidade ou um posto"
 			autocomplete="off"
 			disabled={!map}
 		/>
@@ -650,10 +717,10 @@
 				{#each results as result (result.id)}
 					<li>
 						<button type="button" on:click={() => choose(result)}>
-							<span>{result.name}</span>
+							<span>{result.kind === 'posto' ? nameOf(result.row) : result.name}</span>
 							<span class="text-sm text-base-content-muted">
 								{#if result.kind === 'posto'}
-									posto · {result.row.brand} · {result.row.municipality} · {euros(result.row.price)}
+									posto · {brandOf(result.row)} · {result.row.municipality} · {euros(result.row.price)}
 								{:else}
 									{result.kind} · {result.rows.length}
 									{result.rows.length === 1 ? 'posto' : 'postos'}
@@ -670,44 +737,35 @@
 		{/if}
 	</div>
 
-	<fieldset class="filtros-postos text-sm">
-		<legend class="sr-only">Que postos mostrar</legend>
-		<label>
-			Marca
-			<select bind:value={brand} on:change={saveFilters}>
-				<option value="">Todas</option>
-				{#each brands as option (option.name)}
-					<option value={option.name}>{option.name} ({option.count})</option>
-				{/each}
-			</select>
-		</label>
-		<label>
-			<input type="checkbox" bind:checked={noMotorway} on:change={saveFilters} />
-			Sem postos de autoestrada
-		</label>
-	</fieldset>
-
-	{#if canLocate}
-		<p class="perto">
-			<button type="button" class="perto-botao" on:click={locate} disabled={locating || !map}>
-				{locating ? 'A procurar…' : here ? 'Atualizar a minha localização' : 'Perto de mim'}
-			</button>
-			<span class="text-sm text-base-content-muted">
-				Centra o mapa onde está, para ver os postos mais baratos à volta. A localização não sai
-				do seu telemóvel.
-			</span>
-		</p>
-		{#if locationError}<p class="text-sm" role="alert">{locationError}</p>{/if}
-		{#if here}
-			<fieldset class="poupanca text-sm">
-				<legend class="sr-only">Contas da poupança</legend>
+	<details class="filtros-postos text-sm">
+		<summary>
+			Filtros{#if activeFilters}<span class="contagem">
+					· {activeFilters} {activeFilters === 1 ? 'escolhido' : 'escolhidos'}</span
+				>{/if}
+		</summary>
+		<div class="filtros-corpo">
+			<slot name="zona" />
+			<label>
+				Marca
+				<select bind:value={brand} on:change={saveFilters}>
+					<option value="">Todas</option>
+					{#each brands as option (option.name)}
+						<option value={option.name}>{brandLabel(option.name)} ({option.count})</option>
+					{/each}
+				</select>
+			</label>
+			<label class="caixa">
+				<input type="checkbox" bind:checked={noMotorway} on:change={saveFilters} />
+				Sem postos de autoestrada
+			</label>
+			{#if here}
+				<!-- Para a coluna "Poupa": o depósito e o consumo (com a distância em linha reta × 1,3). -->
 				<label>
-					Depósito
+					Depósito (L)
 					<input type="number" min="5" max="200" step="1" bind:value={tank} on:change={saveSettings} />
-					L
 				</label>
 				<label>
-					Consumo
+					Consumo (L/100 km)
 					<input
 						type="number"
 						min="2"
@@ -716,136 +774,232 @@
 						bind:value={consumption}
 						on:change={saveSettings}
 					/>
-					L/100 km
 				</label>
+			{/if}
+		</div>
+	</details>
+
+	{#if favoriteRows.length}
+		<section class="meus-postos" aria-labelledby="meus-postos-titulo">
+			<h2 id="meus-postos-titulo" class="text-lg font-semibold">Os meus postos</h2>
+			<ul>
+				{#each favoriteRows as row (row.key)}
+					<li>
+						<button type="button" class="nome" on:click={() => focus(row)} title="Ver no mapa">
+							<span class="cor" style="background: {color(row.price)}" />
+							{nameOf(row)}
+						</button>
+						<span class="text-sm text-base-content-muted marca">{brandOf(row)} · {row.municipality}</span>
+						<span class="preco">{euros(row.price)}</span>
+						<span class="variacao {changeClass(row)}">
+							<span aria-hidden="true">{changeShort(row)}</span>
+							<span class="sr-only">{changeLabel(row)}</span>
+						</span>
+						<a
+							class="ir"
+							href={directions(row)}
+							target="_blank"
+							rel="noopener"
+							aria-label="Ir até {nameOf(row)} (Google Maps)">Ir</a
+						>
+						<button
+							type="button"
+							class="estrela"
+							aria-pressed="true"
+							on:click={() => toggleFavorite(row)}
+							><span aria-hidden="true">★</span><span class="sr-only"
+								>Tirar {nameOf(row)} dos meus postos</span
+							></button
+						>
+						{#if competitors.get(row.key)}
+							{@const info = competitors.get(row.key)}
+							<p class="concorrentes text-sm">
+								{#if info.count === 0}
+									Nenhum outro posto a {NEAR_KM} km com este combustível.
+								{:else if info.position === 1 && info.cheapest.row.price > row.price}
+									<strong>O mais barato</strong> dos {info.count + 1} postos a {NEAR_KM} km. O seguinte custa
+									mais {cents(info.cheapest.row.price - row.price)} (<button
+										type="button"
+										class="ligacao"
+										on:click={() => focus(info.cheapest.row)}>{nameOf(info.cheapest.row)}</button
+									>, a {km(info.cheapest.distance)}).
+								{:else if info.position === 1}
+									<strong>Um dos mais baratos</strong> dos {info.count + 1} postos a {NEAR_KM} km: o mesmo
+									preço que <button type="button" class="ligacao" on:click={() => focus(info.cheapest.row)}
+										>{nameOf(info.cheapest.row)}</button
+									>, a {km(info.cheapest.distance)}.
+								{:else}
+									<strong>{info.position}.º</strong> mais barato dos {info.count + 1} postos a {NEAR_KM} km.
+									O mais barato é
+									<button type="button" class="ligacao" on:click={() => focus(info.cheapest.row)}
+										>{nameOf(info.cheapest.row)}</button
+									>, a {km(info.cheapest.distance)}: menos {cents(row.price - info.cheapest.row.price)}.
+								{/if}
+							</p>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+			{#if missingFavorites > 0}
+				<p class="text-sm text-base-content-muted">
+					{missingFavorites === 1 ? 'Um dos seus postos não aparece' : `${missingFavorites} dos seus postos não aparecem`}
+					com o combustível, o distrito e o concelho escolhidos (ou não têm o preço atualizado).
+				</p>
+			{/if}
+		</section>
+	{/if}
+
+	<!-- No telemóvel, a lista e o mapa são separadores. O mapa escondido continua desenhado (fora
+	     do ecrã, com o mesmo tamanho), porque a lista são os postos da parte do mapa que se vê. -->
+	<div class="vistas" role="group" aria-label="Ver os postos">
+		<button type="button" aria-pressed={view === 'lista'} on:click={() => (view = 'lista')}>Lista</button>
+		<button type="button" aria-pressed={view === 'mapa'} on:click={() => (view = 'mapa')}>Mapa</button>
+	</div>
+
+	<div class="painel-mapa" class:fora={!showMap} inert={!showMap}>
+		<div bind:this={element} style="height: min({height}px, 60vh)" class="rounded border border-base-300" />
+		{#if breaks.length}
+			<p class="legenda text-sm">
+				<span>Mais barato</span>
+				{#each COLORS as fill}<span class="cor" style="background: {fill}" />{/each}
+				<span>Mais caro</span>
+				<span class="text-base-content-muted">
+					({euros(Math.min(...rows.map((r) => r.price)))} a {euros(Math.max(...rows.map((r) => r.price)))}).
+					Os círculos com números juntam postos próximos: toque para aproximar.
+				</span>
+			</p>
+		{/if}
+	</div>
+
+	<div class="painel-lista" class:escondida={!showList}>
+		<p class="text-sm" aria-live="polite">
+			{#if visible.length}
+				{visible.length.toLocaleString('pt-PT')}
+				{visible.length === 1 ? 'posto' : 'postos'}
+				{here ? 'à volta' : 'na zona do mapa'}{#if brand || noMotorway}
+					({[brand && `só ${brandLabel(brand)}`, noMotorway && 'sem autoestradas'].filter(Boolean).join(', ')})
+				{/if}.
+			{:else}
+				Nenhum posto na parte do mapa que se vê.
+			{/if}
+			{#if subiram + desceram > 0}
+				Desde {previousDay ? `a fotografia de ${previousDay}` : 'a fotografia anterior'}, {subiram.toLocaleString('pt-PT')} {subiram === 1 ? 'subiu' : 'subiram'} e
+				{desceram.toLocaleString('pt-PT')} {desceram === 1 ? 'desceu' : 'desceram'} de preço.
+			{/if}
+		</p>
+
+		{#if here}
+			<p class="poupanca text-sm">
 				<label>
 					Ordenar por
 					<select bind:value={order}>
 						<option value="preco">preço</option>
+						<option value="distancia">distância</option>
 						<option value="poupanca">poupança</option>
 					</select>
 				</label>
-			</fieldset>
+			</p>
 			{#if nearest && validSettings}
 				<p class="text-sm text-base-content-muted">
-					"Poupa" compara um depósito de {tank.toLocaleString('pt-PT')} L em cada posto com o
-					posto mais perto ({nearest.station_name}), já descontando o combustível da ida e volta
-					(a distância em linha reta × 1,3, com {consumption.toLocaleString('pt-PT')} L/100 km).
+					"Poupa": um depósito de {tank.toLocaleString('pt-PT')} L face ao posto mais perto
+					({nameOf(nearest)}), já com a ida e volta. O depósito e o consumo mudam-se em "Filtros".
 				</p>
 			{/if}
 		{/if}
-	{/if}
-	<div bind:this={element} style="height: min({height}px, 60vh)" class="rounded border border-base-300" />
-	{#if breaks.length}
-		<p class="legenda text-sm">
-			<span>Mais barato</span>
-			{#each COLORS as fill}<span class="cor" style="background: {fill}" />{/each}
-			<span>Mais caro</span>
-			<span class="text-base-content-muted">
-				({euros(Math.min(...rows.map((r) => r.price)))} a {euros(Math.max(...rows.map((r) => r.price)))})
-			</span>
-			<span class="text-base-content-muted">
-				Com o mapa afastado, os postos próximos juntam-se num círculo maior: o número diz quantos
-				são, e a cor é a do preço a meio do grupo (metade é mais barata). Toque nele para aproximar.
-			</span>
-		</p>
-	{/if}
 
-	<p class="text-sm" aria-live="polite">
 		{#if visible.length}
-			{visible.length.toLocaleString('pt-PT')}
-			{visible.length === 1 ? 'posto' : 'postos'} na parte do mapa que se vê, do mais barato
-			para o mais caro{#if brand || noMotorway}
-				({[brand && `só ${brand}`, noMotorway && 'sem autoestradas'].filter(Boolean).join(', ')})
-			{/if}. Aproxime ou arraste o mapa para ver só os de uma zona.
-		{:else}
-			Nenhum posto na parte do mapa que se vê.
-		{/if}
-		{#if subiram + desceram > 0}
-			Desde {previousDay ? `a fotografia de ${previousDay}` : 'a fotografia anterior'}, {subiram.toLocaleString('pt-PT')} {subiram === 1 ? 'subiu' : 'subiram'} e
-			{desceram.toLocaleString('pt-PT')} {desceram === 1 ? 'desceu' : 'desceram'} de preço.
-		{/if}
-	</p>
-
-	{#if visible.length}
-		<table class="tabela-postos text-sm">
-			<thead>
-				<tr>
-					<th class="num">#</th>
-					<th><span class="sr-only">Os meus postos</span></th>
-					<th>Posto</th>
-					<th class="larga">Marca</th>
-					<th class="larga">Concelho</th>
-					<th class="num">Preço (€/L)</th>
-					<th class="num larga">Na semana</th>
-					{#if here}<th class="num larga">Distância</th>{/if}
-					{#if nearest && validSettings}<th class="num">Poupa</th>{/if}
-					<th class="larga">Atualizado</th>
-					<th><span class="sr-only">Caminho</span></th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each visible.slice(0, shown) as row, index (row.key)}
+			<table class="tabela-postos text-sm">
+				<thead>
 					<tr>
-						<td class="num">{index + 1}</td>
-						<td>
-							<button
-								type="button"
-								class="estrela"
-								aria-pressed={favorites.includes(Number(row.station_id))}
-								on:click={() => toggleFavorite(row)}
-								><span aria-hidden="true"
-									>{favorites.includes(Number(row.station_id)) ? '★' : '☆'}</span
-								><span class="sr-only">Guardar {row.station_name} nos meus postos</span></button
-							>
-						</td>
-						<td>
-							<button type="button" on:click={() => focus(row)} title="Ver no mapa">
-								<span class="cor" style="background: {color(row.price)}" />
-								{row.station_name}
-							</button>
-							<!-- No telemóvel, a marca, o concelho e a data vão aqui, em vez de colunas. -->
-							<span class="estreita"
-								>{row.brand} · {row.municipality}{here ? ` · ${km(distanceKm(here, row))}` : ''} ·
-								{when(row.updated_at)}</span
-							>
-						</td>
-						<td class="larga">{row.brand}</td>
-						<td class="larga">{row.municipality}</td>
-						<td class="num preco-celula">
-							{euros(row.price).replace(' €', '')}
-							<!-- No telemóvel, a variação vai debaixo do preço. -->
-							<span class="estreita variacao {changeClass(row)}">
-								<span aria-hidden="true">{change(row)}</span>
-								<span class="sr-only">{changeLabel(row)}</span>
-							</span>
-						</td>
-						<td class="num larga variacao {changeClass(row)}">
-							<span aria-hidden="true">{change(row)}</span>
-							<span class="sr-only">{changeLabel(row)}</span>
-						</td>
-						{#if here}<td class="num larga">{km(distanceKm(here, row))}</td>{/if}
-						{#if nearest && validSettings}<td class="num poupa {savingClass(row)}">{saving(row)}</td>{/if}
-						<td class="larga">{when(row.updated_at)}</td>
-						<td>
-							<a
-								class="ir"
-								href={directions(row)}
-								target="_blank"
-								rel="noopener"
-								aria-label="Ir até {row.station_name} (Google Maps)">Ir</a
-							>
-						</td>
+						<th class="num larga">#</th>
+						<th><span class="sr-only">Os meus postos</span></th>
+						<th>Posto</th>
+						<th class="larga">Marca</th>
+						<th class="larga">Concelho</th>
+						<th class="num">Preço (€/L)</th>
+						<th class="num larga" title="Em cêntimos por litro">Na semana</th>
+						{#if here}<th class="num larga">Distância</th>{/if}
+						{#if nearest && validSettings}<th class="num">Poupa</th>{/if}
+						<th class="larga">Atualizado</th>
+						<th><span class="sr-only">Caminho</span></th>
 					</tr>
-				{/each}
-			</tbody>
-		</table>
-		{#if visible.length > shown}
-			<button type="button" class="mais text-sm" on:click={() => (shown += pageSize)}>
-				Mostrar mais ({(visible.length - shown).toLocaleString('pt-PT')} por mostrar)
-			</button>
+				</thead>
+				<tbody>
+					{#each visible.slice(0, shown) as row, index (row.key)}
+						<tr>
+							<td class="num larga">{index + 1}</td>
+							<td>
+								<button
+									type="button"
+									class="estrela"
+									aria-pressed={favorites.includes(Number(row.station_id))}
+									on:click={() => toggleFavorite(row)}
+									><span aria-hidden="true"
+										>{favorites.includes(Number(row.station_id)) ? '★' : '☆'}</span
+									><span class="sr-only">Guardar {nameOf(row)} nos meus postos</span></button
+								>
+							</td>
+							<td>
+								<button type="button" on:click={() => focus(row)} title="Ver no mapa">
+									<span class="cor" style="background: {color(row.price)}" />
+									<span class="nome-posto">{nameOf(row)}</span>
+								</button>
+								<!-- No telemóvel, a marca (se não estiver no nome), o concelho, a distância e a
+								     data vão aqui, em vez de colunas. -->
+								<span class="estreita"
+									>{[brandIfNew(row), row.municipality, here && km(distanceKm(here, row)), whenShort(row.updated_at)]
+										.filter(Boolean)
+										.join(' · ')}{#if isOld(row.updated_at)}<span class="antigo"> · há mais de uma semana</span
+										>{/if}</span
+								>
+							</td>
+							<td class="larga">{brandOf(row)}</td>
+							<td class="larga">{row.municipality}</td>
+							<td class="num preco-celula">
+								{euros(row.price).replace(' €', '')}
+								<!-- No telemóvel, a variação vai debaixo do preço. -->
+								<span class="estreita variacao {changeClass(row)}">
+									<span aria-hidden="true">{changeShort(row)}</span>
+									<span class="sr-only">{changeLabel(row)}</span>
+								</span>
+							</td>
+							<td class="num larga variacao {changeClass(row)}">
+								<span aria-hidden="true">{changeShort(row)}</span>
+								<span class="sr-only">{changeLabel(row)}</span>
+							</td>
+							{#if here}<td class="num larga">{km(distanceKm(here, row))}</td>{/if}
+							{#if nearest && validSettings}<td class="num poupa {savingClass(row)}">{saving(row)}</td>{/if}
+							<td class="larga"
+								>{whenShort(row.updated_at)}{#if isOld(row.updated_at)}<span class="antigo">
+										(há mais de uma semana)</span
+									>{/if}</td
+							>
+							<td>
+								<a
+									class="ir"
+									href={directions(row)}
+									target="_blank"
+									rel="noopener"
+									aria-label="Ir até {nameOf(row)} (Google Maps)">Ir</a
+								>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+			{#if visible.length > shown}
+				<button type="button" class="mais text-sm" on:click={() => (shown += pageSize)}>
+					Mostrar mais ({(visible.length - shown).toLocaleString('pt-PT')} por mostrar)
+				</button>
+			{/if}
+			{#if !favorites.length}
+				<p class="text-sm text-base-content-muted dica">
+					Toque na estrela (☆) de um posto para o ter sempre no topo da página. A lista fica só neste
+					telemóvel ou computador.
+				</p>
+			{/if}
 		{/if}
-	{/if}
+	</div>
 </div>
 
 <style>
@@ -856,19 +1010,48 @@
 		isolation: isolate;
 		z-index: 0;
 	}
-	.perto {
+	/* O combustível (da página, pelo slot) e "Perto de mim", lado a lado no topo. */
+	.topo-postos {
 		display: flex;
-		align-items: center;
-		gap: 0.75rem;
+		align-items: flex-end;
+		gap: 0.5rem 0.75rem;
 		flex-wrap: wrap;
 		margin-bottom: 0.75rem;
 	}
 	.perto-botao {
-		padding: 0.5rem 1rem;
-		border-radius: 0.375rem;
+		min-height: 2.75rem;
+		padding: 0.5rem 1.25rem;
+		border-radius: 0.5rem;
 		background: #2563eb;
 		color: #ffffff;
 		font-weight: 600;
+		font-size: 1rem;
+	}
+	.lembrar {
+		margin: -0.25rem 0 0.75rem;
+	}
+	/* Os separadores "Lista" e "Mapa": só no telemóvel. */
+	.vistas {
+		display: none;
+	}
+	.antigo {
+		color: #92400e;
+	}
+	:global([data-theme='dark']) .antigo {
+		color: #fbbf24;
+	}
+	.painel-mapa.fora {
+		/* Fora do ecrã, mas com o tamanho de sempre: a lista são os postos que o mapa mostra. */
+		position: absolute;
+		left: -10000px;
+		top: 0;
+		width: calc(100vw - 2rem);
+	}
+	.painel-lista.escondida {
+		display: none;
+	}
+	.dica {
+		margin-top: 0.75rem;
 	}
 	.perto-botao:disabled {
 		opacity: 0.7;
@@ -924,6 +1107,41 @@
 		color: #4ade80;
 	}
 	@media (max-width: 640px) {
+		/* Nomes de empresas muito compridos: duas linhas no máximo (o nome todo está no balão). */
+		.tabela-postos td > button[title] {
+			display: flex;
+			align-items: baseline;
+			gap: 0.3rem;
+			text-align: left;
+		}
+		.tabela-postos td > button[title] .cor {
+			flex: none;
+		}
+		.nome-posto {
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+		.vistas {
+			display: flex;
+			margin: 0.75rem 0;
+			border: 1px solid rgba(127, 127, 127, 0.5);
+			border-radius: 0.5rem;
+			overflow: hidden;
+		}
+		.vistas button {
+			flex: 1;
+			min-height: 2.5rem;
+			font-weight: 600;
+		}
+		.vistas button[aria-pressed='true'] {
+			background: #2563eb;
+			color: #ffffff;
+		}
+		.perto-botao {
+			flex: 1;
+		}
 		.tabela-postos .larga {
 			display: none;
 		}
@@ -1006,13 +1224,10 @@
 	.procurar {
 		margin-bottom: 0.75rem;
 	}
-	.procurar label {
-		display: block;
-		margin-bottom: 0.25rem;
-	}
 	.procurar input {
 		width: 100%;
 		max-width: 28rem;
+		min-height: 2.75rem;
 		padding: 0.5rem 0.75rem;
 		border: 1px solid rgba(127, 127, 127, 0.6);
 		border-radius: 0.375rem;
@@ -1043,20 +1258,58 @@
 		background: rgba(127, 127, 127, 0.12);
 	}
 	.filtros-postos {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 1.25rem;
 		margin: 0 0 0.75rem;
 	}
-	.filtros-postos select {
-		margin-left: 0.25rem;
-		padding: 0.15rem 0.35rem;
-		border: 1px solid rgba(127, 127, 127, 0.5);
+	.filtros-postos summary {
+		cursor: pointer;
+		font-weight: 600;
+		padding: 0.25rem 0;
+	}
+	.filtros-postos .contagem {
+		font-weight: 400;
+	}
+	/* Os filtros: os da zona (da página, pelo slot), a marca e as autoestradas. */
+	.filtros-corpo {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: 0.5rem 1rem;
+		padding: 0.5rem 0 0.25rem;
+	}
+	.filtros-corpo label,
+	.filtros-corpo :global(label) {
+		display: flex;
+		flex-direction: column;
+		font-weight: 600;
+	}
+	.filtros-corpo label.caixa {
+		flex-direction: row;
+		align-items: center;
+		gap: 0.35rem;
+		font-weight: 400;
+		min-height: 2.25rem;
+	}
+	.filtros-corpo input[type='number'] {
+		margin-top: 0.25rem;
+		width: 8rem;
+		padding: 0.375rem 0.5rem;
+		border: 1px solid rgba(127, 127, 127, 0.6);
 		border-radius: 0.25rem;
 		background: transparent;
 		color: inherit;
-		max-width: 14rem;
+		font-weight: 400;
+	}
+	.filtros-corpo select,
+	.filtros-corpo :global(select) {
+		margin-top: 0.25rem;
+		min-width: 10rem;
+		max-width: 16rem;
+		padding: 0.375rem 0.5rem;
+		border: 1px solid rgba(127, 127, 127, 0.6);
+		border-radius: 0.25rem;
+		background: transparent;
+		color: inherit;
+		font-weight: 400;
 	}
 	.sr-only {
 		position: absolute;

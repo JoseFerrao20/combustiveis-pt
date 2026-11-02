@@ -13,6 +13,7 @@
 
 - **Mapa e tabela de todos os postos** (mais de 3000), do mais barato para o mais caro. Com o mapa afastado, os postos juntam-se em grupos com a cor do preço típico da zona. A tabela segue o mapa: ao aproximar, ou ao escolher o distrito e o concelho, fica só com os postos que se veem.
 - **Procurar e filtrar:** uma caixa de procura leva o mapa até uma localidade, um concelho ou um posto (sem precisar de acentos). Dá para ficar só com uma marca ou tirar os postos de autoestrada, e o site lembra-se do combustível e dos filtros na próxima visita.
+- **Feito para o telemóvel:** o combustível, "Perto de mim" e a procura no primeiro ecrã, os filtros num só botão, e a lista e o mapa em separadores. Quem já usou "Perto de mim" volta a abrir a página no sítio onde está. Instala-se como aplicação ("Adicionar ao ecrã principal").
 - **"Perto de mim":** centra o mapa onde a pessoa está. Para cada posto, mostra a distância e quanto se poupa num depósito face ao posto mais perto, já descontando a ida e volta. O botão "Ir" abre o caminho no Google Maps. A localização não sai do telemóvel.
 - **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço, a mudança na semana e o "Ir". Cada um diz a posição entre os postos a 5 km e qual é o mais barato à volta. A lista fica só no telemóvel.
 - **"Na semana":** quanto cada posto subiu ou desceu desde a segunda-feira anterior, e os preços das últimas semanas.
@@ -50,7 +51,7 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **Testes em todas as camadas**, todos no CI:
   - 64 testes em Python (98 % de cobertura);
   - 84 testes de dados e testes unitários no dbt;
-  - 45 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 48 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 

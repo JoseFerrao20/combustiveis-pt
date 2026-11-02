@@ -84,6 +84,19 @@
 		)
 	);
 
+	let menuAberto = false;
+
+	/** "Segunda, 02/11: Gasolina 95 ▼ 1,4 c · Gasóleo ▼ 6,4 c" (a previsão, em cêntimos por litro). */
+	function previsaoCurta(dados) {
+		const previsao = dados.forecast_summary;
+		if (!previsao) return 'Previsão para segunda-feira';
+		const valor = (c) =>
+			c > 0 ? `▲ ${c.toLocaleString('pt-PT', { minimumFractionDigits: 1 })} c` : c < 0 ? `▼ ${(-c).toLocaleString('pt-PT', { minimumFractionDigits: 1 })} c` : '= 0,0 c';
+		const [, mes, dia] = previsao.week.split('-');
+		const itens = previsao.items.map((item) => `${item.name} ${valor(item.predicted)}`).join(' · ');
+		return `Previsão para segunda, ${dia}/${mes}: ${itens}`;
+	}
+
 	const pad = (n) => String(n).padStart(2, '0');
 	/** "02/11/2026" ou "02/11/2026 11:40" (as horas vêm como a hora de Lisboa, em UTC). */
 	function quando(texto, comHora = false) {
@@ -97,25 +110,32 @@
 <header class="topo">
 	<a class="nome-site" href={BASE}>Combustíveis em Portugal</a>
 	<nav aria-label="Outras páginas">
-		<a href="{BASE}resumo/">Resumo</a>
-		<a href="{BASE}acompanhados/">Postos acompanhados</a>
-		<a href="{BASE}analises/">Análises</a>
-		<a href={REPOSITORY}>Código no GitHub</a>
+		<button
+			type="button"
+			class="menu-botao"
+			aria-expanded={menuAberto}
+			aria-controls="menu-paginas"
+			on:click={() => (menuAberto = !menuAberto)}>Menu</button
+		>
+		<ul id="menu-paginas" class:aberto={menuAberto}>
+			<li><a href="{BASE}resumo/">Resumo</a></li>
+			<li><a href="{BASE}acompanhados/">Postos acompanhados</a></li>
+			<li><a href="{BASE}analises/">Análises</a></li>
+			<li><a href={REPOSITORY}>Código no GitHub</a></li>
+		</ul>
 	</nav>
 </header>
 
 <main>
 	<h1>Combustível mais barato</h1>
-	<p class="intro">
-		O preço de cada posto de Portugal continental, atualizado todas as segundas-feiras. Carregue em
-		<strong>Perto de mim</strong>, por baixo, para ver os mais baratos à sua volta, ou escolha o distrito e o
-		concelho.
-	</p>
+	<p class="intro text-base-content-muted">Os preços de cada posto de Portugal continental, atualizados à segunda-feira.</p>
 
 	{#if resumo?.forecast}
-		<p class="previsao-segunda">
-			{resumo.forecast} <a href="{BASE}analises/previsao/">Ver como se calcula</a>.
-		</p>
+		<!-- A previsão numa linha; o texto todo (e a comparação com os postos) ao abrir. -->
+		<details class="previsao-segunda">
+			<summary>{previsaoCurta(resumo)}</summary>
+			<p>{resumo.forecast} <a href="{BASE}analises/previsao/">Ver como se calcula</a>.</p>
+		</details>
 	{/if}
 
 	{#if (guardados || semRede) && resumo}
@@ -125,42 +145,44 @@
 		</p>
 	{/if}
 
-	<div class="filtros">
-		<label>
-			Combustível
-			<select bind:value={combustivel} disabled={!resumo}>
-				{#each resumo?.fuels ?? [] as fuel}
-					<option value={fuel.fuel}>{fuel.name}</option>
-				{/each}
-			</select>
-		</label>
-		<label>
-			Distrito
-			<select bind:value={distrito} disabled={!resumo}>
-				<option value="">Todos</option>
-				{#each Object.keys(resumo?.districts ?? {}) as nome}
-					<option value={nome}>{nome}</option>
-				{/each}
-			</select>
-		</label>
-		<label>
-			Concelho
-			<select bind:value={concelho} disabled={!resumo}>
-				<option value="">Todos</option>
-				{#each concelhos as nome}
-					<option value={nome}>{nome}</option>
-				{/each}
-			</select>
-		</label>
-	</div>
-
 	{#if erro}
 		<p class="aviso" role="alert">{erro}</p>
 	{:else if aCarregar}
 		<p class="text-sm text-base-content-muted" role="status">A carregar os preços…</p>
 	{/if}
 
-	<MapaPostos {data} {combustivel} />
+	<MapaPostos {data} {combustivel} zoneFilters={(distrito ? 1 : 0) + (concelho ? 1 : 0)}>
+		<svelte:fragment slot="combustivel">
+			<label class="combustivel">
+				Combustível
+				<select bind:value={combustivel} disabled={!resumo}>
+					{#each resumo?.fuels ?? [] as fuel}
+						<option value={fuel.fuel}>{fuel.name}</option>
+					{/each}
+				</select>
+			</label>
+		</svelte:fragment>
+		<svelte:fragment slot="zona">
+			<label>
+				Distrito
+				<select bind:value={distrito} disabled={!resumo}>
+					<option value="">Todos</option>
+					{#each Object.keys(resumo?.districts ?? {}) as nome}
+						<option value={nome}>{nome}</option>
+					{/each}
+				</select>
+			</label>
+			<label>
+				Concelho
+				<select bind:value={concelho} disabled={!resumo}>
+					<option value="">Todos</option>
+					{#each concelhos as nome}
+						<option value={nome}>{nome}</option>
+					{/each}
+				</select>
+			</label>
+		</svelte:fragment>
+	</MapaPostos>
 
 	<p>
 		Mais números (as médias por marca, por grupo de marcas e por concelho, a concorrência e a evolução dos
@@ -178,16 +200,16 @@
 </main>
 
 <style>
+	/* Uma linha: o nome do site e, no telemóvel, "Menu" (no computador, os links). */
 	.topo {
 		position: sticky;
 		top: 0;
 		z-index: 10;
 		display: flex;
-		flex-wrap: wrap;
 		align-items: center;
 		justify-content: space-between;
-		gap: 0.25rem 1rem;
-		padding: 0.75rem 1rem;
+		gap: 1rem;
+		padding: 0.5rem 1rem;
 		background: var(--cabecalho);
 		border-bottom: 1px solid var(--linha);
 		backdrop-filter: blur(4px);
@@ -197,10 +219,47 @@
 		text-decoration: none;
 	}
 	nav {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.25rem 1rem;
+		position: relative;
 		font-size: 0.875rem;
+	}
+	nav ul {
+		display: flex;
+		gap: 1rem;
+		list-style: none;
+		padding: 0;
+	}
+	.menu-botao {
+		display: none;
+		min-height: 2.25rem;
+		padding: 0.25rem 0.75rem;
+		border: 1px solid rgba(127, 127, 127, 0.6);
+		border-radius: 0.375rem;
+		font-weight: 600;
+	}
+	@media (max-width: 640px) {
+		.menu-botao {
+			display: block;
+		}
+		nav ul {
+			display: none;
+			position: absolute;
+			right: 0;
+			top: calc(100% + 0.5rem);
+			flex-direction: column;
+			gap: 0;
+			min-width: 13rem;
+			background: var(--fundo);
+			border: 1px solid var(--linha);
+			border-radius: 0.5rem;
+			box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+		}
+		nav ul.aberto {
+			display: flex;
+		}
+		nav li a {
+			display: block;
+			padding: 0.75rem 1rem;
+		}
 	}
 	main {
 		max-width: 64rem;
@@ -208,21 +267,29 @@
 		padding: 1rem;
 	}
 	h1 {
-		font-size: 1.5rem;
-		line-height: 2rem;
+		font-size: 1.375rem;
+		line-height: 1.75rem;
 		font-weight: 700;
-		margin-bottom: 0.75rem;
 	}
 	.intro {
-		margin-bottom: 0.75rem;
+		font-size: 0.875rem;
+		margin-bottom: 0.5rem;
 	}
-	/* Como na faixa da previsão das páginas do Evidence (pages/+layout.svelte). */
+	/* Como na faixa da previsão das páginas do Evidence (pages/+layout.svelte), numa linha. */
 	.previsao-segunda {
 		border-left: 4px solid #d97706;
 		background: rgba(217, 119, 6, 0.08);
-		padding: 0.5rem 0.75rem;
+		padding: 0.375rem 0.75rem;
 		border-radius: 0.25rem;
-		margin: 0.75rem 0;
+		margin: 0.5rem 0 0.75rem;
+		font-size: 0.875rem;
+	}
+	.previsao-segunda summary {
+		cursor: pointer;
+		font-weight: 600;
+	}
+	.previsao-segunda p {
+		margin-top: 0.375rem;
 	}
 	.aviso {
 		border-left: 4px solid var(--destaque);
@@ -231,25 +298,22 @@
 		border-radius: 0.25rem;
 		margin: 0.75rem 0;
 	}
-	.filtros {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 1rem;
-		margin: 1rem 0 0.5rem;
-	}
-	.filtros label {
+	/* O combustível, no topo do componente (slot), ao lado de "Perto de mim". */
+	.combustivel {
 		display: flex;
 		flex-direction: column;
 		font-size: 0.875rem;
 		font-weight: 600;
 	}
-	.filtros select {
-		min-width: 10rem;
+	.combustivel select {
+		min-width: 9rem;
+		min-height: 2.75rem;
 		margin-top: 0.25rem;
 		padding: 0.375rem 0.5rem;
 		border: 1px solid rgba(127, 127, 127, 0.6);
-		border-radius: 0.25rem;
+		border-radius: 0.5rem;
 		font-weight: 400;
+		font-size: 1rem;
 	}
 	footer {
 		margin-top: 1.5rem;
