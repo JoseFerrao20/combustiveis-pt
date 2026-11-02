@@ -1,0 +1,115 @@
+/*
+	O estilo da página inicial: as cores do tema do Evidence (claro e escuro, pelo data-theme do
+	<html>), as letras do sistema (sem descarregar a Inter) e as classes do Tailwind que o
+	componente do mapa usa (text-sm, text-base-content-muted, …), para ficar igual nas duas.
+*/
+:root {
+	--fundo: #ffffff;
+	--texto: #2c2c2c;
+	--suave: #717171;
+	--linha: #d6d6d6;
+	--cabecalho: rgba(255, 255, 255, 0.9);
+	--destaque: #2563eb;
+	color-scheme: light;
+}
+:root[data-theme='dark'] {
+	--fundo: #09090b;
+	--texto: #cacacb;
+	--suave: #7b7b7c;
+	--linha: #29292b;
+	--cabecalho: rgba(9, 9, 11, 0.9);
+	color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+html {
+	-webkit-text-size-adjust: 100%;
+}
+body {
+	margin: 0;
+	background: var(--fundo);
+	color: var(--texto);
+	font-family:
+		ui-sans-serif,
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif,
+		'Apple Color Emoji',
+		'Segoe UI Emoji';
+	font-size: 1rem;
+	line-height: 1.5;
+}
+h1,
+h2,
+p,
+ul {
+	margin: 0;
+}
+a {
+	color: inherit;
+}
+button,
+input,
+select {
+	font: inherit;
+	color: inherit;
+}
+button {
+	background: none;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+}
+input,
+select {
+	background: transparent;
+}
+fieldset {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+legend {
+	padding: 0;
+}
+select option {
+	background: var(--fundo);
+	color: var(--texto);
+}
+
+/* As classes do Tailwind que o componente do mapa usa (como no Evidence). */
+.text-sm {
+	font-size: 0.875rem;
+	line-height: 1.25rem;
+}
+.text-lg {
+	font-size: 1.125rem;
+	line-height: 1.75rem;
+}
+.font-semibold {
+	font-weight: 600;
+}
+.text-base-content-muted {
+	color: var(--suave);
+}
+.rounded {
+	border-radius: 0.25rem;
+}
+.border {
+	border-width: 1px;
+	border-style: solid;
+}
+.border-base-300 {
+	border-color: var(--linha);
+}
+.my-4 {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+}
