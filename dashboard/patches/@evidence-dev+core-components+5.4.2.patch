@@ -13,6 +13,31 @@ index cac96a3..9fd19a5 100644
  					>
  						{#if title && !multiple}
  							{title}
+diff --git a/node_modules/@evidence-dev/core-components/dist/organisms/layout/EvidenceDefaultLayout.svelte b/node_modules/@evidence-dev/core-components/dist/organisms/layout/EvidenceDefaultLayout.svelte
+index 03e75be..ac049cc 100644
+--- a/node_modules/@evidence-dev/core-components/dist/organisms/layout/EvidenceDefaultLayout.svelte
++++ b/node_modules/@evidence-dev/core-components/dist/organisms/layout/EvidenceDefaultLayout.svelte
+@@ -125,14 +125,12 @@
+ 	onMount(async () => {
+ 		if (!('serviceWorker' in navigator)) return;
+ 
+-		const registration = await navigator.serviceWorker.register(
+-			addBasePath('/fix-tprotocol-service-worker.js'),
+-			{
+-				scope: addBasePath('/'),
+-				type: dev ? 'module' : 'classic'
+-			}
+-		);
+-		console.debug('[fix-tprotocol-service-worker] Service Worker registered', { registration });
++		// combustiveis-pt: o service worker do site (static/sw.js), o mesmo da página inicial, que
++		// também tem a correção do fix-tprotocol-service-worker.js para os .parquet no Windows.
++		const registration = await navigator.serviceWorker
++			.register(addBasePath('/sw.js'), { scope: addBasePath('/') })
++			.catch(() => null);
++		console.debug('[sw.js] Service Worker registered', { registration });
+ 	});
+ 
+ 	const {
 diff --git a/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/Header.svelte b/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/Header.svelte
 index aa8da7f..219b7f1 100644
 --- a/node_modules/@evidence-dev/core-components/dist/organisms/layout/header/Header.svelte

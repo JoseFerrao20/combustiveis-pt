@@ -56,7 +56,9 @@ jobs:
           git archive FETCH_HEAD dgeg | tar -x -C data/landing
           ls data/landing/dgeg/*.parquet
       - run: uv run dbt build --project-dir transform --profiles-dir transform
-      - name: Painel (Evidence)
+      # Os JSON da página inicial (dashboard/app/), a partir dos Parquet do dbt.
+      - run: uv run combustiveis site
+      - name: Painel (Evidence e página inicial)
         working-directory: dashboard
         run: |
           npm ci

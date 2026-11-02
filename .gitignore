@@ -10,3 +10,6 @@ __pycache__/
 /transform/dbt_packages/
 /transform/.user.yml
 logs/
+
+# Os JSON da página inicial (combustiveis site), feitos a partir dos dados.
+/dashboard/app/public/dados/

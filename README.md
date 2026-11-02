@@ -17,6 +17,7 @@
 - **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço, a mudança na semana e o "Ir". Cada um diz a posição entre os postos a 5 km e qual é o mais barato à volta. A lista fica só no telemóvel.
 - **"Na semana":** quanto cada posto subiu ou desceu desde a segunda-feira anterior, e os preços das últimas semanas.
 - **Previsão para segunda-feira:** quanto deve mudar o preço, a partir dos mercados da semana anterior, com o erro de todas as semanas desde 2024 à vista. Na segunda de manhã, compara-se com a mudança real nos postos.
+- **Leve e com pouca rede:** a página inicial descarrega uns 200 KB (em vez de 12 MB) e abre mesmo sem rede, com os últimos preços guardados no telemóvel.
 
 ![A página inicial no computador: o mapa de Lisboa com os postos coloridos do mais barato ao mais caro, a posição da pessoa a azul e, por baixo, a tabela com o preço, a mudança, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
 
@@ -45,11 +46,11 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **SQL a fazer o trabalho pesado** (dbt com DuckDB): o imposto em vigor em cada semana com `ASOF JOIN`; os concorrentes a 2 e 5 km de cada posto com a fórmula de haversine, sem extensões; as mudanças diárias de cada posto com funções de janela.
 - **Erros da fonte investigados, não escondidos.** Quando as tabelas de impostos do boletim não explicam o preço, a diferença fica numa coluna. Os períodos já explicados ficam num seed, com a razão, e a análise está em [`docs/analises/`](docs/analises/) (Portugal, Lituânia, Países Baixos, Eslováquia e Espanha). Um aviso do dbt apanha qualquer caso novo.
 - **Uma previsão testada a sério.** Os coeficientes foram ajustados com 2012–2023, e o site mostra o erro em todas as semanas desde 2024, que o ajuste não viu: 1,1 a 1,3 cêntimos, contra 1,7 a 2,7 a dizer "fica igual".
-- **Um site sem servidor:** Evidence com DuckDB-WASM no browser, publicado no GitHub Pages. O mapa é um componente próprio com o Leaflet, porque o do Evidence não diz à página que zona está à vista. A interface foi traduzida com patches ao Evidence. As fontes e as consultas foram cortadas ao que as páginas usam.
+- **Um site sem servidor**, no GitHub Pages. A página inicial é Svelte, com um JSON pequeno por combustível e um service worker para quando não há rede ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md)): uns 200 KB, contra os 12 MB que o Evidence descarregava, porque precisa do DuckDB-WASM. As análises continuam no Evidence. O mapa é um componente próprio com o Leaflet, partilhado pelas duas, porque o do Evidence não diz à página que zona está à vista. A interface do Evidence foi traduzida com patches.
 - **Testes em todas as camadas**, todos no CI:
-  - 60 testes em Python (98 % de cobertura);
+  - 64 testes em Python (98 % de cobertura);
   - 84 testes de dados e testes unitários no dbt;
-  - 38 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança e "Os meus postos", e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 45 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 
@@ -67,8 +68,11 @@ flowchart LR
   M --> L
   L --> D["dbt + DuckDB<br/>staging · marts · testes"]
   D --> R[("Parquet para o painel")]
-  R --> E["Evidence + DuckDB-WASM<br/>site estático"]
+  R --> E["Evidence + DuckDB-WASM<br/>resumo e análises"]
+  R --> J["combustiveis site<br/>JSON por combustível"]
+  J --> A["Página inicial<br/>Svelte + service worker"]
   E --> P["GitHub Pages<br/>(pages.yml, todos os dias)"]
+  A --> P
 ```
 
 | Fase | Estado |
@@ -85,8 +89,9 @@ flowchart LR
 
 - [0001](docs/adr/0001-fonte-weekly-oil-bulletin.md): o Weekly Oil Bulletin como fonte principal;
 - [0002](docs/adr/0002-painel-evidence.md): o painel com o Evidence;
-- [0003](docs/adr/0003-precos-dos-postos-dgeg.md): os preços de cada posto, em fotografias diárias da DGEG;
-- [0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md): a previsão de segunda-feira com as cotações do FRED.
+- [0003](docs/adr/0003-precos-dos-postos-dgeg.md): os preços de cada posto, em fotografias da DGEG (semanais, desde 2/11/2026);
+- [0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md): a previsão de segunda-feira com as cotações do FRED;
+- [0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md): a página inicial fora do Evidence, e a funcionar com pouca rede.
 
 O histórico de cada sessão de trabalho, com as decisões e as lições, está no [`DEVLOG.md`](DEVLOG.md).
 
@@ -102,6 +107,7 @@ uv run combustiveis ingest --idade-maxima 15          # falha se a última seman
 uv run combustiveis dgeg                           # fotografia de hoje dos postos (data/landing/dgeg/)
 uv run combustiveis verificar-dgeg                 # o histórico da DGEG está em dia?
 uv run combustiveis mercados                       # cotações e câmbio do FRED, para a previsão
+uv run combustiveis site                           # depois do dbt: os JSON da página inicial
 ```
 
 A camada landing fica em `data/landing/`: `prices.parquet` (semana, país, produto, com ou sem impostos, valor por 1000 L), `taxes.parquet` (IVA, ISP e outros impostos, com a data de entrada em vigor) e `manifest.json`.
@@ -132,10 +138,12 @@ O dbt exporta também `data/road_fuel_prices.parquet` (gasolina 95, gasóleo e G
 cd dashboard
 npm ci
 npm run sources                                    # lê o Parquet (precisa de acesso a extensions.duckdb.org)
-npm run dev                                        # abre o painel no browser
+npm run dev                                        # abre as páginas do Evidence no browser
+npm run dev:inicio                                 # a página inicial (depois de uv run combustiveis site)
+npm run build                                      # o site todo em build/: Evidence e página inicial
 ```
 
-O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã: descarrega o boletim, junta as fotografias da DGEG (workflow `dgeg.yml`, ramo `dados`), corre o dbt e publica o painel no GitHub Pages. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa.
+O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã: descarrega o boletim, junta as fotografias da DGEG (workflow `dgeg.yml`, ramo `dados`), corre o dbt, escreve os JSON da página inicial e publica o site no GitHub Pages. Corre também logo a seguir à fotografia de segunda-feira. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa.
 
 ## Desenvolvimento
 

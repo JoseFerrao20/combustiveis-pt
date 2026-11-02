@@ -15,6 +15,9 @@ agendamento usa-o para dar conta de uma recolha parada ou de uma resposta incomp
 ``combustiveis mercados``: os preços diários da gasolina e do gasóleo em Nova Iorque, do Brent
 e do câmbio do euro (FRED), em ``data/landing/mercados.parquet``, para a previsão de
 segunda-feira. ``--ficheiros PASTA`` usa CSV já descarregados (um por série, ``<código>.csv``).
+
+``combustiveis site``: os JSON da página inicial do site (``dashboard/app/public/dados/``), a
+partir dos Parquet que o dbt exporta (corre-se depois do dbt).
 """
 
 from __future__ import annotations
@@ -24,16 +27,20 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
+import duckdb
+
 from .check import SnapshotError, check_snapshots
 from .dgeg import DgegFormatError, read_prices, search_url
 from .landing import write_landing, write_markets, write_station_snapshot
 from .markets import SERIES, MarketFormatError, MarketValue, read_series, series_url
 from .parse import FormatError, read_bulletin
+from .site import export_site
 from .source import PAGE_URL, SourceError, fetch, fetch_with_retries, find_history_url
 
 DEFAULT_LANDING = Path("data/landing")
 DEFAULT_DGEG = DEFAULT_LANDING / "dgeg"
 DEFAULT_MARKETS = DEFAULT_LANDING / "mercados.parquet"
+DEFAULT_SITE = Path("dashboard/app/public/dados")
 
 
 class StaleError(Exception):
@@ -97,6 +104,13 @@ def markets(files: Path | None, target: Path) -> int:
     return 0
 
 
+def site(stations: Path, forecast: Path, target: Path) -> int:
+    result = export_site(stations, forecast, target)
+    counts = ", ".join(f"{fuel}: {count}" for fuel, count in result.stations.items())
+    print(f"Página inicial: postos de {result.snapshot_date} ({counts}) em {target}/")
+    return 0
+
+
 def verify_snapshots(directory: Path, max_age_days: int, today: date | None = None) -> int:
     result = check_snapshots(directory, max_age_days, today or date.today())
     message = f"Última fotografia da DGEG: {result.latest}, com {result.stations} postos"
@@ -143,12 +157,18 @@ def main(argv: list[str] | None = None) -> int:
         help="usar os CSV desta pasta (<código>.csv) em vez de descarregar",
     )
     command.add_argument("--destino", type=Path, default=DEFAULT_MARKETS)
+    command = commands.add_parser("site", help="os JSON da página inicial do site (depois do dbt)")
+    command.add_argument("--postos", type=Path, default=Path("data/stations_latest.parquet"))
+    command.add_argument("--previsao", type=Path, default=Path("data/price_forecast.parquet"))
+    command.add_argument("--destino", type=Path, default=DEFAULT_SITE)
     args = parser.parse_args(argv)
     try:
         if args.command == "dgeg":
             return snapshot(args.ficheiro, args.destino, args.data)
         if args.command == "mercados":
             return markets(args.ficheiros, args.destino)
+        if args.command == "site":
+            return site(args.postos, args.previsao, args.destino)
         if args.command == "verificar-dgeg":
             return verify_snapshots(args.pasta, args.idade_maxima, args.hoje)
         return ingest(args.ficheiro, args.destino, args.idade_maxima)
@@ -160,6 +180,7 @@ def main(argv: list[str] | None = None) -> int:
         SnapshotError,
         MarketFormatError,
         OSError,
+        duckdb.IOException,
     ) as exc:
         print(f"erro: {exc}", file=sys.stderr)
         return 1

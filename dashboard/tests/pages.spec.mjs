@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 
 const PAGES = [
 	['', 'Combustível mais barato'],
+	['resumo/', 'Resumo e estatísticas'],
 	['acompanhados/', 'Postos acompanhados'],
 	['analises/', 'Análises'],
 	['analises/impostos/', 'Quanto do preço é imposto?'],
@@ -56,9 +57,9 @@ test('a comparação tem Portugal na tabela dos países', async ({ page }) => {
 	await expect(page.getByRole('cell', { name: 'Portugal', exact: true })).toBeVisible();
 });
 
-test('os postos mostram preços e o filtro de distrito reduz a lista', async ({ page }) => {
+test('o resumo mostra preços e o filtro de distrito reduz a lista', async ({ page }) => {
 	const errors = watchErrors(page);
-	await page.goto('');
+	await page.goto('resumo/');
 	await page.waitForLoadState('networkidle');
 	const all = await bigNumber(page, 'Postos');
 	expect(all).toBeGreaterThan(0);
@@ -68,8 +69,11 @@ test('os postos mostram preços e o filtro de distrito reduz a lista', async ({ 
 	// A primeira opção a seguir a "Todos" (a lista só desenha as primeiras).
 	await page.getByRole('listbox').getByRole('option').nth(1).click();
 	await page.keyboard.press('Escape');
-	await expect.poll(() => bigNumber(page, 'Postos')).toBeLessThan(all);
-	expect(await bigNumber(page, 'Postos')).toBeGreaterThan(0);
+	// Enquanto a consulta corre, o número pode ser 0: espera-se por um entre 0 e o total.
+	await expect.poll(async () => {
+		const postos = await bigNumber(page, 'Postos');
+		return postos > 0 && postos < all;
+	}).toBe(true);
 	expect(errors).toEqual([]);
 });
 
@@ -209,6 +213,13 @@ test('a marca, as autoestradas e o combustível ficam guardados', async ({ page 
 	const mapa = page.locator('.mapa-postos[data-postos]');
 	await expect(mapa.locator('tbody tr').first()).toBeVisible();
 
+	// Outro combustível: volta a aparecer depois de recarregar, também no resumo.
+	const combustivel = page.locator('.filtros select').first();
+	await combustivel.selectOption({ index: 1 });
+	const escolhido = await combustivel.inputValue();
+	const nome = (await combustivel.locator('option:checked').innerText()).trim();
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+
 	const marca = page.locator('.filtros-postos select');
 	const primeira = await marca.locator('option').nth(1).getAttribute('value');
 	await marca.selectOption(primeira);
@@ -217,16 +228,74 @@ test('a marca, as autoestradas e o combustível ficam guardados', async ({ page 
 	const marcas = await mapa.locator('tbody td:nth-child(4)').allInnerTexts();
 	expect(marcas.every((m) => m.trim() === primeira)).toBe(true);
 
-	// O combustível escolhido volta a aparecer depois de recarregar.
-	await page.locator('button', { hasText: 'Combustível' }).first().click();
-	await page.getByRole('listbox').getByRole('option').nth(1).click();
-	await page.keyboard.press('Escape');
-	const escolhido = (await page.locator('button', { hasText: 'Combustível' }).first().innerText()).replace(/\s+/g, ' ');
 	await page.reload();
-	await expect(mapa.locator('tbody tr').first()).toBeVisible();
-	await expect(page.locator('button', { hasText: 'Combustível' }).first()).toHaveText(escolhido.trim());
+	await expect(mapa.locator('p[aria-live]')).toContainText(`só ${primeira}, sem autoestradas`);
+	await expect(combustivel).toHaveValue(escolhido);
 	await expect(marca).toHaveValue(primeira);
 	await expect(page.getByLabel('Sem postos de autoestrada')).toBeChecked();
+	await page.goto('resumo/');
+	await expect(page.locator('button', { hasText: 'Combustível' }).first()).toContainText(nome);
+});
+
+test('na página inicial, o distrito e o concelho reduzem a lista', async ({ page }) => {
+	const errors = watchErrors(page);
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	const contagem = async () =>
+		Number((await mapa.locator('p[aria-live]').innerText()).match(/^[\d\s\u00a0]+/)[0].replace(/\D/g, ''));
+	const todos = await contagem();
+	const [, distrito, concelho] = await page.locator('.filtros select').all();
+	await distrito.selectOption({ index: 1 });
+	await expect.poll(contagem).toBeLessThan(todos);
+	const noDistrito = await contagem();
+	expect(noDistrito).toBeGreaterThan(0);
+	await concelho.selectOption({ index: 1 });
+	await expect.poll(contagem).toBeLessThanOrEqual(noDistrito);
+	expect(errors).toEqual([]);
+});
+
+test('a página inicial não descarrega o Evidence nem o DuckDB', async ({ page }) => {
+	const pedidos = [];
+	page.on('request', (request) => pedidos.push(request.url()));
+	await page.goto('');
+	await expect(page.locator('.mapa-postos[data-postos] tbody tr').first()).toBeVisible();
+	expect(pedidos.filter((url) => /\.wasm|\.parquet|\/_app\//.test(url))).toEqual([]);
+	// Só o JSON do combustível escolhido.
+	expect(pedidos.filter((url) => url.includes('/dados/postos-'))).toHaveLength(1);
+});
+
+test('sem rede, a página inicial abre com os últimos preços guardados', async ({ page, context }) => {
+	await page.goto('');
+	const linhas = page.locator('.mapa-postos[data-postos] tbody tr');
+	await expect(linhas.first()).toBeVisible();
+	await page.evaluate(() => navigator.serviceWorker.ready);
+	// Na segunda visita, já com o service worker, os preços e o mapa ficam guardados.
+	await page.reload();
+	await expect(linhas.first()).toBeVisible();
+	await expect(page.getByText('Sem rede')).toHaveCount(0);
+	// A página e os preços do combustível escolhido ficaram guardados no telemóvel.
+	const guardados = await page.evaluate(async () => {
+		const cache = await caches.open('combustiveis-pt-1');
+		return (await cache.keys()).map((request) => new URL(request.url).pathname);
+	});
+	expect(guardados).toEqual(
+		expect.arrayContaining(['/combustiveis-pt/', '/combustiveis-pt/dados/resumo.json', '/combustiveis-pt/dados/postos-gasolina_95.json'])
+	);
+
+	await context.setOffline(true);
+	await page.reload();
+	await expect(page.getByRole('status').filter({ hasText: 'Sem rede: estes são os preços guardados' })).toBeVisible();
+	await expect(linhas.first()).toBeVisible();
+	await context.setOffline(false);
+});
+
+test('o "Início" das páginas do Evidence leva à página inicial', async ({ page }) => {
+	await page.goto('resumo/');
+	await expect(page.getByRole('heading', { level: 1, name: 'Resumo e estatísticas' })).toBeVisible();
+	await page.getByRole('link', { name: 'Combustíveis em Portugal' }).first().click();
+	await expect(page.locator('.mapa-postos[data-postos] tbody tr').first()).toBeVisible();
+	await expect(page.locator('#app')).toBeAttached();
 });
 
 test('as páginas têm a descrição e a imagem para a partilha do link', async ({ page }) => {
@@ -259,6 +328,8 @@ test('os endereços antigos levam às páginas novas', async ({ page }) => {
 
 test('a interface está em português', async ({ page }) => {
 	await page.goto('');
+	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
+	await page.goto('resumo/');
 	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
 	await expect(page.getByText('Feito com o Evidence')).toBeAttached();
 	await expect(page.getByText('Built with Evidence')).toHaveCount(0);
