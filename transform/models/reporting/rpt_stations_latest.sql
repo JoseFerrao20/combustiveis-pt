@@ -29,7 +29,7 @@ select
     changes.change_since_previous,
     changes.price_7d,
     changes.last_change_date,
-    changes.history_7d
+    changes.recent_history
 from {{ ref('fct_station_prices') }} as prices
 inner join {{ ref('dgeg_fuels') }} as fuels using (fuel)
 left join {{ ref('int_station_neighbours') }} as neighbours using (snapshot_date, station_id)

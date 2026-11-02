@@ -1,12 +1,12 @@
 ---
 title: Postos acompanhados
 sidebar_position: 1
-description: Alguns postos seguidos dia a dia, comparados com os concorrentes a 5 km.
+description: Alguns postos seguidos semana a semana, comparados com os concorrentes a 5 km.
 og:
   image: https://joseferrao20.github.io/combustiveis-pt/og.png
 ---
 
-Alguns postos seguidos de perto, dia a dia: o preço, comparado com o dos concorrentes num raio de 5 km (em linha reta) e com a média do concelho. Os preços são os que cada posto comunica à Direção-Geral de Energia e Geologia ([precoscombustiveis.dgeg.gov.pt](https://precoscombustiveis.dgeg.gov.pt)).
+Alguns postos seguidos de perto, semana a semana: o preço, comparado com o dos concorrentes num raio de 5 km (em linha reta) e com a média do concelho. Os preços são os que cada posto comunica à Direção-Geral de Energia e Geologia ([precoscombustiveis.dgeg.gov.pt](https://precoscombustiveis.dgeg.gov.pt)).
 
 ```sql postos_lista
 select distinct station_id, label from combustiveis.acompanhados order by label
@@ -91,7 +91,7 @@ order by dia
 
 {:else}
 
-O gráfico aparece quando houver mais dias de fotografias. A DGEG só mostra o preço em vigor, por isso o histórico começa a 28/10/2026, com uma fotografia por dia.
+O gráfico aparece quando houver mais fotografias. A DGEG só mostra o preço em vigor, por isso o histórico começa a 28/10/2026: uma fotografia por dia até 2/11, e depois uma por semana, à segunda-feira.
 
 {/if}
 

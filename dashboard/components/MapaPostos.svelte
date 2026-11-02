@@ -8,22 +8,22 @@
 	fica no telemóvel) para centrar o mapa e mostrar a distância de cada posto. "Ir" abre o
 	caminho até ao posto no Google Maps (no telemóvel, na aplicação).
 
-	A coluna "Desde ontem" compara com a fotografia anterior da DGEG (▲ subiu, ▼ desceu, em
-	cêntimos); o balão do mapa mostra os preços dos últimos 7 dias.
+	A coluna "Na semana" compara com a fotografia anterior da DGEG, a de segunda-feira passada
+	(▲ subiu, ▼ desceu, em cêntimos); o balão do mapa mostra os preços das últimas fotografias.
 
 	Com a localização, a coluna "Poupa" diz quanto se poupa num depósito em cada posto, face ao
 	posto mais perto, já descontando o combustível da ida e volta (distância em linha reta × 1,3,
 	uma aproximação da distância por estrada). O depósito e o consumo ficam no browser.
 
 	A estrela de cada posto guarda-o em "Os meus postos" (lista no topo, com o preço de hoje e a
-	mudança desde ontem). Os favoritos ficam no browser, pelo id da DGEG.
+	mudança na semana). Os favoritos ficam no browser, pelo id da DGEG.
 
 	Por cima do mapa: procurar um concelho, uma localidade ou um posto (só nos dados da página, sem
 	enviar o que se escreve a ninguém), escolher a marca e esconder os postos de autoestrada. A
 	marca, as autoestradas e o combustível escolhido (`combustivel`) ficam guardados no browser.
 
 	Colunas de `data`: station_id, locality, station_type, station_name, brand, municipality, price, updated_at, latitude, longitude,
-	e, se houver histórico, change_since_previous, last_change_date e history_7d.
+	e, se houver histórico, change_since_previous, previous_snapshot_date, last_change_date e recent_history.
 -->
 <script>
 	import { onDestroy, onMount } from 'svelte';
@@ -286,6 +286,11 @@
 		`https://www.google.com/maps/dir/?api=1&destination=${row.latitude},${row.longitude}`;
 
 	$: subiram = visible.filter((row) => row.change_since_previous > 0).length;
+	// O dia da fotografia anterior (a mesma em todas as linhas), para dizer "desde quando".
+	$: previousDay = (() => {
+		const since = dateOrNull(visible.find((row) => row.previous_snapshot_date)?.previous_snapshot_date);
+		return since ? day(since) : null;
+	})();
 	$: desceram = visible.filter((row) => row.change_since_previous < 0).length;
 
 	function locate() {
@@ -338,8 +343,10 @@
 	function changeLabel(row) {
 		const text = change(row);
 		if (!text) return 'sem fotografia anterior';
-		if (text === '=') return 'o mesmo preço de ontem';
-		return `${row.change_since_previous > 0 ? 'subiu' : 'desceu'} ${text.slice(2)} cêntimos desde ontem`;
+		const since = dateOrNull(row.previous_snapshot_date);
+		if (text === '=') return since ? `o mesmo preço que a ${day(since)}` : 'o mesmo preço';
+		const verb = row.change_since_previous > 0 ? 'subiu' : 'desceu';
+		return `${verb} ${text.slice(2)} cêntimos${since ? ` desde ${day(since)}` : ''}`;
 	}
 
 	/** Uma data, ou null: o Evidence pode dar uma data vazia como 1/1/1970. */
@@ -359,7 +366,7 @@
 	}
 
 	function popup(row) {
-		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.history_7d ? `<br><small>Últimos dias: ${escape(row.history_7d)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
+		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.recent_history ? `<br><small>Últimas fotografias: ${escape(row.recent_history)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
 	}
 
 	let fitted = null;
@@ -606,7 +613,7 @@
 			Nenhum posto na parte do mapa que se vê.
 		{/if}
 		{#if subiram + desceram > 0}
-			Desde ontem, {subiram.toLocaleString('pt-PT')} {subiram === 1 ? 'subiu' : 'subiram'} e
+			Desde {previousDay ? `a fotografia de ${previousDay}` : 'a fotografia anterior'}, {subiram.toLocaleString('pt-PT')} {subiram === 1 ? 'subiu' : 'subiram'} e
 			{desceram.toLocaleString('pt-PT')} {desceram === 1 ? 'desceu' : 'desceram'} de preço.
 		{/if}
 	</p>
@@ -621,7 +628,7 @@
 					<th class="larga">Marca</th>
 					<th class="larga">Concelho</th>
 					<th class="num">Preço (€/L)</th>
-					<th class="num larga">Desde ontem</th>
+					<th class="num larga">Na semana</th>
 					{#if here}<th class="num larga">Distância</th>{/if}
 					{#if nearest && validSettings}<th class="num">Poupa</th>{/if}
 					<th class="larga">Atualizado</th>

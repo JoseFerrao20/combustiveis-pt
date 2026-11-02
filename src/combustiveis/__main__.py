@@ -8,9 +8,9 @@ semanal usa-o para dar conta de uma fonte parada).
 ``combustiveis dgeg``: a fotografia de hoje dos preços de cada posto em Portugal (portal da
 DGEG), em ``data/landing/dgeg/AAAA-MM-DD.parquet``.
 
-``combustiveis verificar-dgeg --idade-maxima 2``: falha se a última fotografia da DGEG tiver
-mais de 2 dias, ou se tiver muito menos postos do que a anterior (o agendamento usa-o para dar
-conta de uma recolha parada ou de uma resposta incompleta do portal).
+``combustiveis verificar-dgeg --idade-maxima 8``: falha se a última fotografia da DGEG (semanal,
+à segunda-feira) tiver mais de 8 dias, ou se tiver muito menos postos do que a anterior (o
+agendamento usa-o para dar conta de uma recolha parada ou de uma resposta incompleta do portal).
 
 ``combustiveis mercados``: os preços diários da gasolina e do gasóleo em Nova Iorque, do Brent
 e do câmbio do euro (FRED), em ``data/landing/mercados.parquet``, para a previsão de
@@ -29,7 +29,7 @@ from .dgeg import DgegFormatError, read_prices, search_url
 from .landing import write_landing, write_markets, write_station_snapshot
 from .markets import SERIES, MarketFormatError, MarketValue, read_series, series_url
 from .parse import FormatError, read_bulletin
-from .source import PAGE_URL, SourceError, fetch, find_history_url
+from .source import PAGE_URL, SourceError, fetch, fetch_with_retries, find_history_url
 
 DEFAULT_LANDING = Path("data/landing")
 DEFAULT_DGEG = DEFAULT_LANDING / "dgeg"
@@ -72,7 +72,7 @@ def snapshot(file: Path | None, directory: Path, day: date | None = None) -> int
     else:
         url = search_url()
         print(f"A descarregar {url}", file=sys.stderr)
-        data = fetch(url)
+        data = fetch_with_retries(url)
     prices = read_prices(data, day)
     target = write_station_snapshot(prices, directory)
     stations = len({p.station_id for p in prices})
@@ -129,9 +129,9 @@ def main(argv: list[str] | None = None) -> int:
     command.add_argument(
         "--idade-maxima",
         type=int,
-        default=2,
+        default=8,
         metavar="DIAS",
-        help="falhar se a última fotografia tiver mais de DIAS dias (por omissão, 2)",
+        help="falhar se a última fotografia tiver mais de DIAS dias (por omissão, 8)",
     )
     command.add_argument("--hoje", type=date.fromisoformat, help=argparse.SUPPRESS)
     command = commands.add_parser(

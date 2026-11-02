@@ -1,6 +1,11 @@
+import io
+import urllib.error
+from collections.abc import Callable
+
 import pytest
 
-from combustiveis.source import SourceError, fetch, find_history_url
+from combustiveis import source
+from combustiveis.source import SourceError, fetch, fetch_with_retries, find_history_url
 
 HISTORY = (
     "/document/download/906e60ca_en?filename=Weekly_Oil_Bulletin_Prices_History_maticni_4web.xlsx"
@@ -26,3 +31,40 @@ def test_page_without_the_link() -> None:
 def test_only_https() -> None:
     with pytest.raises(SourceError, match="HTTPS"):
         fetch("file:///etc/passwd")
+
+
+def _http_error(code: int) -> urllib.error.HTTPError:
+    return urllib.error.HTTPError("https://x.pt", code, "erro", {}, io.BytesIO())  # type: ignore[arg-type]
+
+
+def _fake_fetch(outcomes: list[bytes | OSError]) -> Callable[[str], bytes]:
+    def fake(url: str) -> bytes:
+        outcome = outcomes.pop(0)
+        if isinstance(outcome, OSError):
+            raise outcome
+        return outcome
+
+    return fake
+
+
+def test_retries_after_a_server_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(source, "fetch", _fake_fetch([_http_error(500), TimeoutError(), b"ok"]))
+    waits: list[float] = []
+    assert fetch_with_retries("https://x.pt", delays=(1, 2, 3), sleep=waits.append) == b"ok"
+    assert waits == [1, 2]
+
+
+def test_gives_up_after_the_last_attempt(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(source, "fetch", _fake_fetch([_http_error(503)] * 3))
+    waits: list[float] = []
+    with pytest.raises(urllib.error.HTTPError):
+        fetch_with_retries("https://x.pt", delays=(1, 2), sleep=waits.append)
+    assert waits == [1, 2]
+
+
+def test_client_errors_are_not_retried(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(source, "fetch", _fake_fetch([_http_error(404)]))
+    waits: list[float] = []
+    with pytest.raises(urllib.error.HTTPError):
+        fetch_with_retries("https://x.pt", delays=(1,), sleep=waits.append)
+    assert waits == []
