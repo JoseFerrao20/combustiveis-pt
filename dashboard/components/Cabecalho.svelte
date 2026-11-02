@@ -1,0 +1,157 @@
+<!--
+	O cabeçalho de todas as páginas: o da página inicial (app/) e o das páginas do Evidence
+	(pages/+layout.svelte, que esconde o cabeçalho e a barra lateral do Evidence). Uma linha com o
+	ícone, o nome do site e os links; no telemóvel, os links ficam num "Menu".
+
+	`atual` é o caminho da página aberta (para marcar o link com aria-current).
+-->
+<script>
+	export let base = '/combustiveis-pt/';
+	export let atual = '';
+
+	const REPOSITORY = 'https://github.com/JoseFerrao20/combustiveis-pt';
+	let aberto = false;
+
+	$: links = [
+		{ href: base, nome: 'Início' },
+		{ href: `${base}resumo/`, nome: 'Resumo' },
+		{ href: `${base}acompanhados/`, nome: 'Postos acompanhados' },
+		{ href: `${base}analises/`, nome: 'Análises' }
+	];
+	const limpo = (caminho) => caminho.replace(/\/+$/, '');
+	/** A página aberta, ou a secção dela (as análises ficam marcadas em "Análises"). */
+	function marcado(href) {
+		const aqui = limpo(atual);
+		const link = limpo(href);
+		if (link === limpo(base)) return aqui === link;
+		return aqui === link || aqui.startsWith(`${link}/`);
+	}
+</script>
+
+<header class="cabecalho">
+	<a class="marca" href={base}>
+		<img src="{base}icon.svg" alt="" width="24" height="24" />
+		<span>Combustíveis em Portugal</span>
+	</a>
+	<nav aria-label="Páginas do site">
+		<button
+			type="button"
+			class="menu-botao"
+			aria-expanded={aberto}
+			aria-controls="menu-paginas"
+			on:click={() => (aberto = !aberto)}>Menu</button
+		>
+		<ul id="menu-paginas" class:aberto>
+			{#each links as link (link.href)}
+				<li>
+					<a href={link.href} aria-current={marcado(link.href) ? 'page' : undefined} on:click={() => (aberto = false)}
+						>{link.nome}</a
+					>
+				</li>
+			{/each}
+			<li><a href={REPOSITORY} class="github">Código no GitHub</a></li>
+		</ul>
+	</nav>
+</header>
+
+<style>
+	.cabecalho {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		min-height: 3.25rem;
+		padding: 0.5rem 1rem;
+		background: rgba(255, 255, 255, 0.92);
+		border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+		backdrop-filter: blur(6px);
+		font-family: inherit;
+	}
+	:global([data-theme='dark']) .cabecalho {
+		background: rgba(9, 9, 11, 0.92);
+	}
+	.marca {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-weight: 700;
+		text-decoration: none;
+		color: inherit;
+	}
+	nav {
+		position: relative;
+		font-size: 0.9rem;
+	}
+	ul {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	ul a {
+		display: block;
+		padding: 0.4rem 0.7rem;
+		border-radius: 0.375rem;
+		text-decoration: none;
+		color: inherit;
+	}
+	ul a:hover {
+		background: rgba(127, 127, 127, 0.12);
+	}
+	ul a[aria-current='page'] {
+		background: rgba(37, 99, 235, 0.12);
+		color: #1d4ed8;
+		font-weight: 600;
+	}
+	:global([data-theme='dark']) ul a[aria-current='page'] {
+		color: #93c5fd;
+	}
+	.github {
+		opacity: 0.85;
+	}
+	.menu-botao {
+		display: none;
+		min-height: 2.25rem;
+		padding: 0.25rem 0.75rem;
+		border: 1px solid rgba(127, 127, 127, 0.6);
+		border-radius: 0.375rem;
+		background: none;
+		color: inherit;
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	@media (max-width: 760px) {
+		.menu-botao {
+			display: block;
+		}
+		ul {
+			display: none;
+			position: absolute;
+			right: 0;
+			top: calc(100% + 0.5rem);
+			flex-direction: column;
+			align-items: stretch;
+			min-width: 14rem;
+			padding: 0.25rem;
+			background: #ffffff;
+			border: 1px solid rgba(127, 127, 127, 0.3);
+			border-radius: 0.5rem;
+			box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+		}
+		:global([data-theme='dark']) ul {
+			background: #09090b;
+		}
+		ul.aberto {
+			display: flex;
+		}
+		ul a {
+			padding: 0.7rem 0.9rem;
+		}
+	}
+</style>

@@ -856,8 +856,10 @@
 		<button type="button" aria-pressed={view === 'mapa'} on:click={() => (view = 'mapa')}>Mapa</button>
 	</div>
 
+	<!-- No computador largo, o mapa (fixo) à esquerda e a lista à direita. -->
+	<div class="corpo">
 	<div class="painel-mapa" class:fora={!showMap} inert={!showMap}>
-		<div bind:this={element} style="height: min({height}px, 60vh)" class="rounded border border-base-300" />
+		<div bind:this={element} style="--altura: min({height}px, 60vh)" class="mapa rounded border border-base-300" />
 		{#if breaks.length}
 			<p class="legenda text-sm">
 				<span>Mais barato</span>
@@ -917,8 +919,8 @@
 						<th class="larga">Marca</th>
 						<th class="larga">Concelho</th>
 						<th class="num">Preço (€/L)</th>
-						<th class="num larga" title="Em cêntimos por litro">Na semana</th>
-						{#if here}<th class="num larga">Distância</th>{/if}
+						<th class="num media" title="Em cêntimos por litro">Na semana</th>
+						{#if here}<th class="num media">Distância</th>{/if}
 						{#if nearest && validSettings}<th class="num">Poupa</th>{/if}
 						<th class="larga">Atualizado</th>
 						<th><span class="sr-only">Caminho</span></th>
@@ -947,9 +949,10 @@
 								<!-- No telemóvel, a marca (se não estiver no nome), o concelho, a distância e a
 								     data vão aqui, em vez de colunas. -->
 								<span class="estreita"
-									>{[brandIfNew(row), row.municipality, here && km(distanceKm(here, row)), whenShort(row.updated_at)]
-										.filter(Boolean)
-										.join(' · ')}{#if isOld(row.updated_at)}<span class="antigo"> · há mais de uma semana</span
+									>{[brandIfNew(row), row.municipality].filter(Boolean).join(' · ')}{#if here}<span
+											class="so-telemovel"> · {km(distanceKm(here, row))}</span
+										>{/if} · {whenShort(row.updated_at)}{#if isOld(row.updated_at)}<span class="antigo">
+											· há mais de uma semana</span
 										>{/if}</span
 								>
 							</td>
@@ -958,16 +961,16 @@
 							<td class="num preco-celula">
 								{euros(row.price).replace(' €', '')}
 								<!-- No telemóvel, a variação vai debaixo do preço. -->
-								<span class="estreita variacao {changeClass(row)}">
+								<span class="estreita so-telemovel variacao {changeClass(row)}">
 									<span aria-hidden="true">{changeShort(row)}</span>
 									<span class="sr-only">{changeLabel(row)}</span>
 								</span>
 							</td>
-							<td class="num larga variacao {changeClass(row)}">
+							<td class="num media variacao {changeClass(row)}">
 								<span aria-hidden="true">{changeShort(row)}</span>
 								<span class="sr-only">{changeLabel(row)}</span>
 							</td>
-							{#if here}<td class="num larga">{km(distanceKm(here, row))}</td>{/if}
+							{#if here}<td class="num media distancia">{km(distanceKm(here, row))}</td>{/if}
 							{#if nearest && validSettings}<td class="num poupa {savingClass(row)}">{saving(row)}</td>{/if}
 							<td class="larga"
 								>{whenShort(row.updated_at)}{#if isOld(row.updated_at)}<span class="antigo">
@@ -999,6 +1002,7 @@
 				</p>
 			{/if}
 		{/if}
+	</div>
 	</div>
 </div>
 
@@ -1049,6 +1053,36 @@
 	}
 	.painel-lista.escondida {
 		display: none;
+	}
+	.mapa {
+		height: var(--altura);
+	}
+	/* No computador largo: o mapa fixo à esquerda (quase da altura do ecrã) e a lista à direita,
+	   com a marca, o concelho e a data por baixo do nome, como no telemóvel. */
+	@media (min-width: 1024px) {
+		.corpo {
+			display: grid;
+			grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+			gap: 1.25rem;
+			align-items: start;
+		}
+		.painel-mapa {
+			position: sticky;
+			top: 4rem;
+		}
+		.mapa {
+			height: calc(100vh - 8rem);
+			min-height: 22rem;
+		}
+		.tabela-postos .larga,
+		.so-telemovel {
+			display: none;
+		}
+		.estreita {
+			display: block;
+			font-size: 0.75rem;
+			opacity: 0.75;
+		}
 	}
 	.dica {
 		margin-top: 0.75rem;
@@ -1107,6 +1141,9 @@
 		color: #4ade80;
 	}
 	@media (max-width: 640px) {
+		.tabela-postos .media {
+			display: none;
+		}
 		/* Nomes de empresas muito compridos: duas linhas no máximo (o nome todo está no balão). */
 		.tabela-postos td > button[title] {
 			display: flex;

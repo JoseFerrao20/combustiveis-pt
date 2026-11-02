@@ -6,7 +6,7 @@ og:
   image: https://joseferrao20.github.io/combustiveis-pt/og.png
 ---
 
-Os números dos postos de Portugal continental, com a fotografia de segunda-feira da DGEG: as médias por grupo de marcas, por marca, por distrito e por concelho, a concorrência entre postos e a evolução dos preços. O mapa e a tabela de cada posto estão na [página inicial](/).
+As médias dos postos de Portugal continental (fotografia de segunda-feira da DGEG) por grupo de marcas, marca, distrito e concelho, a concorrência e a evolução. O preço de cada posto está na [página inicial](/).
 
 ```sql combustiveis
 select distinct fuel, fuel_name
@@ -69,10 +69,12 @@ from ${zona}
 
 ## Resumo de <Value data={resumo} column=dia fmt="dd/mm/yyyy" />
 
-<BigValue data={resumo} value=postos title="Postos" fmt="#,##0" />
-<BigValue data={resumo} value=media title="Preço médio" fmt='0.000 "€"' />
-<BigValue data={resumo} value=minimo title="Mais barato" fmt='0.000 "€"' />
-<BigValue data={resumo} value=maximo title="Mais caro" fmt='0.000 "€"' />
+<div class="cartoes">
+<div class="cartao"><span class="cartao-titulo">Postos</span><span class="cartao-numero"><Value data={resumo} column=postos fmt="#,##0" /></span></div>
+<div class="cartao"><span class="cartao-titulo">Preço médio</span><span class="cartao-numero"><Value data={resumo} column=media fmt='0.000 "€"' /></span></div>
+<div class="cartao"><span class="cartao-titulo">Mais barato</span><span class="cartao-numero"><Value data={resumo} column=minimo fmt='0.000 "€"' /></span></div>
+<div class="cartao"><span class="cartao-titulo">Mais caro</span><span class="cartao-numero"><Value data={resumo} column=maximo fmt='0.000 "€"' /></span></div>
+</div>
 
 Os preços são os que cada posto comunica à Direção-Geral de Energia e Geologia ([precoscombustiveis.dgeg.gov.pt](https://precoscombustiveis.dgeg.gov.pt)); as médias usam só os atualizados nos últimos 30 dias.
 
@@ -90,6 +92,21 @@ group by all
 order by diferenca
 ```
 
+```sql conclusao_grupos
+-- A conclusão do gráfico numa frase: o grupo mais barato e o mais caro, face à média da zona.
+select
+    'Na zona escolhida, ' || lower(arg_min(grupo, diferenca)) || ' estão '
+        || replace(printf('%.1f', -min(diferenca)), '.', ',') || ' cêntimos abaixo da média, e '
+        || lower(arg_max(grupo, diferenca)) || ' '
+        || replace(printf('%.1f', max(diferenca)), '.', ',') || ' cêntimos acima.' as texto
+from ${grupos}
+having count(*) > 1 and min(diferenca) < 0 and max(diferenca) > 0
+```
+
+{#if conclusao_grupos.length > 0}
+<p class="conclusao"><Value data={conclusao_grupos} column=texto /></p>
+{/if}
+
 <BarChart
     data={grupos}
     x=grupo
@@ -104,12 +121,16 @@ order by diferenca
     yAxisTitle=false
 />
 
+<Details title="Ver a tabela dos grupos de marcas">
+
 <DataTable data={grupos} emptySet="pass" emptyMessage="Sem postos nesta zona.">
     <Column id=grupo title="Grupo de marcas" />
     <Column id=postos title="Postos" fmt="#,##0" />
     <Column id=media title="Preço médio (€/L)" fmt='0.000' />
     <Column id=diferenca title="Diferença (cêntimos)" fmt='+0.0;-0.0' />
 </DataTable>
+
+</Details>
 
 Os hiper e supermercados são Intermarché, Pingo Doce, Auchan, E.Leclerc e Recheio. As petrolíferas são Galp, Repsol, BP, Cepsa, Moeve, Shell, Esso e Q8. "Sem marca" são os postos que a DGEG regista como "Genérico".
 
@@ -121,11 +142,15 @@ group by all
 order by media
 ```
 
+<Details title="Ver os preços por tipo de posto (autoestrada, hipermercado, outros)">
+
 <DataTable data={tipos} emptySet="pass" emptyMessage="Sem postos nesta zona.">
     <Column id=tipo title="Tipo de posto" />
     <Column id=postos title="Postos" fmt="#,##0" />
     <Column id=media title="Preço médio (€/L)" fmt='0.000' />
 </DataTable>
+
+</Details>
 
 ## Por marca
 
@@ -272,12 +297,16 @@ group by all
 order by isolados desc
 ```
 
+<Details title="Ver a tabela por grupo de marcas">
+
 <DataTable data={concorrencia_grupos} emptySet="pass">
     <Column id=grupo title="Grupo de marcas" />
     <Column id=postos_isolados title="Postos com 0 a 2 concorrentes" fmt="#,##0" />
     <Column id=isolados title="Diferença para o concelho (cêntimos)" fmt='+0.0;-0.0' />
     <Column id=com_concorrencia title="Com 3 ou mais concorrentes" fmt='+0.0;-0.0' />
 </DataTable>
+
+</Details>
 
 É uma fotografia de um dia: a análise com mais pormenor está em [docs/analises](https://github.com/JoseFerrao20/combustiveis-pt/blob/main/docs/analises/concorrencia-postos.md).
 

@@ -291,6 +291,19 @@
     - na amostra do CI, a primeira marca é "Genérico", que a tabela mostrava como "Sem marca" e o filtro não. O nome de cada marca passou a vir de uma função só (`brandLabel`);
     - o teste da previsão falhou com os dados reais desta segunda, porque o gasóleo aparece em duas tabelas.
 
+- **2026-11-02 (sessão cloud do Claude Code):** um só aspeto para o site e páginas menos "documento".
+  - **Antes:** a página inicial e as páginas do Evidence pareciam dois sites, com cabeçalhos e menus diferentes. "Análises" era uma lista de links, o resumo e os postos acompanhados abriam com parágrafos e tabelas, e no computador a página inicial tinha o mapa e a lista um por cima do outro, numa coluna estreita.
+  - **Feito:**
+    - O cabeçalho e o rodapé comuns (`components/Cabecalho.svelte` e `Rodape.svelte`) estão na página inicial e no Evidence: o ícone, o nome, os quatro links com o da página aberta marcado, e "Menu" no telemóvel. O cabeçalho e a barra lateral do Evidence ficaram escondidos.
+    - "Análises" passou a quatro cartões clicáveis, cada um com o número principal: a parte do preço que é imposto, a previsão de segunda e o erro médio, a diferença para Espanha e as semanas de dados.
+    - O resumo abre com os números em cartões e uma conclusão em frase sobre os grupos de marcas ("… estão 9,0 cêntimos abaixo da média …"). As tabelas secundárias ficaram em "Ver a tabela".
+    - Os postos acompanhados têm cartões com o preço, a posição e as diferenças com setas (verde se mais barato). A explicação foi para o fim.
+    - A partir de 1024 px, a página inicial tem o mapa fixo à esquerda, quase da altura do ecrã, e a lista à direita, com a mudança, a distância e a poupança em colunas.
+  - **Lições:**
+    - o `Value` do Evidence deixa um espaço a seguir ("19/10/2026 )"), por isso as frases com pontuação fazem-se no SQL;
+    - o DuckDB não reutiliza um alias da mesma `select` numa expressão com subconsulta, e é preciso uma consulta à volta;
+    - nos testes, as células escondidas por CSS continuam a dar o texto (o `innerText` de um elemento que não se desenha é o `textContent`). Por isso, os testes da marca e do concelho não mudaram com as duas colunas.
+
 ## Plano
 
 1. **Capturas do README com a página inicial nova** (`docs/images/painel-telemovel.png` e `painel-mapa-tabela.png`): o aspeto mudou pouco (o cabeçalho e os filtros), mas já não é o do Evidence.

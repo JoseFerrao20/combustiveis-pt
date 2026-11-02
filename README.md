@@ -18,6 +18,7 @@
 - **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço, a mudança na semana e o "Ir". Cada um diz a posição entre os postos a 5 km e qual é o mais barato à volta. A lista fica só no telemóvel.
 - **"Na semana":** quanto cada posto subiu ou desceu desde a segunda-feira anterior, e os preços das últimas semanas.
 - **Previsão para segunda-feira:** quanto deve mudar o preço, a partir dos mercados da semana anterior, com o erro de todas as semanas desde 2024 à vista. Na segunda de manhã, compara-se com a mudança real nos postos.
+- **Um só aspeto:** o mesmo cabeçalho e rodapé em todas as páginas. As análises abrem a partir de cartões com o número principal, o resumo começa pelos números e pelas conclusões, e no computador o mapa e a lista ficam lado a lado.
 - **Leve e com pouca rede:** a página inicial descarrega uns 200 KB (em vez de 12 MB) e abre mesmo sem rede, com os últimos preços guardados no telemóvel.
 
 ![A página inicial no computador: o mapa de Lisboa com os postos coloridos do mais barato ao mais caro, a posição da pessoa a azul e, por baixo, a tabela com o preço, a mudança, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
