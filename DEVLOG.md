@@ -217,6 +217,14 @@
   - **Testes:** um teste novo guarda um posto, recarrega a página e tira-o. O teste da tabela passou a encontrar o nome e o preço por classe e título, e não pela posição da coluna: com a coluna da estrela, lia o concelho em vez do preço e passava na mesma (números `NaN` ordenados).
   - **Lição:** um teste que compara uma lista com ela própria ordenada passa com uma lista de `NaN`. Agora confirma também que os preços estão entre 0,50 € e 4 €.
 
+- **2026-11-02 (sessão cloud do Claude Code):** procurar, filtrar e lembrar o combustível.
+  - **Feito:** três melhorias na página dos postos, todas no `MapaPostos.svelte`:
+    - uma caixa "Procurar uma localidade ou um posto": sugere até 5 concelhos ou localidades e até 5 postos, sem distinguir acentos nem maiúsculas. Escolher um sítio enquadra o mapa nos postos desse sítio, e escolher um posto abre o balão dele. A `locality` passou a ir para a consulta do mapa;
+    - o filtro "Marca" (com o número de postos de cada uma na zona) e a opção "Sem postos de autoestrada". Os dois mudam o mapa e a tabela sem reenquadrar o mapa, e o texto da contagem diz que filtros estão ligados;
+    - o combustível escolhido fica no `localStorage` (`combustiveis-pt:combustivel`) e volta como `defaultValue` do filtro do Evidence; a marca e as autoestradas ficam em `combustiveis-pt:filtros`.
+  - **Testes:** dois novos (a procura leva o mapa ao concelho e ao posto; os filtros e o combustível sobrevivem a recarregar a página). As opções dos filtros do Evidence passaram a procurar-se dentro da `listbox`, porque o `<select>` da marca também tem `option`.
+  - **Lição:** `getByLabel('Marca')` também apanhou o "Ir até ÉMARCA" de um posto da amostra. Nos testes, os controlos próprios procuram-se pela classe do componente.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.

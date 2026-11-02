@@ -12,6 +12,7 @@
 **Para quem abastece:**
 
 - **Mapa e tabela de todos os postos** (mais de 3000), do mais barato para o mais caro. A tabela segue o mapa: ao aproximar, ou ao escolher o distrito e o concelho, fica só com os postos que se veem.
+- **Procurar e filtrar:** uma caixa de procura leva o mapa até uma localidade, um concelho ou um posto (sem precisar de acentos). Dá para ficar só com uma marca ou tirar os postos de autoestrada, e o site lembra-se do combustível e dos filtros na próxima visita.
 - **"Perto de mim":** centra o mapa onde a pessoa está. Para cada posto, mostra a distância e quanto se poupa num depósito face ao posto mais perto, já descontando a ida e volta. O botão "Ir" abre o caminho no Google Maps. A localização não sai do telemóvel.
 - **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço de hoje, a mudança desde ontem e o "Ir". A lista fica só no telemóvel.
 - **"Desde ontem":** quanto cada posto subiu ou desceu, e os preços dos últimos dias.
@@ -48,7 +49,7 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **Testes em todas as camadas**, todos no CI:
   - 57 testes em Python (98 % de cobertura);
   - 83 testes de dados e testes unitários no dbt;
-  - 35 testes do site com o Playwright: as páginas, os filtros, o "Perto de mim" com a localização simulada, a poupança e "Os meus postos", e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 37 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança e "Os meus postos", e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 

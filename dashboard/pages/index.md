@@ -59,7 +59,18 @@ where target_week = (select max(target_week) from combustiveis.previsao)
 <p class="previsao-segunda"><Value data={previsao} column=texto /> Ver como se calcula em Análises.</p>
 {/if}
 
-<Dropdown data={combustiveis} name=combustivel value=fuel label=fuel_name defaultValue="gasolina_95" title="Combustível" />
+<script>
+    // O combustível escolhido da última vez (guardado pelo mapa), para não ter de o escolher
+    // sempre. No build, e sem acesso ao armazenamento do browser, fica a gasolina 95.
+    let combustivelGuardado = 'gasolina_95';
+    try {
+        combustivelGuardado = localStorage.getItem('combustiveis-pt:combustivel') ?? 'gasolina_95';
+    } catch {
+        // Fica a gasolina 95.
+    }
+</script>
+
+<Dropdown data={combustiveis} name=combustivel value=fuel label=fuel_name defaultValue={combustivelGuardado} title="Combustível" />
 <Dropdown data={distritos_lista} name=distrito value=district title="Distrito">
     <DropdownOption value="%" valueLabel="Todos" />
 </Dropdown>
@@ -71,7 +82,7 @@ where target_week = (select max(target_week) from combustiveis.previsao)
 -- Só as colunas que as consultas abaixo usam: o Evidence guarda o resultado de cada consulta no
 -- site, e a página fica mais leve.
 select
-    snapshot_date, station_id, station_name, brand, brand_segment, station_type, district, municipality,
+    snapshot_date, station_id, station_name, locality, brand, brand_segment, station_type, district, municipality,
     latitude, longitude, price, updated_at, is_current,
     change_since_previous, last_change_date, history_7d
 from combustiveis.postos
@@ -82,13 +93,14 @@ where fuel = '${inputs.combustivel.value}'
 
 ```sql mapa
 select
-    station_id, station_name, brand, municipality, price, latitude, longitude, updated_at,
+    station_id, station_name, brand, municipality, locality, station_type,
+    price, latitude, longitude, updated_at,
     change_since_previous, last_change_date, history_7d
 from ${zona}
 where is_current and latitude is not null
 ```
 
-<MapaPostos data={mapa} />
+<MapaPostos data={mapa} combustivel={inputs.combustivel.value} />
 
 ```sql resumo
 select

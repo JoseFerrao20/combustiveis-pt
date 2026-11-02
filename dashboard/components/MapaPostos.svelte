@@ -18,7 +18,11 @@
 	A estrela de cada posto guarda-o em "Os meus postos" (lista no topo, com o preço de hoje e a
 	mudança desde ontem). Os favoritos ficam no browser, pelo id da DGEG.
 
-	Colunas de `data`: station_id, station_name, brand, municipality, price, updated_at, latitude, longitude,
+	Por cima do mapa: procurar um concelho, uma localidade ou um posto (só nos dados da página, sem
+	enviar o que se escreve a ninguém), escolher a marca e esconder os postos de autoestrada. A
+	marca, as autoestradas e o combustível escolhido (`combustivel`) ficam guardados no browser.
+
+	Colunas de `data`: station_id, locality, station_type, station_name, brand, municipality, price, updated_at, latitude, longitude,
 	e, se houver histórico, change_since_previous, last_change_date e history_7d.
 -->
 <script>
@@ -30,6 +34,8 @@
 	export let height = 520;
 	/** Linhas da tabela de cada vez; "Mostrar mais" junta outras tantas. */
 	export let pageSize = 15;
+	/** O combustível escolhido no filtro da página, para o guardar e voltar a escolhê-lo. */
+	export let combustivel = undefined;
 
 	// Do mais barato para o mais caro (5 classes, pelos quintis dos preços da zona escolhida).
 	const COLORS = ['#1a9850', '#91cf60', '#fee08b', '#fc8d59', '#d73027'];
@@ -80,7 +86,7 @@
 	}
 
 	$: favoriteRows = favorites
-		.map((id) => rows.find((row) => Number(row.station_id) === id))
+		.map((id) => allRows.find((row) => Number(row.station_id) === id))
 		.filter(Boolean);
 	$: missingFavorites = favorites.length - favoriteRows.length;
 	let tank = 50;
@@ -138,15 +144,109 @@
 	const savingClass = (row) =>
 		!nearest || row.key === nearest.key ? '' : savings.get(row.key) >= 0 ? 'desceu' : 'subiu';
 
+	const FUEL_KEY = 'combustiveis-pt:combustivel';
+	const FILTERS_KEY = 'combustiveis-pt:filtros';
+	/** A marca escolhida ('' = todas) e se os postos de autoestrada ficam de fora. */
+	let brand = '';
+	let noMotorway = false;
+
+	$: if (combustivel) {
+		try {
+			localStorage.setItem(FUEL_KEY, combustivel);
+		} catch {
+			// Sem acesso ao armazenamento do browser: o combustível não fica guardado.
+		}
+	}
+
+	function loadFilters() {
+		try {
+			const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) ?? '{}');
+			if (typeof saved.brand === 'string') brand = saved.brand;
+			if (typeof saved.noMotorway === 'boolean') noMotorway = saved.noMotorway;
+		} catch {
+			// Idem: ficam os filtros por omissão.
+		}
+	}
+
+	function saveFilters() {
+		try {
+			localStorage.setItem(FILTERS_KEY, JSON.stringify({ brand, noMotorway }));
+		} catch {
+			// Idem: os filtros valem até fechar a página.
+		}
+	}
+
 	$: data?.fetch?.();
-	$: rows = ($data ?? [])
+	$: allRows = ($data ?? [])
 		.filter((row) => row.latitude != null && row.longitude != null && row.price != null)
 		.map((row, index) => ({ ...row, key: index }));
+	$: rows = allRows.filter(
+		(row) =>
+			(!brand || row.brand === brand) && !(noMotorway && row.station_type === 'Auto-estrada')
+	);
+	// As marcas da zona, da que tem mais postos para a que tem menos (e a escolhida, mesmo que
+	// não exista na zona, para o filtro não ficar com um valor escondido).
+	$: brands = [...allRows.reduce((m, r) => m.set(r.brand, (m.get(r.brand) ?? 0) + 1), new Map())]
+		.sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))
+		.map(([name, count]) => ({ name, count }))
+		.concat(brand && !allRows.some((r) => r.brand === brand) ? [{ name: brand, count: 0 }] : []);
+
+	/** Para procurar sem contar com maiúsculas nem acentos ("Agueda" encontra "Águeda"). */
+	const plain = (text) =>
+		String(text ?? '')
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toLowerCase();
+
+	let query = '';
+	$: results = search(query, allRows, rows);
+
+	function search(text, allRows, rows) {
+		const q = plain(text).trim();
+		if (q.length < 2) return [];
+		const places = new Map();
+		for (const row of allRows) {
+			for (const [kind, name] of [
+				['concelho', row.municipality],
+				['localidade', row.locality]
+			]) {
+				if (!name || !plain(name).includes(q)) continue;
+				const id = `${kind}:${plain(name)}`;
+				if (!places.has(id)) places.set(id, { id, kind, name, rows: [] });
+				places.get(id).rows.push(row);
+			}
+		}
+		const starts = (name) => (plain(name).startsWith(q) ? 0 : 1);
+		const placeResults = [...places.values()]
+			.sort((a, b) => starts(a.name) - starts(b.name) || b.rows.length - a.rows.length)
+			.slice(0, 5);
+		const stationResults = rows
+			.filter((row) => plain(`${row.brand} ${row.station_name}`).includes(q))
+			.sort((a, b) => starts(a.station_name) - starts(b.station_name) || a.price - b.price)
+			.slice(0, 5)
+			.map((row) => ({ id: `posto:${row.key}`, kind: 'posto', name: row.station_name, row }));
+		return [...placeResults, ...stationResults];
+	}
+
+	function choose(result) {
+		if (result.kind === 'posto') {
+			focus(result.row);
+		} else {
+			map.fitBounds(L.latLngBounds(result.rows.map((row) => [row.latitude, row.longitude])), {
+				padding: [30, 30],
+				maxZoom: 14
+			});
+		}
+		query = '';
+	}
 	$: breaks = quantiles(rows.map((row) => row.price));
 	// O store da consulta pode emitir as mesmas linhas mais de uma vez: só se redesenha (e
 	// reenquadra o mapa) quando mudam, senão o mapa voltava atrás depois de o utilizador mexer.
-	$: signature = rows.map((row) => `${row.latitude},${row.longitude},${row.price}`).join(';');
-	$: if (map && L && signature !== drawn) draw(rows, signature);
+	// Os filtros de marca e de autoestrada redesenham os pontos, mas não mexem no enquadramento;
+	// só uma mudança dos dados (combustível, distrito, concelho) reenquadra o mapa.
+	$: dataSignature = allRows.map((row) => `${row.latitude},${row.longitude},${row.price}`).join(';');
+	$: signature = `${dataSignature}|${brand}|${noMotorway}`;
+	$: if (map && L && signature !== drawn) draw(rows, signature, dataSignature !== fitted);
 
 	function quantiles(prices) {
 		const sorted = [...prices].sort((a, b) => a - b);
@@ -262,7 +362,9 @@
 		return `<strong>${escape(row.station_name)}</strong><br>${escape(row.brand)} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.history_7d ? `<br><small>Últimos dias: ${escape(row.history_7d)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
 	}
 
-	function draw(rows, signature) {
+	let fitted = null;
+
+	function draw(rows, signature, refit) {
 		drawn = signature;
 		layer.clearLayers();
 		markers = new Map();
@@ -278,7 +380,8 @@
 			marker.addTo(layer);
 			markers.set(row.key, marker);
 		}
-		if (rows.length) {
+		if (refit && rows.length) {
+			fitted = dataSignature;
 			map.fitBounds(L.latLngBounds(rows.map((row) => [row.latitude, row.longitude])), {
 				padding: [20, 20],
 				maxZoom: 14,
@@ -322,6 +425,7 @@
 		map.on('moveend', update);
 		loadSettings();
 		loadFavorites();
+		loadFilters();
 	});
 
 	onDestroy(() => map?.remove());
@@ -376,6 +480,60 @@
 			{/if}
 		</p>
 	</section>
+
+	<div class="procurar">
+		<label for="procurar-postos" class="text-sm font-semibold"
+			>Procurar uma localidade ou um posto</label
+		>
+		<input
+			id="procurar-postos"
+			type="search"
+			bind:value={query}
+			placeholder="Ex.: Rio Tinto, Galp Areeiro"
+			autocomplete="off"
+			disabled={!map}
+		/>
+		{#if results.length}
+			<ul class="resultados" aria-label="Resultados da procura">
+				{#each results as result (result.id)}
+					<li>
+						<button type="button" on:click={() => choose(result)}>
+							<span>{result.name}</span>
+							<span class="text-sm text-base-content-muted">
+								{#if result.kind === 'posto'}
+									posto · {result.row.brand} · {result.row.municipality} · {euros(result.row.price)}
+								{:else}
+									{result.kind} · {result.rows.length}
+									{result.rows.length === 1 ? 'posto' : 'postos'}
+								{/if}
+							</span>
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{:else if plain(query).trim().length >= 2}
+			<p class="text-sm" role="status">
+				Nada encontrado (com o combustível, o distrito e o concelho escolhidos).
+			</p>
+		{/if}
+	</div>
+
+	<fieldset class="filtros-postos text-sm">
+		<legend class="sr-only">Que postos mostrar</legend>
+		<label>
+			Marca
+			<select bind:value={brand} on:change={saveFilters}>
+				<option value="">Todas</option>
+				{#each brands as option (option.name)}
+					<option value={option.name}>{option.name} ({option.count})</option>
+				{/each}
+			</select>
+		</label>
+		<label>
+			<input type="checkbox" bind:checked={noMotorway} on:change={saveFilters} />
+			Sem postos de autoestrada
+		</label>
+	</fieldset>
 
 	{#if canLocate}
 		<p class="perto">
@@ -441,7 +599,9 @@
 		{#if visible.length}
 			{visible.length.toLocaleString('pt-PT')}
 			{visible.length === 1 ? 'posto' : 'postos'} na parte do mapa que se vê, do mais barato
-			para o mais caro. Aproxime ou arraste o mapa para ver só os de uma zona.
+			para o mais caro{#if brand || noMotorway}
+				({[brand && `só ${brand}`, noMotorway && 'sem autoestradas'].filter(Boolean).join(', ')})
+			{/if}. Aproxime ou arraste o mapa para ver só os de uma zona.
 		{:else}
 			Nenhum posto na parte do mapa que se vê.
 		{/if}
@@ -677,6 +837,61 @@
 	:global([data-theme='dark']) .ir {
 		color: #60a5fa;
 		border-color: #60a5fa;
+	}
+	.procurar {
+		margin-bottom: 0.75rem;
+	}
+	.procurar label {
+		display: block;
+		margin-bottom: 0.25rem;
+	}
+	.procurar input {
+		width: 100%;
+		max-width: 28rem;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid rgba(127, 127, 127, 0.6);
+		border-radius: 0.375rem;
+		background: transparent;
+		color: inherit;
+	}
+	.resultados {
+		list-style: none;
+		margin: 0.25rem 0 0;
+		padding: 0;
+		max-width: 28rem;
+		border: 1px solid rgba(127, 127, 127, 0.4);
+		border-radius: 0.375rem;
+	}
+	.resultados li + li {
+		border-top: 1px solid rgba(127, 127, 127, 0.25);
+	}
+	.resultados button {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		width: 100%;
+		padding: 0.4rem 0.75rem;
+		text-align: left;
+	}
+	.resultados button:hover,
+	.resultados button:focus-visible {
+		background: rgba(127, 127, 127, 0.12);
+	}
+	.filtros-postos {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 1.25rem;
+		margin: 0 0 0.75rem;
+	}
+	.filtros-postos select {
+		margin-left: 0.25rem;
+		padding: 0.15rem 0.35rem;
+		border: 1px solid rgba(127, 127, 127, 0.5);
+		border-radius: 0.25rem;
+		background: transparent;
+		color: inherit;
+		max-width: 14rem;
 	}
 	.sr-only {
 		position: absolute;
