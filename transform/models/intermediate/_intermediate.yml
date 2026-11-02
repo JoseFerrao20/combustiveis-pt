@@ -13,7 +13,7 @@ models:
     description: >
       A evolução do preço de cada posto e combustível na última fotografia: o preço da
       fotografia anterior e a diferença, o de há uma semana, o dia da última mudança e os
-      preços dos últimos 7 dias em texto (`history_7d`).
+      preços das últimas 5 fotografias em texto (`recent_history`).
     data_tests:
       - unique_combination:
           arguments:
@@ -21,7 +21,8 @@ models:
   - name: int_dgeg_monday_changes
     description: >
       A mudança média dos preços dos postos (gasolina 95 e gasóleo) em cada segunda-feira com
-      fotografia da DGEG, face à fotografia anterior (até 3 dias antes), só com os postos que
+      fotografia da DGEG, face à fotografia anterior (até 7 dias antes: a de domingo nas fotografias diárias, a da
+      segunda anterior nas semanais), só com os postos que
       têm o preço atualizado nos dois dias.
     data_tests:
       - unique_combination:
@@ -68,13 +69,13 @@ unit_tests:
           change_since_previous: -0.020
           price_7d: 1.950
           last_change_date: 2026-10-29
-          history_7d: "29/10: 1,930 · 27/10: 1,950"
+          recent_history: "29/10: 1,930 · 27/10: 1,950 · 22/10: 1,950 · 20/10: 1,900"
         - station_id: 2
           previous_price: null
           change_since_previous: null
           price_7d: null
           last_change_date: null
-          history_7d: "29/10: 1,800"
+          recent_history: "29/10: 1,800"
 
   - name: monday_changes_compare_with_the_previous_snapshot
     description: >
@@ -98,3 +99,20 @@ unit_tests:
     expect:
       rows:
         - {target_week: 2026-11-02, product: diesel, previous_snapshot_date: 2026-11-01, dgeg_stations: 2, dgeg_share_changed: 0.5}
+
+  - name: weekly_monday_changes_compare_with_the_previous_monday
+    description: >
+      Com as fotografias semanais (2 e 9/11/2026, as duas à segunda-feira), a de 9/11 compara-se
+      com a de 2/11. A de 2/11 não tem anterior e não entra.
+    model: int_dgeg_monday_changes
+    given:
+      - input: ref('fct_station_prices')
+        rows:
+          - {snapshot_date: 2026-11-02, station_id: 1, fuel: gasoleo, price: 1.880, is_current: true}
+          - {snapshot_date: 2026-11-09, station_id: 1, fuel: gasoleo, price: 1.910, is_current: true}
+      - input: ref('dgeg_fuels')
+        rows:
+          - {fuel: gasoleo, wob_product: diesel}
+    expect:
+      rows:
+        - {target_week: 2026-11-09, product: diesel, previous_snapshot_date: 2026-11-02, dgeg_stations: 1, dgeg_share_changed: 1.0}

@@ -69,5 +69,6 @@ def test_command_line(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> Non
     assert "Última fotografia da DGEG: 2026-10-29, com 37 postos (37 em 2026-10-28)" in (
         capsys.readouterr().out
     )
-    assert cli.main([*args[:-1], "2026-11-05"]) == 1
-    assert "erro: A última fotografia da DGEG é de 2026-10-29, há 7 dias" in capsys.readouterr().err
+    assert cli.main([*args[:-1], "2026-11-06"]) == 0  # 8 dias: a fotografia é semanal
+    assert cli.main([*args[:-1], "2026-11-07"]) == 1
+    assert "erro: A última fotografia da DGEG é de 2026-10-29, há 9 dias" in capsys.readouterr().err

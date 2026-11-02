@@ -1,7 +1,8 @@
 -- A evolução do preço de cada posto e combustível entre fotografias: o preço da fotografia
 -- anterior, o de há uma semana (a última fotografia com pelo menos 7 dias), o dia da última
--- mudança e os preços dos últimos 7 dias como texto, para o painel. Antes de haver histórico,
--- as colunas ficam vazias.
+-- mudança e os preços das últimas 5 fotografias como texto, para o painel. As fotografias foram
+-- diárias até 2/11/2026 e passaram a semanais (à segunda-feira). Antes de haver histórico, as
+-- colunas ficam vazias.
 with
 
 prices as (
@@ -41,8 +42,14 @@ week_ago as (
     group by all
 ),
 
+recent_snapshots as (
+    select distinct snapshot_date from prices
+    order by snapshot_date desc
+    limit 5
+),
+
 recent as (
-    -- "29/10: 1,919 · 28/10: 1,929": os últimos 7 dias, do mais recente para o mais antigo.
+    -- "09/11: 1,919 · 02/11: 1,929": as últimas 5 fotografias, da mais recente para a mais antiga.
     select
         prices.station_id,
         prices.fuel,
@@ -50,9 +57,9 @@ recent as (
             strftime(prices.snapshot_date, '%d/%m') || ': '
                 || replace(printf('%.3f', prices.price), '.', ','),
             ' · ' order by prices.snapshot_date desc
-        ) as history_7d
+        ) as recent_history
     from prices
-    where prices.snapshot_date > (select max(snapshot_date) from prices) - interval 7 day
+    where prices.snapshot_date in (select snapshot_date from recent_snapshots)
     group by all
 )
 
@@ -65,7 +72,7 @@ select
     round(latest.price - latest.previous_price, 3) as change_since_previous,
     week_ago.price_7d,
     changes.last_change_date,
-    recent.history_7d
+    recent.recent_history
 from latest
 left join week_ago using (station_id, fuel)
 left join changes using (station_id, fuel)

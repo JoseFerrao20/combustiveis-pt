@@ -137,7 +137,7 @@ def test_command_line_downloads(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
         requested.append(url)
         return SAMPLE.read_bytes()
 
-    monkeypatch.setattr(cli, "fetch", fake_fetch)
+    monkeypatch.setattr(cli, "fetch_with_retries", fake_fetch)
     assert cli.main(["dgeg", "--destino", str(tmp_path)]) == 0
     assert requested == [search_url()]
 

@@ -3,9 +3,9 @@
 [![CI](https://github.com/JoseFerrao20/combustiveis-pt/actions/workflows/ci.yml/badge.svg)](https://github.com/JoseFerrao20/combustiveis-pt/actions/workflows/ci.yml)
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](LICENSE)
 
-**Onde abastecer mais barato, e quanto do preço é imposto.** Um pipeline de dados que junta, todos os dias, o preço de cada posto de combustível em Portugal (DGEG), os preços semanais de toda a UE desde 2005 (Weekly Oil Bulletin da Comissão Europeia) e as cotações dos mercados internacionais (FRED), e um site estático feito para se usar no telemóvel.
+**Onde abastecer mais barato, e quanto do preço é imposto.** Um pipeline de dados que junta o preço de cada posto de combustível em Portugal (DGEG, todas as segundas-feiras), os preços semanais de toda a UE desde 2005 (Weekly Oil Bulletin da Comissão Europeia) e as cotações dos mercados internacionais (FRED), e um site estático feito para se usar no telemóvel.
 
-**Site:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado todos os dias.
+**Site:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado todos os dias (os preços dos postos, às segundas-feiras).
 
 ![No telemóvel: a página inicial com a previsão para segunda-feira e o botão "Perto de mim", e a tabela dos postos à volta, do mais barato para o mais caro, com a poupança num depósito e o botão "Ir"](docs/images/painel-telemovel.png)
 
@@ -14,11 +14,11 @@
 - **Mapa e tabela de todos os postos** (mais de 3000), do mais barato para o mais caro. A tabela segue o mapa: ao aproximar, ou ao escolher o distrito e o concelho, fica só com os postos que se veem.
 - **Procurar e filtrar:** uma caixa de procura leva o mapa até uma localidade, um concelho ou um posto (sem precisar de acentos). Dá para ficar só com uma marca ou tirar os postos de autoestrada, e o site lembra-se do combustível e dos filtros na próxima visita.
 - **"Perto de mim":** centra o mapa onde a pessoa está. Para cada posto, mostra a distância e quanto se poupa num depósito face ao posto mais perto, já descontando a ida e volta. O botão "Ir" abre o caminho no Google Maps. A localização não sai do telemóvel.
-- **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço de hoje, a mudança desde ontem e o "Ir". A lista fica só no telemóvel.
-- **"Desde ontem":** quanto cada posto subiu ou desceu, e os preços dos últimos dias.
+- **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço, a mudança na semana e o "Ir". A lista fica só no telemóvel.
+- **"Na semana":** quanto cada posto subiu ou desceu desde a segunda-feira anterior, e os preços das últimas semanas.
 - **Previsão para segunda-feira:** quanto deve mudar o preço, a partir dos mercados da semana anterior, com o erro de todas as semanas desde 2024 à vista. Na segunda de manhã, compara-se com a mudança real nos postos.
 
-![A página inicial no computador: o mapa de Lisboa com os postos coloridos do mais barato ao mais caro, a posição da pessoa a azul e, por baixo, a tabela com o preço, a mudança desde ontem, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
+![A página inicial no computador: o mapa de Lisboa com os postos coloridos do mais barato ao mais caro, a posição da pessoa a azul e, por baixo, a tabela com o preço, a mudança, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
 
 **Para quem quer perceber os preços:** na semana de 19/10/2026, um litro de gasolina 95 custava 2,099 € em Portugal.
 
@@ -41,14 +41,14 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 ## Destaques técnicos
 
 - **Fontes sem contrato, lidas com desconfiança.** O ficheiro do boletim não tem formato documentado, e a API da DGEG é a da página de pesquisa, sem documentação. Cada leitura valida o que recebe (colunas, códigos, totais anunciados) e falha com um erro claro em vez de devolver dados errados (`FormatError`, `DgegFormatError`, `MarketFormatError`).
-- **Histórico que a fonte não guarda.** A DGEG só mostra o preço em vigor. Uma fotografia por dia vai para o ramo `dados` do próprio repositório (o padrão "git scraping"), sem serviços nem custos. Uma vigilância avisa por email se a recolha parar ou vier incompleta.
+- **Histórico que a fonte não guarda.** A DGEG só mostra o preço em vigor. Uma fotografia por semana, à segunda-feira, vai para o ramo `dados` do próprio repositório (o padrão "git scraping"), sem serviços nem custos. Uma vigilância avisa por email se a recolha parar ou vier incompleta.
 - **SQL a fazer o trabalho pesado** (dbt com DuckDB): o imposto em vigor em cada semana com `ASOF JOIN`; os concorrentes a 2 e 5 km de cada posto com a fórmula de haversine, sem extensões; as mudanças diárias de cada posto com funções de janela.
 - **Erros da fonte investigados, não escondidos.** Quando as tabelas de impostos do boletim não explicam o preço, a diferença fica numa coluna. Os períodos já explicados ficam num seed, com a razão, e a análise está em [`docs/analises/`](docs/analises/) (Portugal, Lituânia, Países Baixos, Eslováquia e Espanha). Um aviso do dbt apanha qualquer caso novo.
 - **Uma previsão testada a sério.** Os coeficientes foram ajustados com 2012–2023, e o site mostra o erro em todas as semanas desde 2024, que o ajuste não viu: 1,1 a 1,3 cêntimos, contra 1,7 a 2,7 a dizer "fica igual".
 - **Um site sem servidor:** Evidence com DuckDB-WASM no browser, publicado no GitHub Pages. O mapa é um componente próprio com o Leaflet, porque o do Evidence não diz à página que zona está à vista. A interface foi traduzida com patches ao Evidence. As fontes e as consultas foram cortadas ao que as páginas usam.
 - **Testes em todas as camadas**, todos no CI:
-  - 57 testes em Python (98 % de cobertura);
-  - 83 testes de dados e testes unitários no dbt;
+  - 60 testes em Python (98 % de cobertura);
+  - 84 testes de dados e testes unitários no dbt;
   - 37 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança e "Os meus postos", e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
@@ -58,9 +58,9 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 ```mermaid
 flowchart LR
   WOB["Weekly Oil Bulletin<br/>(Comissão Europeia, .xlsx)"] --> I["combustiveis ingest"]
-  DGEG["Portal da DGEG<br/>(preço de cada posto)"] --> S["combustiveis dgeg<br/>todos os dias (dgeg.yml)"]
+  DGEG["Portal da DGEG<br/>(preço de cada posto)"] --> S["combustiveis dgeg<br/>às segundas (dgeg.yml)"]
   FRED["FRED<br/>(cotações e câmbio)"] --> M["combustiveis mercados"]
-  S --> H[("ramo dados<br/>um Parquet por dia")]
+  S --> H[("ramo dados<br/>um Parquet por semana")]
   H --> V["verificar-dgeg<br/>(vigilância)"]
   H --> L
   I --> L[("landing<br/>Parquet + manifesto")]
@@ -77,7 +77,7 @@ flowchart LR
 | **Transformação**: modelos dbt em DuckDB (staging, imposto em vigor em cada semana com `ASOF JOIN`, decomposição do preço), testes de dados e testes unitários do dbt | ✅ |
 | **Painel**: site estático com o Evidence no GitHub Pages: os postos, a divisão do preço, a evolução desde 2005 e a comparação com a Europa | ✅ |
 | **Agendamento**: o GitHub Actions corre tudo todos os dias, e falha (com email) se o boletim deixar de ser atualizado ou se as fotografias da DGEG pararem | ✅ |
-| **Postos em Portugal**: fotografia diária dos preços de cada posto (portal da DGEG), guardada no ramo `dados`; no painel, o mapa com a tabela, "Perto de mim", a poupança, o caminho no Google Maps, "Desde ontem" e as médias por grupo de marcas, marca e distrito ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md)) | ✅ |
+| **Postos em Portugal**: fotografia semanal (à segunda-feira) dos preços de cada posto (portal da DGEG), guardada no ramo `dados`; no painel, o mapa com a tabela, "Perto de mim", a poupança, o caminho no Google Maps, "Na semana" e as médias por grupo de marcas, marca e distrito ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md)) | ✅ |
 | **Previsão de segunda-feira**: a partir das cotações da gasolina e do gasóleo em Nova Iorque (FRED), comparada com o boletim e com os postos na própria segunda ([análise](docs/analises/previsao-segunda-feira.md), [ADR 0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md)) | ✅ |
 | **Postos acompanhados**: alguns postos seguidos dia a dia (seed `tracked_stations`: o Auchan da Circunvalação, no Porto, e o de Viseu), com a posição entre os concorrentes a 5 km e a média do concelho | ✅ |
 
@@ -135,7 +135,7 @@ npm run sources                                    # lê o Parquet (precisa de a
 npm run dev                                        # abre o painel no browser
 ```
 
-O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã: descarrega o boletim, junta as fotografias diárias da DGEG (workflow `dgeg.yml`, ramo `dados`), corre o dbt e publica o painel no GitHub Pages. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa.
+O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã: descarrega o boletim, junta as fotografias da DGEG (workflow `dgeg.yml`, ramo `dados`), corre o dbt e publica o painel no GitHub Pages. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa.
 
 ## Desenvolvimento
 

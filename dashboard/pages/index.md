@@ -6,7 +6,7 @@ og:
   image: https://joseferrao20.github.io/combustiveis-pt/og.png
 ---
 
-O preço de cada posto de Portugal continental, atualizado todos os dias. Carregue em **Perto de mim**, por baixo, para ver os mais baratos à sua volta, ou escolha o distrito e o concelho.
+O preço de cada posto de Portugal continental, atualizado todas as segundas-feiras. Carregue em **Perto de mim**, por baixo, para ver os mais baratos à sua volta, ou escolha o distrito e o concelho.
 
 ```sql combustiveis
 select distinct fuel, fuel_name
@@ -84,7 +84,7 @@ where target_week = (select max(target_week) from combustiveis.previsao)
 select
     snapshot_date, station_id, station_name, locality, brand, brand_segment, station_type, district, municipality,
     latitude, longitude, price, updated_at, is_current,
-    change_since_previous, last_change_date, history_7d
+    change_since_previous, previous_snapshot_date, last_change_date, recent_history
 from combustiveis.postos
 where fuel = '${inputs.combustivel.value}'
     and district like '${inputs.distrito.value}'
@@ -95,7 +95,7 @@ where fuel = '${inputs.combustivel.value}'
 select
     station_id, station_name, brand, municipality, locality, station_type,
     price, latitude, longitude, updated_at,
-    change_since_previous, last_change_date, history_7d
+    change_since_previous, previous_snapshot_date, last_change_date, recent_history
 from ${zona}
 where is_current and latitude is not null
 ```
@@ -113,7 +113,7 @@ select
 from ${zona}
 ```
 
-## Resumo do dia <Value data={resumo} column=dia fmt="dd/mm/yyyy" />
+## Resumo de <Value data={resumo} column=dia fmt="dd/mm/yyyy" />
 
 <BigValue data={resumo} value=postos title="Postos" fmt="#,##0" />
 <BigValue data={resumo} value=media title="Preço médio" fmt='0.000 "€"' />
@@ -356,6 +356,6 @@ O gráfico aparece quando houver mais dias de fotografias.
 
 {/if}
 
-A DGEG só mostra o preço em vigor: o histórico guarda-se aqui, com uma fotografia por dia desde 28/10/2026.
+A DGEG só mostra o preço em vigor: o histórico guarda-se aqui, com uma fotografia por semana, à segunda-feira (de 28/10 a 2/11/2026, uma por dia).
 
 <p class="text-sm text-base-content-muted">Fonte: Direção-Geral de Energia e Geologia, Preços dos Combustíveis Online. Preços comunicados pelos postos; a data e hora de atualização de cada preço está no mapa e nas tabelas. Última atualização recebida: <Value data={resumo} column=ultima_atualizacao fmt="dd/mm/yyyy hh:mm" /></p>
