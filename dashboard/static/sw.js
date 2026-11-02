@@ -55,7 +55,9 @@ function marked(response) {
 /** A rede primeiro; o que ficou guardado se a rede falhar ou demorar mais de 4 segundos. */
 async function networkFirst(event, key) {
 	const cache = await caches.open(CACHE);
-	const network = fetch(event.request).then((response) => {
+	// Sem a cache HTTP do browser: senão, sem rede, a resposta podia vir de lá (velha, e sem a
+	// página saber). Com rede, custa só a confirmação de que não mudou (304).
+	const network = fetch(event.request.url, { cache: 'no-cache', credentials: 'same-origin' }).then((response) => {
 		if (response.ok) {
 			const copy = response.clone();
 			event.waitUntil(cache.put(key, copy));

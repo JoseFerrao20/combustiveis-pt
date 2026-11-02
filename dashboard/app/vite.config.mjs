@@ -1,4 +1,4 @@
-// A página inicial do site, fora do Evidence (ver app/README.md). Corre depois do build do
+// A página inicial do site, fora do Evidence (ADR 0005). Corre depois do build do
 // Evidence e escreve no mesmo build/: o index.html da raiz e os ficheiros em build/inicio/.
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';

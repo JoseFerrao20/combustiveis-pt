@@ -244,9 +244,29 @@
     - Cada grupo fica no centro do seu quadrado e não na média dos postos, para os círculos nunca se sobreporem.
   - **Lição:** com a amostra do CI, o axe falhou com `target-size` (WCAG 2.5.8): dois grupos sobrepostos tapavam o alvo um do outro. Com os dados reais não acontecia. Mais uma razão para correr o axe com as duas.
 
+- **2026-11-02 (sessão cloud do Claude Code):** a página inicial fora do Evidence, e a funcionar com pouca rede (ADR 0005).
+  - **Porquê:** a página inicial descarregava cerca de 12 MB comprimidos antes de mostrar a tabela: 7,8 MB do DuckDB-WASM, 2,7 MB de JavaScript do Evidence, as fontes inteiras e a letra Inter. Para quem a abre no posto, com pouca rede, era demasiado.
+  - **Feito:**
+    - `dashboard/app/`: uma página Svelte (com o Vite e o Svelte que já vinham com o Evidence) que usa o mesmo `MapaPostos.svelte`, com o combustível, o distrito e o concelho em `<select>`, a previsão e a fonte. Fica em cerca de 200 KB (73 KB de JavaScript e CSS, e 130 KB do JSON do combustível), e a tabela aparece em 0,3 s localmente;
+    - `combustiveis site` (`site.py`, com testes): um JSON por combustível, só com os postos atualizados e com coordenadas, e um `resumo.json` com os distritos, os concelhos e o texto da previsão (o mesmo da faixa do Evidence, agora em Python);
+    - as tabelas de resumo passaram para "Resumo e estatísticas" (`pages/resumo.md`, sem o mapa). O `pages/index.md` do Evidence só serve para o "Início" das páginas do Evidence, que mudava de página sem a carregar e mostrava a página de boas-vindas do Evidence;
+    - pouca rede: `static/sw.js` guarda a página, os seus ficheiros e os JSON. Pede à rede primeiro e usa o que guardou se a rede falhar ou demorar 4 s, e a página diz que são os preços guardados. Um patch faz o Evidence registar o mesmo `sw.js`, que inclui a correção do service worker do Evidence para os Parquet no Windows, porque dois service workers no mesmo âmbito substituíam-se.
+  - **Testes:** 4 novos em Python e 7 novos no Playwright (45 ao todo):
+    - a página inicial não pede `.wasm`, `.parquet` nem `/_app/`;
+    - abre sem rede com os preços guardados;
+    - o distrito e o concelho reduzem a lista;
+    - o "Início" do Evidence leva à página inicial;
+    - o resumo abre, e o axe passa nele.
+  - **Lições:**
+    - sem servidor, o `fetch` do service worker ainda recebia 200, porque vinha da cache HTTP do browser, e a página não sabia que os preços eram antigos. Agora pede-se com `cache: 'no-cache'`;
+    - o modo offline do Playwright nem sempre chega ao service worker. A página mostra também o aviso com `navigator.onLine` falso, e o teste confirma o que ficou na cache. O teste a sério fez-se à mão, com o servidor desligado;
+    - o `expect.poll` do teste do resumo aceitava o 0 que aparece enquanto a consulta corre. Agora espera por um número entre 0 e o total.
+
 ## Plano
 
-1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.
-2. **Ver como a previsão se sai nas próximas semanas** (a primeira comparação com os postos é a 2/11); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
-3. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 dias).
-4. **Talvez:** avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.
+1. **Capturas do README com a página inicial nova** (`docs/images/painel-telemovel.png` e `painel-mapa-tabela.png`): o aspeto mudou pouco (o cabeçalho e os filtros), mas já não é o do Evidence.
+2. **Ideias para o site que ficaram por fazer:** o gráfico do preço de cada posto no balão (com umas semanas de fotografias) e partilhar um posto por link (`?posto=id`, abre o site centrado nele).
+3. **Com 4 a 6 semanas de fotografias semanais:** se as marcas passam as subidas e descidas do boletim na mesma semana, e se os postos isolados demoram mais a baixar. Nos postos acompanhados, como ficam face aos concorrentes semana a semana. Com uma fotografia por semana já não se vê o dia exato da mudança.
+4. **Ver como a previsão se sai nas próximas semanas** (a primeira comparação com os postos é a de 2/11, se a fotografia de segunda-feira entrar); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
+5. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 fotografias).
+6. **Talvez:** avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.

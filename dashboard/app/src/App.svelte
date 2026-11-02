@@ -28,6 +28,8 @@
 	let erro = '';
 	/** Os preços vieram do que ficou guardado no telemóvel (sem rede), e não da rede. */
 	let guardados = false;
+	/** O browser diz que não há rede. */
+	let semRede = typeof navigator !== 'undefined' && navigator.onLine === false;
 	const data = writable([]);
 
 	async function lerJson(nome) {
@@ -55,6 +57,9 @@
 	}
 
 	onMount(async () => {
+		const mudouARede = () => (semRede = !navigator.onLine);
+		window.addEventListener('online', mudouARede);
+		window.addEventListener('offline', mudouARede);
 		try {
 			const { conteudo, guardado } = await lerJson('resumo.json');
 			resumo = conteudo;
@@ -113,7 +118,7 @@
 		</p>
 	{/if}
 
-	{#if guardados && resumo}
+	{#if (guardados || semRede) && resumo}
 		<p class="aviso" role="status">
 			Sem rede: estes são os preços guardados neste telemóvel, da fotografia de
 			{quando(resumo.snapshot_date)}. O fundo do mapa pode não aparecer.

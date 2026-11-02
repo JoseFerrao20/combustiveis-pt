@@ -69,8 +69,11 @@ test('o resumo mostra preços e o filtro de distrito reduz a lista', async ({ pa
 	// A primeira opção a seguir a "Todos" (a lista só desenha as primeiras).
 	await page.getByRole('listbox').getByRole('option').nth(1).click();
 	await page.keyboard.press('Escape');
-	await expect.poll(() => bigNumber(page, 'Postos')).toBeLessThan(all);
-	expect(await bigNumber(page, 'Postos')).toBeGreaterThan(0);
+	// Enquanto a consulta corre, o número pode ser 0: espera-se por um entre 0 e o total.
+	await expect.poll(async () => {
+		const postos = await bigNumber(page, 'Postos');
+		return postos > 0 && postos < all;
+	}).toBe(true);
 	expect(errors).toEqual([]);
 });
 
@@ -210,6 +213,13 @@ test('a marca, as autoestradas e o combustível ficam guardados', async ({ page 
 	const mapa = page.locator('.mapa-postos[data-postos]');
 	await expect(mapa.locator('tbody tr').first()).toBeVisible();
 
+	// Outro combustível: volta a aparecer depois de recarregar, também no resumo.
+	const combustivel = page.locator('.filtros select').first();
+	await combustivel.selectOption({ index: 1 });
+	const escolhido = await combustivel.inputValue();
+	const nome = (await combustivel.locator('option:checked').innerText()).trim();
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+
 	const marca = page.locator('.filtros-postos select');
 	const primeira = await marca.locator('option').nth(1).getAttribute('value');
 	await marca.selectOption(primeira);
@@ -218,14 +228,8 @@ test('a marca, as autoestradas e o combustível ficam guardados', async ({ page 
 	const marcas = await mapa.locator('tbody td:nth-child(4)').allInnerTexts();
 	expect(marcas.every((m) => m.trim() === primeira)).toBe(true);
 
-	// O combustível escolhido volta a aparecer depois de recarregar, também no resumo.
-	const combustivel = page.locator('.filtros select').first();
-	await combustivel.selectOption({ index: 1 });
-	const escolhido = await combustivel.inputValue();
-	const nome = (await combustivel.locator('option:checked').innerText()).trim();
-	await expect(mapa.locator('tbody tr').first()).toBeVisible();
 	await page.reload();
-	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	await expect(mapa.locator('p[aria-live]')).toContainText(`só ${primeira}, sem autoestradas`);
 	await expect(combustivel).toHaveValue(escolhido);
 	await expect(marca).toHaveValue(primeira);
 	await expect(page.getByLabel('Sem postos de autoestrada')).toBeChecked();
@@ -270,6 +274,14 @@ test('sem rede, a página inicial abre com os últimos preços guardados', async
 	await page.reload();
 	await expect(linhas.first()).toBeVisible();
 	await expect(page.getByText('Sem rede')).toHaveCount(0);
+	// A página e os preços do combustível escolhido ficaram guardados no telemóvel.
+	const guardados = await page.evaluate(async () => {
+		const cache = await caches.open('combustiveis-pt-1');
+		return (await cache.keys()).map((request) => new URL(request.url).pathname);
+	});
+	expect(guardados).toEqual(
+		expect.arrayContaining(['/combustiveis-pt/', '/combustiveis-pt/dados/resumo.json', '/combustiveis-pt/dados/postos-gasolina_95.json'])
+	);
 
 	await context.setOffline(true);
 	await page.reload();
