@@ -37,6 +37,7 @@ O ADR 0001 pôs a DGEG de lado por não ter uma API documentada nem regras de us
 
 Os preços mudam sobretudo de domingo para segunda-feira, e tanto a previsão como o boletim europeu usam os preços de segunda. Por isso, desde 2/11/2026, o `dgeg.yml` tira uma fotografia por semana, à segunda-feira. As fotografias diárias de 28/10 a 2/11 ficam no ramo `dados`.
 
+- **Um pedido por semana à DGEG:** o build diário do site (`pages.yml`) deixou de ler a DGEG. Usa a última fotografia do ramo `dados`, e corre também logo a seguir ao `dgeg.yml`.
 - **O que se perde:** as mudanças a meio da semana (de 2 % a 10 % dos postos, entre fotografias diárias, na primeira semana) só se veem na segunda seguinte, juntas com as de segunda. A coluna "Desde ontem" passou a "Na semana", e o balão mostra as últimas 5 fotografias.
 - **Uma falha custa uma semana:** a 30/10, a DGEG respondeu com um erro 500 e perdeu-se esse dia. Agora, `combustiveis dgeg` tenta outra vez depois de 30 s, 2 min e 5 min (só com erros do servidor ou da rede). Se falhar na mesma, o GitHub avisa por email e corre-se outra vez à mão no mesmo dia.
 - **A vigilância** passou a falhar só quando a última fotografia tem mais de 8 dias.
