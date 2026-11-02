@@ -1,6 +1,7 @@
--- A mudança dos preços dos postos à segunda-feira, segundo as fotografias diárias da DGEG: para
--- cada segunda com fotografia, a média da mudança de cada posto entre a fotografia anterior
--- (até 3 dias antes) e a de segunda, só com os postos que têm o preço atualizado nos dois dias.
+-- A mudança dos preços dos postos à segunda-feira, segundo as fotografias da DGEG: para cada
+-- segunda com fotografia, a média da mudança de cada posto entre a fotografia anterior (até 7
+-- dias antes: a de domingo enquanto as fotografias eram diárias, a da segunda anterior desde
+-- que são semanais) e a de segunda, só com os postos que têm o preço atualizado nos dois dias.
 -- Serve para comparar a previsão logo na segunda-feira, sem esperar pelo boletim europeu.
 with
 
@@ -20,7 +21,7 @@ mondays as (
     from snapshots as monday
     inner join snapshots as previous
         on previous.snapshot_date < monday.snapshot_date
-        and previous.snapshot_date >= monday.snapshot_date - interval 3 day
+        and previous.snapshot_date >= monday.snapshot_date - interval 7 day
     where dayofweek(monday.snapshot_date) = 1
     group by all
 )

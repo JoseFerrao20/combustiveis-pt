@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import html
 import re
+import sys
+import time
+import urllib.error
 import urllib.request
+from collections.abc import Callable, Sequence
 
 PAGE_URL = "https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en"
 BASE_URL = "https://energy.ec.europa.eu"
@@ -15,6 +19,11 @@ _LINK = re.compile(r'href="([^"]*' + HISTORY_FILENAME + r'[^"]*\.xlsx)"')
 _TIMEOUT_SECONDS = 120
 # Identifica o projeto a quem recebe os pedidos (a Comissão e a DGEG).
 USER_AGENT = "combustiveis-pt (+https://github.com/JoseFerrao20/combustiveis-pt)"
+
+
+# Esperas entre tentativas quando o servidor falha (HTTP 5xx, tempo esgotado, ligação cortada).
+# A fotografia da DGEG é semanal: perder uma por um erro passageiro é perder uma semana.
+RETRY_DELAYS_SECONDS = (30, 120, 300)
 
 
 class SourceError(RuntimeError):
@@ -37,3 +46,26 @@ def fetch(url: str) -> bytes:
     with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as response:  # noqa: S310 (idem)
         data: bytes = response.read()
     return data
+
+
+def _is_transient(exc: OSError) -> bool:
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code >= 500
+    return True  # URLError, TimeoutError, ConnectionError: a rede ou o servidor falharam.
+
+
+def fetch_with_retries(
+    url: str,
+    delays: Sequence[float] = RETRY_DELAYS_SECONDS,
+    sleep: Callable[[float], None] = time.sleep,
+) -> bytes:
+    """Como ``fetch``, mas tenta outra vez depois de cada espera se o erro for passageiro."""
+    for delay in delays:
+        try:
+            return fetch(url)
+        except OSError as exc:
+            if not _is_transient(exc):
+                raise
+            print(f"aviso: {exc}; nova tentativa daqui a {delay:g} s", file=sys.stderr)
+            sleep(delay)
+    return fetch(url)

@@ -225,6 +225,16 @@
   - **Testes:** dois novos (a procura leva o mapa ao concelho e ao posto; os filtros e o combustível sobrevivem a recarregar a página). As opções dos filtros do Evidence passaram a procurar-se dentro da `listbox`, porque o `<select>` da marca também tem `option`.
   - **Lição:** `getByLabel('Marca')` também apanhou o "Ir até ÉMARCA" de um posto da amostra. Nos testes, os controlos próprios procuram-se pela classe do componente.
 
+- **2026-11-02 (sessão cloud do Claude Code):** uma fotografia da DGEG por semana.
+  - **Decisão:** a fotografia dos postos passa a ser semanal, à segunda-feira, porque os preços mudam sobretudo de domingo para segunda (ADR 0003, atualização). Na primeira semana de fotografias diárias, entre 2 % e 10 % dos postos mudaram o preço a meio da semana. Essas mudanças passam a ver-se só na segunda seguinte.
+  - **Feito:**
+    - o `dgeg.yml` corre às segundas, e o `pages.yml` deixou de ler a DGEG (usava a fotografia do momento em cada build diário): corre a seguir ao `dgeg.yml`, com a fotografia nova;
+    - `combustiveis dgeg` tenta outra vez se a DGEG falhar (erro 5xx, tempo esgotado), depois de 30 s, 2 min e 5 min, como teria evitado a falta de 30/10;
+    - a vigilância aceita fotografias até 8 dias;
+    - "Desde ontem" passou a "Na semana", com o dia da fotografia anterior no texto, e o balão mostra as últimas 5 fotografias (`history_7d` passou a `recent_history`);
+    - a comparação da previsão com os postos (`int_dgeg_monday_changes`) aceita a fotografia anterior até 7 dias antes, com um teste unitário novo para as semanais.
+  - **Lição:** o teste da linha de comandos que descarrega da DGEG simulava o `fetch`. Com a função nova, passou a fazer o pedido verdadeiro sem ninguém dar por isso, e só falhou por acaso. A simulação tem de ficar no nome que o comando usa (`fetch_with_retries`).
+
 - **2026-11-02 (sessão cloud do Claude Code):** os concorrentes dos meus postos e os pontos agrupados.
   - **Feito:**
     - Cada posto em "Os meus postos" diz a posição entre os postos a 5 km com o mesmo combustível. Por exemplo: "3.º mais barato dos 12 postos a 5 km. O mais barato é …, a 1,2 km: menos 2,0 cêntimos". Tocar no nome do concorrente leva o mapa até ele. As contas são feitas no browser, com as linhas da página, como os postos acompanhados fazem no dbt.

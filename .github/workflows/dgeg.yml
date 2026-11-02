@@ -1,11 +1,15 @@
 name: Fotografia DGEG
 
-# Todos os dias, a fotografia dos preços de cada posto em Portugal (portal da DGEG), guardada
-# no ramo `dados` (dgeg/AAAA-MM-DD.parquet). A DGEG só mostra o preço em vigor: o histórico é
-# este ramo (ADR 0003). O painel (pages.yml) lê-o mais tarde, na mesma manhã.
+# Todas as segundas-feiras, a fotografia dos preços de cada posto em Portugal (portal da DGEG),
+# guardada no ramo `dados` (dgeg/AAAA-MM-DD.parquet). Os preços mudam sobretudo à segunda, e a
+# fotografia de segunda compara-se com a previsão e com o boletim europeu (que também usa os
+# preços de segunda). Até 2/11/2026, foi uma por dia. A DGEG só mostra o preço em vigor: o
+# histórico é este ramo (ADR 0003). O painel (pages.yml) lê-o mais tarde, na mesma manhã. Se a
+# DGEG falhar, `combustiveis dgeg` tenta outra vez (até 3 vezes, em 7 minutos e meio); se falhar
+# na mesma, corre-se outra vez à mão (Actions → Fotografia DGEG → Run workflow), no mesmo dia.
 on:
   schedule:
-    - cron: "41 5 * * *"
+    - cron: "41 5 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -42,6 +46,6 @@ jobs:
           git diff --cached --quiet || git commit -m "DGEG snapshot $(ls ../snapshot)"
           git push origin HEAD:dados
       # Depois de guardar (os dados guardam-se sempre): falha, e o GitHub manda um email, se a
-      # fotografia de hoje tiver muito menos postos do que a de ontem (resposta incompleta ou
+      # fotografia de hoje tiver muito menos postos do que a anterior (resposta incompleta ou
       # portal mudado).
       - run: uv run combustiveis verificar-dgeg --pasta dados/dgeg --idade-maxima 0

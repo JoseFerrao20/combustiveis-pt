@@ -32,3 +32,12 @@ O ADR 0001 pôs a DGEG de lado por não ter uma API documentada nem regras de us
 - **A API pode mudar sem aviso.** Nesse caso, a fotografia do dia falha (com email do GitHub) e perde-se esse dia; o painel continua com o histórico que já tem.
 - **Só o continente:** os Açores e a Madeira têm preços fixados pelos governos regionais e não estão no portal.
 - **Duas fontes que se verificam uma à outra:** a média simples dos postos é comparada com o preço do boletim europeu na mesma semana (aviso acima de 5 %). Não medem o mesmo, porque o boletim pondera pelas vendas, mas não deviam andar longe. No primeiro dia, a gasolina 95 dá 2,086 € na DGEG e 2,099 € no boletim.
+
+## Atualização (2/11/2026): uma fotografia por semana
+
+Os preços mudam sobretudo de domingo para segunda-feira, e tanto a previsão como o boletim europeu usam os preços de segunda. Por isso, desde 2/11/2026, o `dgeg.yml` tira uma fotografia por semana, à segunda-feira. As fotografias diárias de 28/10 a 2/11 ficam no ramo `dados`.
+
+- **Um pedido por semana à DGEG:** o build diário do site (`pages.yml`) deixou de ler a DGEG. Usa a última fotografia do ramo `dados`, e corre também logo a seguir ao `dgeg.yml`.
+- **O que se perde:** as mudanças a meio da semana (de 2 % a 10 % dos postos, entre fotografias diárias, na primeira semana) só se veem na segunda seguinte, juntas com as de segunda. A coluna "Desde ontem" passou a "Na semana", e o balão mostra as últimas 5 fotografias.
+- **Uma falha custa uma semana:** a 30/10, a DGEG respondeu com um erro 500 e perdeu-se esse dia. Agora, `combustiveis dgeg` tenta outra vez depois de 30 s, 2 min e 5 min (só com erros do servidor ou da rede). Se falhar na mesma, o GitHub avisa por email e corre-se outra vez à mão no mesmo dia.
+- **A vigilância** passou a falhar só quando a última fotografia tem mais de 8 dias.
