@@ -16,7 +16,11 @@
 	uma aproximação da distância por estrada). O depósito e o consumo ficam no browser.
 
 	A estrela de cada posto guarda-o em "Os meus postos" (lista no topo, com o preço de hoje e a
-	mudança desde ontem). Os favoritos ficam no browser, pelo id da DGEG.
+	mudança desde ontem). Os favoritos ficam no browser, pelo id da DGEG. Cada um diz a posição
+	entre os postos a 5 km (com o mesmo combustível, na zona escolhida) e qual é o mais barato.
+
+	Com o mapa afastado (até ao zoom 11), os postos próximos juntam-se num grupo, com o número de
+	postos e a cor do preço mediano; tocar no grupo aproxima o mapa.
 
 	Por cima do mapa: procurar um concelho, uma localidade ou um posto (só nos dados da página, sem
 	enviar o que se escreve a ninguém), escolher a marca e esconder os postos de autoestrada. A
@@ -89,6 +93,43 @@
 		.map((id) => allRows.find((row) => Number(row.station_id) === id))
 		.filter(Boolean);
 	$: missingFavorites = favorites.length - favoriteRows.length;
+
+	/** O raio dos concorrentes de cada posto guardado (em linha reta, como nos postos acompanhados). */
+	const NEAR_KM = 5;
+
+	/**
+	 * Os concorrentes de um posto guardado: quantos há a 5 km com o mesmo combustível, a posição
+	 * do posto (1 é o mais barato; um empate não conta como mais barato) e o mais barato dos outros.
+	 */
+	function competition(row, list) {
+		const near = [];
+		for (const other of list) {
+			if (other.key === row.key) continue;
+			const distance = distanceKm(row, other);
+			if (distance <= NEAR_KM) near.push({ row: other, distance });
+		}
+		const cheapest = near.reduce(
+			(best, item) =>
+				!best || item.row.price < best.row.price || (item.row.price === best.row.price && item.distance < best.distance)
+					? item
+					: best,
+			null
+		);
+		return {
+			count: near.length,
+			position: near.filter((item) => item.row.price < row.price).length + 1,
+			cheapest
+		};
+	}
+
+	$: competitors = new Map(favoriteRows.map((row) => [row.key, competition(row, allRows)]));
+
+	/** "1,5 cêntimos" (sem sinal). */
+	const cents = (value) =>
+		`${(Math.round(Math.abs(value) * 1000) / 10).toLocaleString('pt-PT', {
+			minimumFractionDigits: 1,
+			maximumFractionDigits: 1
+		})} cêntimos`;
 	let tank = 50;
 	let consumption = 6.5;
 	let order = 'preco';
@@ -364,22 +405,13 @@
 
 	let fitted = null;
 
+	/** Até este zoom, os postos próximos juntam-se num grupo (o país tem mais de 3000 postos). */
+	const GROUP_UNTIL_ZOOM = 11;
+	/** O lado de cada quadrado da grelha que junta os postos, em píxeis do ecrã. */
+	const GROUP_CELL_PX = 56;
+
 	function draw(rows, signature, refit) {
 		drawn = signature;
-		layer.clearLayers();
-		markers = new Map();
-		// Os mais caros primeiro, para os mais baratos ficarem por cima quando se sobrepõem.
-		for (const row of [...rows].sort((a, b) => b.price - a.price)) {
-			const marker = L.circleMarker([row.latitude, row.longitude], {
-				radius: 5,
-				weight: 1,
-				color: '#ffffff',
-				fillColor: color(row.price),
-				fillOpacity: 0.9
-			}).bindPopup(popup(row));
-			marker.addTo(layer);
-			markers.set(row.key, marker);
-		}
 		if (refit && rows.length) {
 			fitted = dataSignature;
 			map.fitBounds(L.latLngBounds(rows.map((row) => [row.latitude, row.longitude])), {
@@ -388,7 +420,90 @@
 				animate: false
 			});
 		}
+		drawMarkers();
 		update();
+	}
+
+	/**
+	 * Os pontos do mapa. Com o mapa afastado, os postos de cada quadrado da grelha juntam-se num
+	 * círculo com o número de postos e a cor do preço mediano; tocar nele aproxima o mapa. Volta
+	 * a desenhar-se a cada zoom.
+	 */
+	function drawMarkers() {
+		layer.clearLayers();
+		markers = new Map();
+		const zoom = map.getZoom();
+		// Os mais caros primeiro, para os mais baratos ficarem por cima quando se sobrepõem.
+		const sorted = [...rows].sort((a, b) => b.price - a.price);
+		if (zoom > GROUP_UNTIL_ZOOM) {
+			sorted.forEach(addStation);
+			return;
+		}
+		const cells = new Map();
+		for (const row of sorted) {
+			const point = map.project([row.latitude, row.longitude], zoom);
+			const x = Math.floor(point.x / GROUP_CELL_PX);
+			const y = Math.floor(point.y / GROUP_CELL_PX);
+			const key = `${x}:${y}`;
+			if (!cells.has(key)) cells.set(key, { x, y, rows: [] });
+			cells.get(key).rows.push(row);
+		}
+		for (const cell of cells.values()) {
+			if (cell.rows.length === 1) addStation(cell.rows[0]);
+			else {
+				// No centro do quadrado (e não na média dos postos), para os círculos nunca se
+				// sobreporem: o maior tem 42 px, e os centros ficam a 56 px uns dos outros (WCAG 2.5.8).
+				const center = map.unproject([(cell.x + 0.5) * GROUP_CELL_PX, (cell.y + 0.5) * GROUP_CELL_PX], zoom);
+				addGroup(cell.rows, center);
+			}
+		}
+	}
+
+	function addStation(row) {
+		const marker = L.circleMarker([row.latitude, row.longitude], {
+			radius: 5,
+			weight: 1,
+			color: '#ffffff',
+			fillColor: color(row.price),
+			fillOpacity: 0.9
+		}).bindPopup(popup(row));
+		marker.addTo(layer);
+		markers.set(row.key, marker);
+	}
+
+	/** Preto ou branco, o que tiver mais contraste com a cor de fundo (WCAG). */
+	function ink(hex) {
+		const channel = (i) => {
+			const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+			return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+		};
+		const luminance = 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
+		return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? '#111827' : '#ffffff';
+	}
+
+	function addGroup(group, center) {
+		const cheapest = group[group.length - 1];
+		const size = group.length < 10 ? 28 : group.length < 100 ? 34 : 42;
+		// A cor é a do preço mediano do grupo (a do mais barato seria quase sempre verde).
+		const fill = color(group[Math.floor(group.length / 2)].price);
+		const icon = L.divIcon({
+			className: 'grupo-postos',
+			iconSize: [size, size],
+			html: `<span style="background: ${fill}; color: ${ink(fill)}">${group.length}</span>`
+		});
+		const marker = L.marker(center, { icon, keyboard: true });
+		marker.on('add', () =>
+			marker
+				.getElement()
+				?.setAttribute('aria-label', `${group.length} postos, o mais barato a ${euros(cheapest.price)}: aproximar`)
+		);
+		marker.on('click', () =>
+			map.fitBounds(L.latLngBounds(group.map((row) => [row.latitude, row.longitude])), {
+				padding: [40, 40],
+				maxZoom: GROUP_UNTIL_ZOOM + 3
+			})
+		);
+		marker.addTo(layer);
 	}
 
 	function update() {
@@ -412,7 +527,8 @@
 	}
 
 	function focus(row) {
-		map.setView([row.latitude, row.longitude], Math.max(map.getZoom(), 14));
+		// Sem animação, o mapa redesenha-se logo com os postos soltos (zoom 14), e o balão abre.
+		map.setView([row.latitude, row.longitude], Math.max(map.getZoom(), 14), { animate: false });
 		markers.get(row.key)?.openPopup();
 	}
 
@@ -423,6 +539,9 @@
 		layer = L.layerGroup().addTo(map);
 		map.setView([39.6, -8.0], 7);
 		map.on('moveend', update);
+		map.on('zoomend', () => {
+			if (drawn !== null) drawMarkers();
+		});
 		loadSettings();
 		loadFavorites();
 		loadFilters();
@@ -464,6 +583,32 @@
 								>Tirar {row.station_name} dos meus postos</span
 							></button
 						>
+						{#if competitors.get(row.key)}
+							{@const info = competitors.get(row.key)}
+							<p class="concorrentes text-sm">
+								{#if info.count === 0}
+									Nenhum outro posto a {NEAR_KM} km com este combustível.
+								{:else if info.position === 1 && info.cheapest.row.price > row.price}
+									<strong>O mais barato</strong> dos {info.count + 1} postos a {NEAR_KM} km. O seguinte custa
+									mais {cents(info.cheapest.row.price - row.price)} (<button
+										type="button"
+										class="ligacao"
+										on:click={() => focus(info.cheapest.row)}>{info.cheapest.row.station_name}</button
+									>, a {km(info.cheapest.distance)}).
+								{:else if info.position === 1}
+									<strong>Um dos mais baratos</strong> dos {info.count + 1} postos a {NEAR_KM} km: o mesmo
+									preço que <button type="button" class="ligacao" on:click={() => focus(info.cheapest.row)}
+										>{info.cheapest.row.station_name}</button
+									>, a {km(info.cheapest.distance)}.
+								{:else}
+									<strong>{info.position}.º</strong> mais barato dos {info.count + 1} postos a {NEAR_KM} km.
+									O mais barato é
+									<button type="button" class="ligacao" on:click={() => focus(info.cheapest.row)}
+										>{info.cheapest.row.station_name}</button
+									>, a {km(info.cheapest.distance)}: menos {cents(row.price - info.cheapest.row.price)}.
+								{/if}
+							</p>
+						{/if}
 					</li>
 				{/each}
 			</ul>
@@ -591,6 +736,10 @@
 			<span>Mais caro</span>
 			<span class="text-base-content-muted">
 				({euros(Math.min(...rows.map((r) => r.price)))} a {euros(Math.max(...rows.map((r) => r.price)))})
+			</span>
+			<span class="text-base-content-muted">
+				Com o mapa afastado, os postos próximos juntam-se num círculo maior: o número diz quantos
+				são, e a cor é a do preço a meio do grupo (metade é mais barata). Toque nele para aproximar.
 			</span>
 		</p>
 	{/if}
@@ -795,7 +944,8 @@
 		grid-template-columns: 1fr auto auto auto auto;
 		grid-template-areas:
 			'nome nome nome nome nome'
-			'marca preco variacao ir estrela';
+			'marca preco variacao ir estrela'
+			'concorrentes concorrentes concorrentes concorrentes concorrentes';
 		align-items: center;
 		gap: 0.25rem 0.75rem;
 		padding: 0.5rem 0;
@@ -826,6 +976,14 @@
 	}
 	.meus-postos .estrela {
 		grid-area: estrela;
+	}
+	.meus-postos .concorrentes {
+		grid-area: concorrentes;
+		margin: 0;
+	}
+	.ligacao {
+		text-decoration: underline;
+		text-align: left;
 	}
 	.estrela {
 		color: #d97706;
@@ -900,6 +1058,20 @@
 		overflow: hidden;
 		clip: rect(0, 0, 0, 0);
 		white-space: nowrap;
+	}
+	/* Os grupos de postos (divIcon do Leaflet, fora do componente). */
+	.mapa-postos :global(.grupo-postos span) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		border: 2px solid #ffffff;
+		border-radius: 999px;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+		font-size: 0.75rem;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
 	}
 	.legenda {
 		display: flex;

@@ -225,6 +225,15 @@
   - **Testes:** dois novos (a procura leva o mapa ao concelho e ao posto; os filtros e o combustível sobrevivem a recarregar a página). As opções dos filtros do Evidence passaram a procurar-se dentro da `listbox`, porque o `<select>` da marca também tem `option`.
   - **Lição:** `getByLabel('Marca')` também apanhou o "Ir até ÉMARCA" de um posto da amostra. Nos testes, os controlos próprios procuram-se pela classe do componente.
 
+- **2026-11-02 (sessão cloud do Claude Code):** os concorrentes dos meus postos e os pontos agrupados.
+  - **Feito:**
+    - Cada posto em "Os meus postos" diz a posição entre os postos a 5 km com o mesmo combustível. Por exemplo: "3.º mais barato dos 12 postos a 5 km. O mais barato é …, a 1,2 km: menos 2,0 cêntimos". Tocar no nome do concorrente leva o mapa até ele. As contas são feitas no browser, com as linhas da página, como os postos acompanhados fazem no dbt.
+    - Com o mapa afastado (até ao zoom 11), os postos de cada quadrado de 56 px juntam-se num círculo com o número de postos e a cor do preço mediano do grupo. Tocar no círculo (ou Enter, com o teclado) aproxima o mapa. Foi feito sem biblioteca nova: são umas 60 linhas no componente.
+  - **Decisões:**
+    - Os grupos usam a cor do preço mediano e não a do mais barato: com a do mais barato, eram quase todos verdes.
+    - Cada grupo fica no centro do seu quadrado e não na média dos postos, para os círculos nunca se sobreporem.
+  - **Lição:** com a amostra do CI, o axe falhou com `target-size` (WCAG 2.5.8): dois grupos sobrepostos tapavam o alvo um do outro. Com os dados reais não acontecia. Mais uma razão para correr o axe com as duas.
+
 ## Plano
 
 1. **Com 4 a 6 semanas de fotografias:** quanto tempo as marcas demoram a passar as subidas e descidas do boletim (e se sobem mais depressa do que descem), e se os postos isolados demoram mais a baixar. Nos postos acompanhados, se mudam o preço antes ou depois dos concorrentes.

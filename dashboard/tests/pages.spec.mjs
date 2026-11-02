@@ -154,12 +154,29 @@ test('a estrela guarda o posto em "Os meus postos", também depois de recarregar
 	await expect(meus.getByRole('listitem')).toHaveCount(1);
 	await expect(meus).toContainText(nome);
 	await expect(meus).toContainText(EURO);
+	// A posição entre os concorrentes a 5 km (ou que não há nenhum).
+	await expect(meus.locator('.concorrentes')).toContainText(/a 5 km/);
 
 	await page.reload();
 	await expect(meus.getByRole('listitem')).toHaveCount(1);
 	await meus.getByRole('button', { name: `Tirar ${nome} dos meus postos` }).click();
 	await expect(meus.getByRole('listitem')).toHaveCount(0);
 	await expect(meus).toContainText('Toque na estrela');
+});
+
+test('com o mapa afastado, os postos próximos juntam-se, e tocar num grupo aproxima o mapa', async ({ page }) => {
+	const errors = watchErrors(page);
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	const contagem = async () =>
+		Number((await mapa.locator('p[aria-live]').innerText()).match(/^[\d\s\u00a0]+/)[0].replace(/\D/g, ''));
+	const antes = await contagem();
+	const grupo = mapa.locator('.grupo-postos').first();
+	await expect(grupo).toHaveAttribute('aria-label', /^\d+ postos, o mais barato a \d,\d{3}/);
+	await grupo.click();
+	await expect.poll(contagem).toBeLessThan(antes);
+	expect(errors).toEqual([]);
 });
 
 test('procurar um concelho ou um posto leva o mapa até lá', async ({ page }) => {
