@@ -6,10 +6,11 @@
 <script>
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
+	import Cabecalho from '../../components/Cabecalho.svelte';
 	import MapaPostos from '../../components/MapaPostos.svelte';
+	import Rodape from '../../components/Rodape.svelte';
 
 	const BASE = import.meta.env.BASE_URL;
-	const REPOSITORY = 'https://github.com/JoseFerrao20/combustiveis-pt';
 
 	/** O resumo: o dia da fotografia, os combustíveis, os distritos e a previsão. */
 	let resumo = null;
@@ -84,8 +85,6 @@
 		)
 	);
 
-	let menuAberto = false;
-
 	/** "Segunda, 02/11: Gasolina 95 ▼ 1,4 c · Gasóleo ▼ 6,4 c" (a previsão, em cêntimos por litro). */
 	function previsaoCurta(dados) {
 		const previsao = dados.forecast_summary;
@@ -107,24 +106,7 @@
 	}
 </script>
 
-<header class="topo">
-	<a class="nome-site" href={BASE}>Combustíveis em Portugal</a>
-	<nav aria-label="Outras páginas">
-		<button
-			type="button"
-			class="menu-botao"
-			aria-expanded={menuAberto}
-			aria-controls="menu-paginas"
-			on:click={() => (menuAberto = !menuAberto)}>Menu</button
-		>
-		<ul id="menu-paginas" class:aberto={menuAberto}>
-			<li><a href="{BASE}resumo/">Resumo</a></li>
-			<li><a href="{BASE}acompanhados/">Postos acompanhados</a></li>
-			<li><a href="{BASE}analises/">Análises</a></li>
-			<li><a href={REPOSITORY}>Código no GitHub</a></li>
-		</ul>
-	</nav>
-</header>
+<Cabecalho base={BASE} atual={BASE} />
 
 <main>
 	<h1>Combustível mais barato</h1>
@@ -189,80 +171,21 @@
 		preços) no <a href="{BASE}resumo/">resumo</a>.
 	</p>
 
-	<footer class="text-sm text-base-content-muted">
-		Fonte: Direção-Geral de Energia e Geologia, Preços dos Combustíveis Online
+	<Rodape>
+		<p>
+			Fonte: Direção-Geral de Energia e Geologia, Preços dos Combustíveis Online
 		(<a href="https://precoscombustiveis.dgeg.gov.pt">precoscombustiveis.dgeg.gov.pt</a>). Preços comunicados
 		pelos postos; a data e hora de atualização de cada preço está no mapa e na tabela.
 		{#if resumo}
 			Fotografia de {quando(resumo.snapshot_date)}; última atualização recebida: {quando(resumo.updated_at, true)}.
 		{/if}
-	</footer>
+		</p>
+	</Rodape>
 </main>
 
 <style>
-	/* Uma linha: o nome do site e, no telemóvel, "Menu" (no computador, os links). */
-	.topo {
-		position: sticky;
-		top: 0;
-		z-index: 10;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 0.5rem 1rem;
-		background: var(--cabecalho);
-		border-bottom: 1px solid var(--linha);
-		backdrop-filter: blur(4px);
-	}
-	.nome-site {
-		font-weight: 700;
-		text-decoration: none;
-	}
-	nav {
-		position: relative;
-		font-size: 0.875rem;
-	}
-	nav ul {
-		display: flex;
-		gap: 1rem;
-		list-style: none;
-		padding: 0;
-	}
-	.menu-botao {
-		display: none;
-		min-height: 2.25rem;
-		padding: 0.25rem 0.75rem;
-		border: 1px solid rgba(127, 127, 127, 0.6);
-		border-radius: 0.375rem;
-		font-weight: 600;
-	}
-	@media (max-width: 640px) {
-		.menu-botao {
-			display: block;
-		}
-		nav ul {
-			display: none;
-			position: absolute;
-			right: 0;
-			top: calc(100% + 0.5rem);
-			flex-direction: column;
-			gap: 0;
-			min-width: 13rem;
-			background: var(--fundo);
-			border: 1px solid var(--linha);
-			border-radius: 0.5rem;
-			box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-		}
-		nav ul.aberto {
-			display: flex;
-		}
-		nav li a {
-			display: block;
-			padding: 0.75rem 1rem;
-		}
-	}
 	main {
-		max-width: 64rem;
+		max-width: 80rem;
 		margin: 0 auto;
 		padding: 1rem;
 	}
@@ -314,10 +237,5 @@
 		border-radius: 0.5rem;
 		font-weight: 400;
 		font-size: 1rem;
-	}
-	footer {
-		margin-top: 1.5rem;
-		padding-top: 1rem;
-		border-top: 1px solid var(--linha);
 	}
 </style>

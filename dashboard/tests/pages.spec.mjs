@@ -306,7 +306,7 @@ test('quem já usou "Perto de mim" volta a abrir a página no sítio onde está'
 	await expect(mapa.locator('p[aria-live]')).toContainText('à volta');
 	// Ordenar pela distância: o primeiro é o mais perto.
 	await page.getByRole('combobox', { name: 'Ordenar por' }).selectOption('distancia');
-	const distancias = (await mapa.locator('tbody td.num.larga').filter({ hasText: /km$/ }).allInnerTexts()).map((t) =>
+	const distancias = (await mapa.locator('tbody td.distancia').allInnerTexts()).map((t) =>
 		Number(t.replace(' km', '').replace(',', '.'))
 	);
 	expect(distancias.length).toBeGreaterThan(1);

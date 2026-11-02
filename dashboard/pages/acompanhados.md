@@ -6,7 +6,7 @@ og:
   image: https://joseferrao20.github.io/combustiveis-pt/og.png
 ---
 
-Alguns postos seguidos de perto, semana a semana: o preço, comparado com o dos concorrentes num raio de 5 km (em linha reta) e com a média do concelho. Os preços são os que cada posto comunica à Direção-Geral de Energia e Geologia ([precoscombustiveis.dgeg.gov.pt](https://precoscombustiveis.dgeg.gov.pt)).
+Alguns postos seguidos semana a semana, comparados com os concorrentes a 5 km e com a média do concelho.
 
 ```sql postos_lista
 select distinct station_id, label from combustiveis.acompanhados order by label
@@ -34,10 +34,25 @@ select
     (price - competitors_avg_price) * 100 as vs_concorrentes,
     (price - municipality_avg_price) * 100 as vs_concelho,
     printf('%dº de %d', rank_5km::integer, coalesce(competitors, 0)::integer + 1) as posicao,
+    -- Os cartões: "▼ 15,2 c" (mais barato) ou "▲ 1,0 c" (mais caro) e se está entre os mais baratos.
+    case when vs_concorrentes_raw < 0 then '▼ ' when vs_concorrentes_raw > 0 then '▲ ' else '= ' end
+        || replace(printf('%.1f', abs(vs_concorrentes_raw)), '.', ',') || ' c' as vs_concorrentes_texto,
+    case when vs_concelho_raw < 0 then '▼ ' when vs_concelho_raw > 0 then '▲ ' else '= ' end
+        || replace(printf('%.1f', abs(vs_concelho_raw)), '.', ',') || ' c' as vs_concelho_texto,
+    case when vs_concorrentes_raw < 0 then 'seta-baixo' when vs_concorrentes_raw > 0 then 'seta-cima' else '' end
+        as vs_concorrentes_classe,
+    case when vs_concelho_raw < 0 then 'seta-baixo' when vs_concelho_raw > 0 then 'seta-cima' else '' end
+        as vs_concelho_classe,
     location || ', concelho de ' || municipality || '. Preço atualizado a '
         || strftime(updated_at, '%d/%m/%Y, %H:%M') || ', na fotografia de '
         || strftime(snapshot_date, '%d/%m/%Y') || '.' as descricao
-from ${historico}
+from (
+    select
+        *,
+        (price - competitors_avg_price) * 100 as vs_concorrentes_raw,
+        (price - municipality_avg_price) * 100 as vs_concelho_raw
+    from ${historico}
+)
 order by snapshot_date desc
 limit 1
 ```
@@ -48,12 +63,14 @@ limit 1
 
 <p class="mb-4"><Value data={hoje} column=descricao /></p>
 
-<BigValue data={hoje} value=price title="Preço" fmt='0.000 "€"' />
-<BigValue data={hoje} value=posicao title="Posição entre os postos a 5 km" />
-<BigValue data={hoje} value=vs_concorrentes title="Face à média a 5 km (cêntimos)" fmt='+0.0;-0.0' />
-<BigValue data={hoje} value=vs_concelho title="Face à média do concelho (cêntimos)" fmt='+0.0;-0.0' />
+<div class="cartoes">
+<div class="cartao"><span class="cartao-titulo">Preço</span><span class="cartao-numero"><Value data={hoje} column=price fmt='0.000 "€"' /></span></div>
+<div class="cartao"><span class="cartao-titulo">Posição entre os postos a 5 km</span><span class="cartao-numero"><Value data={hoje} column=posicao /></span><span class="cartao-texto">1º é o mais barato</span></div>
+<div class="cartao"><span class="cartao-titulo">Face à média a 5 km</span><span class="cartao-numero {hoje[0].vs_concorrentes_classe}"><Value data={hoje} column=vs_concorrentes_texto /></span><span class="cartao-texto">por litro, {hoje[0].vs_concorrentes_raw < 0 ? 'mais barato' : 'mais caro'}</span></div>
+<div class="cartao"><span class="cartao-titulo">Face à média do concelho</span><span class="cartao-numero {hoje[0].vs_concelho_classe}"><Value data={hoje} column=vs_concelho_texto /></span><span class="cartao-texto">por litro, {hoje[0].vs_concelho_raw < 0 ? 'mais barato' : 'mais caro'}</span></div>
+</div>
 
-A posição conta os concorrentes a 5 km com o mesmo combustível e o preço atualizado nos últimos 30 dias; 1º é o mais barato, e um empate não conta como mais barato.
+A posição conta os concorrentes a 5 km com o mesmo combustível e o preço atualizado nos últimos 30 dias; um empate não conta como mais barato. Os preços são os que cada posto comunica à Direção-Geral de Energia e Geologia ([precoscombustiveis.dgeg.gov.pt](https://precoscombustiveis.dgeg.gov.pt)).
 
 {:else}
 
