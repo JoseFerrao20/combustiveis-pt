@@ -228,7 +228,7 @@
 - **2026-11-02 (sessão cloud do Claude Code):** uma fotografia da DGEG por semana.
   - **Decisão:** a fotografia dos postos passa a ser semanal, à segunda-feira, porque os preços mudam sobretudo de domingo para segunda (ADR 0003, atualização). Na primeira semana de fotografias diárias, entre 2 % e 10 % dos postos mudaram o preço a meio da semana. Essas mudanças passam a ver-se só na segunda seguinte.
   - **Feito:**
-    - o `dgeg.yml` corre às segundas;
+    - o `dgeg.yml` corre às segundas, e o `pages.yml` deixou de ler a DGEG (usava a fotografia do momento em cada build diário): corre a seguir ao `dgeg.yml`, com a fotografia nova;
     - `combustiveis dgeg` tenta outra vez se a DGEG falhar (erro 5xx, tempo esgotado), depois de 30 s, 2 min e 5 min, como teria evitado a falta de 30/10;
     - a vigilância aceita fotografias até 8 dias;
     - "Desde ontem" passou a "Na semana", com o dia da fotografia anterior no texto, e o balão mostra as últimas 5 fotografias (`history_7d` passou a `recent_history`);

@@ -5,7 +5,7 @@
 
 **Onde abastecer mais barato, e quanto do preço é imposto.** Um pipeline de dados que junta o preço de cada posto de combustível em Portugal (DGEG, todas as segundas-feiras), os preços semanais de toda a UE desde 2005 (Weekly Oil Bulletin da Comissão Europeia) e as cotações dos mercados internacionais (FRED), e um site estático feito para se usar no telemóvel.
 
-**Site:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado todos os dias (os preços dos postos, à segunda-feira).
+**Site:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado todos os dias (os preços dos postos, às segundas-feiras).
 
 ![No telemóvel: a página inicial com a previsão para segunda-feira e o botão "Perto de mim", e a tabela dos postos à volta, do mais barato para o mais caro, com a poupança num depósito e o botão "Ir"](docs/images/painel-telemovel.png)
 

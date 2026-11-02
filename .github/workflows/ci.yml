@@ -47,7 +47,8 @@ jobs:
           uv run combustiveis dgeg --ficheiro tests/fixtures/dgeg_sample.json --data 2026-10-28
           uv run combustiveis mercados --ficheiros tests/fixtures/fred
           uv run dbt build --project-dir transform --profiles-dir transform
-      - name: Painel (Evidence)
+          uv run combustiveis site
+      - name: Painel (Evidence e página inicial)
         working-directory: dashboard
         run: |
           npm ci
