@@ -66,7 +66,7 @@ test('os postos mostram preços e o filtro de distrito reduz a lista', async ({ 
 
 	await page.locator('button', { hasText: 'Distrito' }).first().click();
 	// A primeira opção a seguir a "Todos" (a lista só desenha as primeiras).
-	await page.getByRole('option').nth(1).click();
+	await page.getByRole('listbox').getByRole('option').nth(1).click();
 	await page.keyboard.press('Escape');
 	await expect.poll(() => bigNumber(page, 'Postos')).toBeLessThan(all);
 	expect(await bigNumber(page, 'Postos')).toBeGreaterThan(0);
@@ -162,6 +162,56 @@ test('a estrela guarda o posto em "Os meus postos", também depois de recarregar
 	await expect(meus).toContainText('Toque na estrela');
 });
 
+test('procurar um concelho ou um posto leva o mapa até lá', async ({ page }) => {
+	const errors = watchErrors(page);
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	const contagem = async () =>
+		Number((await mapa.locator('p[aria-live]').innerText()).match(/^[\d\s\u00a0]+/)[0].replace(/\D/g, ''));
+	const todos = await contagem();
+
+	// O concelho do posto mais barato, escrito sem acentos e em minúsculas.
+	const concelho = (await mapa.locator('tbody tr').first().locator('td').nth(4).innerText()).trim();
+	const procura = page.getByLabel('Procurar uma localidade ou um posto');
+	await procura.fill(concelho.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase());
+	await page.locator('.resultados button', { hasText: 'concelho' }).first().click();
+	await expect.poll(contagem).toBeLessThan(todos);
+	await expect(procura).toHaveValue('');
+
+	// Um posto pelo nome: o mapa abre o balão dele.
+	const nome = (await mapa.locator('tbody button[title="Ver no mapa"]').first().innerText()).trim();
+	await procura.fill(nome);
+	await page.locator('.resultados button', { hasText: 'posto ·' }).first().click();
+	await expect(page.locator('.leaflet-popup-content')).toContainText(EURO);
+	expect(errors).toEqual([]);
+});
+
+test('a marca, as autoestradas e o combustível ficam guardados', async ({ page }) => {
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+
+	const marca = page.locator('.filtros-postos select');
+	const primeira = await marca.locator('option').nth(1).getAttribute('value');
+	await marca.selectOption(primeira);
+	await page.getByLabel('Sem postos de autoestrada').check();
+	await expect(mapa.locator('p[aria-live]')).toContainText(`só ${primeira}, sem autoestradas`);
+	const marcas = await mapa.locator('tbody td:nth-child(4)').allInnerTexts();
+	expect(marcas.every((m) => m.trim() === primeira)).toBe(true);
+
+	// O combustível escolhido volta a aparecer depois de recarregar.
+	await page.locator('button', { hasText: 'Combustível' }).first().click();
+	await page.getByRole('listbox').getByRole('option').nth(1).click();
+	await page.keyboard.press('Escape');
+	const escolhido = (await page.locator('button', { hasText: 'Combustível' }).first().innerText()).replace(/\s+/g, ' ');
+	await page.reload();
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	await expect(page.locator('button', { hasText: 'Combustível' }).first()).toHaveText(escolhido.trim());
+	await expect(marca).toHaveValue(primeira);
+	await expect(page.getByLabel('Sem postos de autoestrada')).toBeChecked();
+});
+
 test('as páginas têm a descrição e a imagem para a partilha do link', async ({ page }) => {
 	await page.goto('');
 	await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /.+/);
@@ -177,7 +227,7 @@ test('os postos acompanhados mostram a posição e os concorrentes', async ({ pa
 	await expect(page.getByRole('cell').first()).toBeVisible();
 
 	await page.locator('button', { hasText: 'Posto' }).first().click();
-	await page.getByRole('option').nth(1).click();
+	await page.getByRole('listbox').getByRole('option').nth(1).click();
 	await page.keyboard.press('Escape');
 	await expect(page.locator('main')).toContainText(/\dº de \d+/);
 	expect(errors).toEqual([]);
