@@ -58,6 +58,16 @@ jobs:
       - run: uv run dbt build --project-dir transform --profiles-dir transform
       # Os JSON da página inicial (dashboard/app/), a partir dos Parquet do dbt.
       - run: uv run combustiveis site
+      # Os avisos de segunda-feira pelo Telegram (docs/telegram.md): só a seguir a uma fotografia
+      # semanal da DGEG bem tirada, e só com os segredos definidos (sem eles, não envia nada).
+      # Uma falha do Telegram não impede a publicação do site.
+      - name: Avisos pelo Telegram
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_SUBSCRIPTIONS: ${{ secrets.TELEGRAM_SUBSCRIPTIONS }}
+        run: uv run combustiveis telegram --enviar
       - name: Painel (Evidence e página inicial)
         working-directory: dashboard
         run: |
