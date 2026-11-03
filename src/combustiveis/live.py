@@ -96,6 +96,9 @@ def check_site(
     concelhos = _text(fetch, base + "concelho/", problems)
     if concelhos is not None and "Preços por concelho" not in concelhos:
         problems.append(f"{base}concelho/: não é a página dos concelhos")
+    abertos = _text(fetch, base + "dados-abertos/", problems)
+    if abertos is not None and "postos-historico.csv.gz" not in abertos:
+        problems.append(f"{base}dados-abertos/: sem o link para o histórico dos postos")
     sitemap = _text(fetch, base + "sitemap.xml", problems)
     if sitemap is not None and "/concelho/" not in sitemap:
         problems.append("sitemap.xml sem as páginas por concelho")

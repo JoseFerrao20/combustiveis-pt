@@ -327,6 +327,16 @@
     No `pages.yml`, o trabalho `verificar` corre-o depois do deploy, com o endereço que o deploy devolve. Os problemas vão todos numa só mensagem, para o email do GitHub dizer tudo de uma vez. Contra o site publicado, passou à primeira.
   - **Lição:** um valor por omissão com uma função (`fetch=fetch_with_retries`) fica preso à função do momento em que se define, e o `monkeypatch` do módulo já não a troca. Passou a `fetch=None`, e a função escolhe-se dentro da função.
 
+- **2026-11-03 (sessão cloud do Claude Code):** dados abertos.
+  - **Feito:** `opendata.py` escreve em `dados-abertos/`, a partir do armazém do dbt:
+    - `postos-historico.csv.gz`: todas as fotografias da DGEG (1,3 MB com 5 fotografias; cresce uns 250 KB por semana);
+    - `postos-ultima-fotografia.csv`: a última, sem comprimir;
+    - `boletim-europeu.csv.gz`: todos os países e semanas desde 2005, com a divisão do preço (2,9 MB);
+    - uma página com as colunas, as fontes, as condições (indicar a fonte e a data e hora de cada preço) e como citar.
+
+    Há links no rodapé de todas as páginas, a página entra no `sitemap.xml`, e a verificação do site publicado confirma-a.
+  - **Decisões:** os valores do boletim são arredondados a 2 casas, como o boletim os publica, e as partes a 4. As contas da divisão do preço davam 15 casas, e o ficheiro baixou de 5,3 MB para 2,9 MB. Os nomes das colunas ficam em inglês, como nos modelos do dbt; a página explica-os em português.
+
 ## Plano
 
 1. **Google:** registar o site no Google Search Console e enviar o `sitemap.xml`, para as páginas por concelho aparecerem nas pesquisas.

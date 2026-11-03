@@ -172,6 +172,7 @@ def _page(title: str, description: str, path: str, root: str, body: str) -> str:
 (<a href="https://precoscombustiveis.dgeg.gov.pt">precoscombustiveis.dgeg.gov.pt</a>); cada preço
 tem a data e a hora da última atualização. As médias usam só os preços dos últimos 30 dias.</p>
 <p><a href="{root}concelho/">Preços por concelho</a> ·
+<a href="{root}dados-abertos/">Dados abertos</a> ·
 <a href="https://github.com/JoseFerrao20/combustiveis-pt">Código no GitHub</a></p>
 </footer>
 </main>
@@ -307,7 +308,13 @@ def write_pages(stations: Path, target: Path, snapshot: date) -> int:
         ),
         "utf-8",
     )
-    paths = ["", *EVIDENCE_PAGES, "concelho/", *(f"concelho/{s}/" for s in sorted(slugs.values()))]
+    paths = [
+        "",
+        *EVIDENCE_PAGES,
+        "dados-abertos/",
+        "concelho/",
+        *(f"concelho/{s}/" for s in sorted(slugs.values())),
+    ]
     urls = "\n".join(
         f"<url><loc>{SITE_URL}{path}</loc><lastmod>{snapshot:%Y-%m-%d}</lastmod></url>"
         for path in paths
