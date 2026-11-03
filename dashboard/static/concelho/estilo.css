@@ -1,0 +1,146 @@
+/* As páginas por concelho (src/combustiveis/pages.py): as cores dos temas do site. */
+:root {
+	--fundo:#fff;
+	--texto:#2c2c2c;
+	--suave:#5f5f5f;
+	--linha:#d6d6d6;
+	--azul:#1d4ed8;
+	color-scheme:light;
+}
+:root[data-theme=dark] {
+	--fundo:#09090b;
+	--texto:#cacacb;
+	--suave:#9a9a9b;
+	--linha:#29292b;
+	--azul:#93c5fd;
+	color-scheme:dark;
+}
+* {
+	box-sizing:border-box;
+}
+body {
+	margin:0;
+	background:var(--fundo);
+	color:var(--texto);
+	font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+	line-height:1.5;
+}
+a {
+	color:var(--azul);
+}
+.cabecalho {
+	display:flex;
+	flex-wrap:wrap;
+	align-items:center;
+	justify-content:space-between;
+	gap:.5rem 1rem;
+	padding:.5rem 1rem;
+	border-bottom:1px solid var(--linha);
+}
+.marca {
+	display:flex;
+	align-items:center;
+	gap:.5rem;
+	font-weight:700;
+	color:inherit;
+	text-decoration:none;
+}
+.cabecalho nav {
+	display:flex;
+	flex-wrap:wrap;
+	gap:.25rem .9rem;
+	font-size:.9rem;
+}
+.cabecalho nav a {
+	color:inherit;
+}
+.tema {
+	width:2.25rem;
+	height:2.25rem;
+	border:1px solid var(--linha);
+	border-radius:.375rem;
+	background:none;
+	color:inherit;
+	font-size:1.1rem;
+	cursor:pointer;
+}
+main {
+	max-width:56rem;
+	margin:0 auto;
+	padding:1rem;
+}
+h1 {
+	font-size:1.5rem;
+	line-height:2rem;
+	margin:.5rem 0;
+}
+h2 {
+	font-size:1.2rem;
+	margin:2rem 0 .5rem;
+}
+.caminho,
+.suave {
+	color:var(--suave);
+	font-size:.9rem;
+}
+.botao {
+	display:inline-block;
+	margin:.5rem 0;
+	padding:.5rem 1rem;
+	border-radius:.5rem;
+	background:#2563eb;
+	color:#fff;
+	font-weight:600;
+	text-decoration:none;
+}
+table {
+	width:100%;
+	border-collapse:collapse;
+	font-size:.9rem;
+}
+th,
+td {
+	padding:.4rem .5rem;
+	border-bottom:1px solid var(--linha);
+	text-align:left;
+	vertical-align:top;
+}
+th {
+	font-weight:600;
+}
+.num {
+	text-align:right;
+	font-variant-numeric:tabular-nums;
+	white-space:nowrap;
+}
+.lista {
+	columns:16rem;
+	padding-left:1.2rem;
+}
+footer {
+	margin-top:2.5rem;
+	padding:1rem 0 2rem;
+	border-top:1px solid var(--linha);
+	font-size:.85rem;
+	color:var(--suave);
+}
+footer a {
+	color:inherit;
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+}
+/* No telemóvel: o nome e o tema numa linha, os links por baixo. */
+@media (max-width: 640px) {
+	.cabecalho nav {
+		order: 3;
+		width: 100%;
+		gap: 0.25rem 0.75rem;
+		font-size: 0.85rem;
+	}
+}

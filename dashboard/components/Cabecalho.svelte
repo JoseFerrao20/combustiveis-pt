@@ -4,10 +4,37 @@
 	ícone, o nome do site e os links; no telemóvel, os links ficam num "Menu".
 
 	`atual` é o caminho da página aberta (para marcar o link com aria-current).
+
+	O botão do tema troca o claro e o escuro: muda o data-theme do <html> e guarda a escolha em
+	`evidence-theme`, a chave do Evidence (que segue o data-theme e a guarda também), lida pela
+	página inicial (app/src/main.js) e pelas páginas por concelho. Sem escolha, segue o sistema.
 -->
 <script>
+	import { onMount } from 'svelte';
+
 	export let base = '/combustiveis-pt/';
 	export let atual = '';
+
+	let tema = 'light';
+	onMount(() => {
+		tema = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+		// O Evidence pode mudar o tema depois (o do sistema): o botão acompanha.
+		const observador = new MutationObserver(() => {
+			tema = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+		});
+		observador.observe(document.documentElement, { attributeFilter: ['data-theme'] });
+		return () => observador.disconnect();
+	});
+
+	function trocarTema() {
+		tema = tema === 'dark' ? 'light' : 'dark';
+		document.documentElement.setAttribute('data-theme', tema);
+		try {
+			localStorage.setItem('evidence-theme', tema);
+		} catch {
+			// Muda na mesma, só não fica guardado.
+		}
+	}
 
 	const REPOSITORY = 'https://github.com/JoseFerrao20/combustiveis-pt';
 	let aberto = false;
@@ -33,6 +60,14 @@
 		<img src="{base}icon.svg" alt="" width="24" height="24" />
 		<span>Combustíveis em Portugal</span>
 	</a>
+	<div class="direita">
+	<button
+		type="button"
+		class="tema-botao"
+		aria-label={tema === 'dark' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
+		title={tema === 'dark' ? 'Tema claro' : 'Tema escuro'}
+		on:click={trocarTema}><span aria-hidden="true">{tema === 'dark' ? '☀' : '☾'}</span></button
+	>
 	<nav aria-label="Páginas do site">
 		<button
 			type="button"
@@ -52,6 +87,7 @@
 			<li><a href={REPOSITORY} class="github">Código no GitHub</a></li>
 		</ul>
 	</nav>
+	</div>
 </header>
 
 <style>
@@ -80,6 +116,22 @@
 		font-weight: 700;
 		text-decoration: none;
 		color: inherit;
+	}
+	.direita {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.tema-botao {
+		width: 2.25rem;
+		height: 2.25rem;
+		border: 1px solid rgba(127, 127, 127, 0.45);
+		border-radius: 0.375rem;
+		background: none;
+		color: inherit;
+		font-size: 1.1rem;
+		line-height: 1;
+		cursor: pointer;
 	}
 	nav {
 		position: relative;

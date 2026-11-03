@@ -42,6 +42,12 @@
 	export let combustivel = undefined;
 	/** Quantos filtros da zona (distrito, concelho) a página tem escolhidos, para o "Filtros". */
 	export let zoneFilters = 0;
+	/** O id da DGEG do posto a mostrar ao abrir (de um link partilhado, `?posto=`). */
+	export let postoInicial = null;
+	/** O nome do combustível escolhido, para o texto da partilha. */
+	export let nomeCombustivel = '';
+	let postoInicialVisto = false;
+	let postoNaoEncontrado = false;
 
 	// Do mais barato para o mais caro (5 classes, pelos quintis dos preços da zona escolhida).
 	const COLORS = ['#1a9850', '#91cf60', '#fee08b', '#fc8d59', '#d73027'];
@@ -511,10 +517,35 @@
 	}
 
 	function popup(row) {
-		return `<strong>${escape(nameOf(row))}</strong><br>${escape(brandOf(row))} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.recent_history ? `<br><small>Últimas fotografias: ${escape(row.recent_history)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a>`;
+		return `<strong>${escape(nameOf(row))}</strong><br>${escape(brandOf(row))} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.recent_history ? `<br><small>Últimas fotografias: ${escape(row.recent_history)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a> · <button type="button" class="partilhar-posto" data-key="${row.key}">Partilhar</button>`;
 	}
 
 	let fitted = null;
+
+	/** O link deste posto (abre a página já nele, com o mesmo combustível). */
+	function linkDoPosto(row) {
+		const url = new URL(window.location.pathname, window.location.origin);
+		url.searchParams.set('posto', row.station_id);
+		if (combustivel) url.searchParams.set('combustivel', combustivel);
+		return url.href;
+	}
+
+	/** Partilha o link (no telemóvel, com o menu de partilha) ou copia-o. */
+	async function partilhar(row, botao) {
+		const url = linkDoPosto(row);
+		const texto = `${nameOf(row)} (${row.municipality}): ${euros(row.price)}${nomeCombustivel ? ` (${nomeCombustivel})` : ''}`;
+		try {
+			if (navigator.share) {
+				await navigator.share({ title: nameOf(row), text: texto, url });
+				return;
+			}
+			await navigator.clipboard.writeText(url);
+			if (botao) botao.textContent = 'Link copiado';
+		} catch (error) {
+			// Cancelar o menu de partilha não é um erro; sem área de transferência, mostra o link.
+			if (error?.name !== 'AbortError' && botao) botao.replaceWith(Object.assign(document.createElement('span'), { textContent: url }));
+		}
+	}
 
 	/** Até este zoom, os postos próximos juntam-se num grupo (o país tem mais de 3000 postos). */
 	const GROUP_UNTIL_ZOOM = 11;
@@ -533,6 +564,14 @@
 		}
 		drawMarkers();
 		update();
+		// Um link partilhado abre no posto (e não na localização da pessoa).
+		if (postoInicial && !postoInicialVisto && allRows.length) {
+			postoInicialVisto = true;
+			triedAutoLocate = true;
+			const row = allRows.find((r) => String(r.station_id) === String(postoInicial));
+			if (row) focus(row);
+			else postoNaoEncontrado = true;
+		}
 		if (!triedAutoLocate && rows.length) {
 			triedAutoLocate = true;
 			autoLocate();
@@ -668,6 +707,11 @@
 		layer = L.layerGroup().addTo(map);
 		map.setView([39.6, -8.0], 7);
 		map.on('moveend', update);
+		map.on('popupopen', (event) => {
+			const botao = event.popup.getElement()?.querySelector('.partilhar-posto');
+			const row = allRows.find((r) => String(r.key) === botao?.dataset.key);
+			if (botao && row) botao.addEventListener('click', () => partilhar(row, botao));
+		});
 		map.on('zoomend', () => {
 			if (drawn !== null) drawMarkers();
 		});
@@ -695,6 +739,11 @@
 		{/if}
 	</div>
 	{#if locationError}<p class="text-sm" role="alert">{locationError}</p>{/if}
+	{#if postoNaoEncontrado}
+		<p class="text-sm" role="status">
+			O posto do link não tem preço atualizado deste combustível. Experimente outro combustível.
+		</p>
+	{/if}
 	{#if here && remembersLocation}
 		<p class="text-sm text-base-content-muted lembrar">
 			A página abre já aqui da próxima vez (a localização não sai do telemóvel).
@@ -1355,6 +1404,16 @@
 		overflow: hidden;
 		clip: rect(0, 0, 0, 0);
 		white-space: nowrap;
+	}
+	/* O botão "Partilhar" do balão (HTML do Leaflet, fora do componente). */
+	.mapa-postos :global(.partilhar-posto) {
+		color: #1d4ed8;
+		text-decoration: underline;
+		background: none;
+		border: 0;
+		padding: 0;
+		font: inherit;
+		cursor: pointer;
 	}
 	/* Os grupos de postos (divIcon do Leaflet, fora do componente). */
 	.mapa-postos :global(.grupo-postos span) {
