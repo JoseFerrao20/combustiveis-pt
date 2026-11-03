@@ -29,6 +29,8 @@ def _site(**changes: bytes | None) -> dict[str, bytes | None]:
         ).encode(),
         "dados/postos-gasolina_95.json": json.dumps({"stations": [[1], [2]]}).encode(),
         "resumo/": "<h1>Resumo e estatísticas</h1>".encode(),
+        "concelho/": "<h1>Preços por concelho</h1>".encode(),
+        "sitemap.xml": b"<loc>https://exemplo.pt/combustiveis-pt/concelho/braga/</loc>",
         "sw.js": b"self.addEventListener",
         "manifest.webmanifest": b"{}",
     }
@@ -58,6 +60,8 @@ def test_all_problems_in_one_message() -> None:
             "": b"<html>Evidence</html>",
             "dados/postos-gasolina_95.json": json.dumps({"stations": [[1]]}).encode(),
             "sw.js": None,
+            "concelho/": b"<h1>Outra</h1>",
+            "sitemap.xml": b"<urlset></urlset>",
         }
     )
     with pytest.raises(SiteCheckError) as error:
@@ -66,6 +70,8 @@ def test_all_problems_in_one_message() -> None:
     assert "não é a página inicial" in message
     assert "tem 1 postos, e o resumo diz 2" in message
     assert "sw.js: HTTP Error 404" in message
+    assert "concelho/: não é a página dos concelhos" in message
+    assert "sitemap.xml sem as páginas por concelho" in message
 
 
 def test_old_snapshot_and_empty_fuel() -> None:

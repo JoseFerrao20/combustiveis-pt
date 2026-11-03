@@ -23,6 +23,10 @@
 	}
 	let distrito = '';
 	let concelho = '';
+	// Um link pode trazer o posto (partilhado), o combustível, o distrito e o concelho (as páginas
+	// por concelho abrem o mapa com `?concelho=`). Aplicam-se depois de ler o resumo.
+	const parametros = typeof window === 'undefined' ? new URLSearchParams() : new URLSearchParams(window.location.search);
+	const postoInicial = parametros.get('posto');
 	/** Todos os postos do combustível escolhido. */
 	let postos = [];
 	let aCarregar = true;
@@ -65,7 +69,17 @@
 			const { conteudo, guardado } = await lerJson('resumo.json');
 			resumo = conteudo;
 			guardados = guardado;
+			const pedido = parametros.get('combustivel');
+			if (pedido && resumo.fuels.some((fuel) => fuel.fuel === pedido)) combustivel = pedido;
 			if (!resumo.fuels.some((fuel) => fuel.fuel === combustivel)) combustivel = resumo.fuels[0].fuel;
+			const pedidoConcelho = parametros.get('concelho');
+			const pedidoDistrito =
+				parametros.get('distrito') ??
+				Object.keys(resumo.districts).find((nome) => resumo.districts[nome].includes(pedidoConcelho));
+			if (pedidoDistrito && resumo.districts[pedidoDistrito]) {
+				distrito = pedidoDistrito;
+				if (pedidoConcelho && resumo.districts[pedidoDistrito].includes(pedidoConcelho)) concelho = pedidoConcelho;
+			}
 		} catch {
 			aCarregar = false;
 			erro = 'Não foi possível carregar os preços (sem rede?). Tente outra vez daqui a pouco.';
@@ -133,7 +147,13 @@
 		<p class="text-sm text-base-content-muted" role="status">A carregar os preços…</p>
 	{/if}
 
-	<MapaPostos {data} {combustivel} zoneFilters={(distrito ? 1 : 0) + (concelho ? 1 : 0)}>
+	<MapaPostos
+		{data}
+		{combustivel}
+		{postoInicial}
+		nomeCombustivel={resumo?.fuels.find((fuel) => fuel.fuel === combustivel)?.name ?? ''}
+		zoneFilters={(distrito ? 1 : 0) + (concelho ? 1 : 0)}
+	>
 		<svelte:fragment slot="combustivel">
 			<label class="combustivel">
 				Combustível

@@ -24,6 +24,8 @@ from typing import Any
 
 import duckdb
 
+from .pages import write_pages
+
 # As colunas de cada posto, pela ordem em que saem no JSON (o nome é o que o componente usa).
 COLUMNS = (
     "station_id",
@@ -52,6 +54,7 @@ class SiteData:
     snapshot_date: date
     stations: dict[str, int]
     forecast: str | None
+    pages: int = 0
 
 
 def _json_value(value: Any) -> Any:
@@ -131,7 +134,9 @@ def _write_json(path: Path, content: Any) -> None:
     path.write_text(json.dumps(content, ensure_ascii=False, separators=(",", ":")), "utf-8")
 
 
-def export_site(stations: Path, forecast: Path, target: Path) -> SiteData:
+def export_site(
+    stations: Path, forecast: Path, target: Path, pages: Path | None = None
+) -> SiteData:
     target.mkdir(parents=True, exist_ok=True)
     db = duckdb.connect()
     snapshot_date, updated_at = db.execute(
@@ -196,4 +201,5 @@ def export_site(stations: Path, forecast: Path, target: Path) -> SiteData:
             "forecast_summary": forecast_summary(forecast_rows),
         },
     )
-    return SiteData(snapshot_date=snapshot_date, stations=counts, forecast=text)
+    written = 0 if pages is None else write_pages(stations, pages, snapshot_date)
+    return SiteData(snapshot_date=snapshot_date, stations=counts, forecast=text, pages=written)

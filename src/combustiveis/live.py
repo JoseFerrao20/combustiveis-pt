@@ -2,8 +2,9 @@
 
 Abre o site como um visitante e confirma o que tem de estar lá: a página inicial (a de
 ``dashboard/app/``), os preços em ``dados/`` com uma fotografia recente e com postos, o JSON do
-primeiro combustível com os postos que o resumo anuncia, uma página do Evidence, o service worker
-e o manifesto. Junta todos os problemas numa só mensagem, para o email do GitHub dizer tudo.
+primeiro combustível com os postos que o resumo anuncia, uma página do Evidence, o service worker,
+o manifesto, a página dos concelhos e o ``sitemap.xml``. Junta todos os problemas numa só
+mensagem, para o email do GitHub dizer tudo.
 """
 
 from __future__ import annotations
@@ -92,6 +93,12 @@ def check_site(
     page = _text(fetch, base + "resumo/", problems)
     if page is not None and "Resumo e estatísticas" not in page:
         problems.append(f"{base}resumo/: não tem o título da página")
+    concelhos = _text(fetch, base + "concelho/", problems)
+    if concelhos is not None and "Preços por concelho" not in concelhos:
+        problems.append(f"{base}concelho/: não é a página dos concelhos")
+    sitemap = _text(fetch, base + "sitemap.xml", problems)
+    if sitemap is not None and "/concelho/" not in sitemap:
+        problems.append("sitemap.xml sem as páginas por concelho")
     for path in ("sw.js", "manifest.webmanifest"):
         _text(fetch, base + path, problems)
 

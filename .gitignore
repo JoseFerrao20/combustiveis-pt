@@ -13,3 +13,5 @@ logs/
 
 # Os JSON da página inicial (combustiveis site), feitos a partir dos dados.
 /dashboard/app/public/dados/
+/dashboard/app/public/concelho/
+/dashboard/app/public/sitemap.xml
