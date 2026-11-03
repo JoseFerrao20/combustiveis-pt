@@ -12,6 +12,7 @@
 		Bulletin) e FRED (cotações). ·
 		<!-- rel="external": não é uma página do Evidence (o build do Evidence não a procura). -->
 		<a href="/combustiveis-pt/concelho/" rel="external">Preços por concelho</a> ·
+		<a href="/combustiveis-pt/dados-abertos/" rel="external">Dados abertos</a> ·
 		<a href="https://github.com/JoseFerrao20/combustiveis-pt">Código no GitHub</a>
 		{#if evidence}· <a href="https://www.evidence.dev">Feito com o Evidence</a>{/if}
 	</p>

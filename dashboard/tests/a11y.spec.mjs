@@ -12,7 +12,8 @@ const PAGES = [
 	'analises/previsao/',
 	'analises/comparacao/',
 	'analises/metodo/',
-	'concelho/'
+	'concelho/',
+	'dados-abertos/'
 ];
 
 /** As violações numa forma que se lê no relatório do teste. */

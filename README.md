@@ -21,6 +21,7 @@
 - **"Na semana":** quanto cada posto subiu ou desceu desde a segunda-feira anterior, e um gráfico com o preço das últimas fotografias (no balão e em "Os meus postos").
 - **Previsão para segunda-feira:** quanto deve mudar o preço, a partir dos mercados da semana anterior, com o erro de todas as semanas desde 2024 à vista. Na segunda de manhã, compara-se com a mudança real nos postos.
 - **Um só aspeto:** o mesmo cabeçalho e rodapé em todas as páginas, com o botão do tema claro ou escuro (a escolha fica guardada). As análises abrem a partir de cartões com o número principal, o resumo começa pelos números e pelas conclusões, e no computador o mapa e a lista ficam lado a lado.
+- **Dados abertos:** o histórico do preço de cada posto (que a DGEG não guarda) e o boletim europeu desde 2005, em CSV, com as colunas explicadas, numa página própria.
 - **Leve e com pouca rede:** a página inicial descarrega uns 200 KB (em vez de 12 MB) e abre mesmo sem rede, com os últimos preços guardados no telemóvel.
 
 ![A página inicial no computador: à esquerda, o mapa de Lisboa com os postos coloridos do mais barato ao mais caro e a posição da pessoa a azul; à direita, a lista dos postos à volta com o preço, a mudança na semana, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
@@ -54,9 +55,9 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **Uma previsão testada a sério.** Os coeficientes foram ajustados com 2012–2023, e o site mostra o erro em todas as semanas desde 2024, que o ajuste não viu: 1,1 a 1,3 cêntimos, contra 1,7 a 2,7 a dizer "fica igual".
 - **Um site sem servidor**, no GitHub Pages. A página inicial é Svelte, com um JSON pequeno por combustível e um service worker para quando não há rede ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md)): uns 200 KB, contra os 12 MB que o Evidence descarregava, porque precisa do DuckDB-WASM. As análises continuam no Evidence. O mapa é um componente próprio com o Leaflet, partilhado pelas duas, porque o do Evidence não diz à página que zona está à vista. A interface do Evidence foi traduzida com patches.
 - **Testes em todas as camadas**, todos no CI:
-  - 76 testes em Python (98 % de cobertura);
+  - 78 testes em Python (98 % de cobertura);
   - 84 testes de dados e testes unitários no dbt;
-  - 57 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, o tema, o gráfico de cada posto, um limite de peso da página inicial, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 61 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, os dados abertos, o tema, o gráfico de cada posto, um limite de peso da página inicial, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 
@@ -114,7 +115,7 @@ uv run combustiveis dgeg                           # fotografia de hoje dos post
 uv run combustiveis verificar-dgeg                 # o histórico da DGEG está em dia?
 uv run combustiveis mercados                       # cotações e câmbio do FRED, para a previsão
 uv run combustiveis verificar-site --url https://joseferrao20.github.io/combustiveis-pt/   # o site publicado está em ordem?
-uv run combustiveis site                           # depois do dbt: os JSON da página inicial e as páginas por concelho
+uv run combustiveis site                           # depois do dbt: os JSON da página inicial, as páginas por concelho e os dados abertos
 ```
 
 A camada landing fica em `data/landing/`: `prices.parquet` (semana, país, produto, com ou sem impostos, valor por 1000 L), `taxes.parquet` (IVA, ISP e outros impostos, com a data de entrada em vigor) e `manifest.json`.
