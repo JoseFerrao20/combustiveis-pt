@@ -93,6 +93,13 @@ def check_site(
     page = _text(fetch, base + "resumo/", problems)
     if page is not None and "Resumo e estatísticas" not in page:
         problems.append(f"{base}resumo/: não tem o título da página")
+    tracked = _text(fetch, base + "dados/acompanhados.json", problems)
+    if tracked is not None:
+        try:
+            if not json.loads(tracked)["history"]:
+                problems.append("dados/acompanhados.json sem postos acompanhados")
+        except (ValueError, KeyError, TypeError) as exc:
+            problems.append(f"dados/acompanhados.json inválido: {exc}")
     concelhos = _text(fetch, base + "concelho/", problems)
     if concelhos is not None and "Preços por concelho" not in concelhos:
         problems.append(f"{base}concelho/: não é a página dos concelhos")

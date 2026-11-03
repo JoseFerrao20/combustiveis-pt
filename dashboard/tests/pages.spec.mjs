@@ -34,14 +34,6 @@ function watchErrors(page) {
 	return errors;
 }
 
-/** O valor de um BigValue ("Postos 3 137") como número. */
-async function bigNumber(page, title) {
-	const text = await page.locator('main').innerText();
-	const match = text.match(new RegExp(`${title}\\s*\\n\\s*([\\d\\s\\u00a0]+)`));
-	expect(match, `não encontrei o número de "${title}"`).not.toBeNull();
-	return Number(match[1].replace(/\D/g, ''));
-}
-
 for (const [path, title] of PAGES) {
 	test(`a página ${path || 'inicial'} abre sem erros`, async ({ page }) => {
 		const errors = watchErrors(page);
@@ -67,21 +59,32 @@ test('a comparação tem Portugal na tabela dos países', async ({ page }) => {
 test('o resumo mostra preços e o filtro de distrito reduz a lista', async ({ page }) => {
 	const errors = watchErrors(page);
 	await page.goto('resumo/');
-	await page.waitForLoadState('networkidle');
-	const all = await bigNumber(page, 'Postos');
+	const postos = page.locator('.cartao', { hasText: 'Postos' }).locator('.cartao-numero');
+	await expect(postos).toBeVisible();
+	const contar = async () => Number((await postos.innerText()).replace(/\D/g, ''));
+	const all = await contar();
 	expect(all).toBeGreaterThan(0);
 	await expect(page.locator('main')).toContainText(EURO);
 
-	await page.locator('button', { hasText: 'Distrito' }).first().click();
-	// A primeira opção a seguir a "Todos" (a lista só desenha as primeiras).
-	await page.getByRole('listbox').getByRole('option').nth(1).click();
-	await page.keyboard.press('Escape');
-	// Enquanto a consulta corre, o número pode ser 0: espera-se por um entre 0 e o total.
+	await page.getByRole('combobox', { name: 'Distrito' }).selectOption({ index: 1 });
 	await expect.poll(async () => {
-		const postos = await bigNumber(page, 'Postos');
-		return postos > 0 && postos < all;
+		const n = await contar();
+		return n > 0 && n < all;
 	}).toBe(true);
+	// O concelho só mostra os do distrito escolhido.
+	await page.getByRole('combobox', { name: 'Concelho' }).selectOption({ index: 1 });
+	await expect.poll(contar).toBeGreaterThan(0);
 	expect(errors).toEqual([]);
+});
+
+test('o resumo e os postos acompanhados não descarregam o Evidence nem o DuckDB', async ({ page }) => {
+	const pedidos = [];
+	page.on('request', (request) => pedidos.push(request.url()));
+	await page.goto('resumo/');
+	await expect(page.locator('.cartao').first()).toBeVisible();
+	await page.goto('acompanhados/');
+	await expect(page.locator('main')).toContainText(/\dº de \d+/);
+	expect(pedidos.filter((url) => /\.wasm|\.parquet|\/_app\//.test(url))).toEqual([]);
 });
 
 test('a tabela por baixo do mapa vai do mais barato para o mais caro e segue o mapa', async ({ page }) => {
@@ -250,7 +253,7 @@ test('a marca, as autoestradas e o combustível ficam guardados', async ({ page 
 	await expect(marca).toHaveValue(primeira);
 	await expect(page.getByLabel('Sem postos de autoestrada')).toBeChecked();
 	await page.goto('resumo/');
-	await expect(page.locator('button', { hasText: 'Combustível' }).first()).toContainText(nome);
+	await expect(page.getByRole('combobox', { name: 'Combustível' }).locator('option:checked')).toHaveText(nome);
 });
 
 test('na página inicial, o distrito e o concelho reduzem a lista', async ({ page }) => {
@@ -419,8 +422,8 @@ test('sem rede, a página inicial abre com os últimos preços guardados', async
 });
 
 test('o "Início" das páginas do Evidence leva à página inicial', async ({ page }) => {
-	await page.goto('resumo/');
-	await expect(page.getByRole('heading', { level: 1, name: 'Resumo e estatísticas' })).toBeVisible();
+	await page.goto('analises/');
+	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 	await page.getByRole('link', { name: 'Combustíveis em Portugal' }).first().click();
 	await expect(page.locator('.mapa-postos[data-postos] tbody tr').first()).toBeVisible();
 	await expect(page.locator('#app')).toBeAttached();
@@ -435,15 +438,17 @@ test('as páginas têm a descrição e a imagem para a partilha do link', async 
 test('os postos acompanhados mostram a posição e os concorrentes', async ({ page }) => {
 	const errors = watchErrors(page);
 	await page.goto('acompanhados/');
-	await page.waitForLoadState('networkidle');
 	await expect(page.locator('main')).toContainText(EURO);
 	await expect(page.locator('main')).toContainText(/\dº de \d+/);
 	await expect(page.getByRole('cell').first()).toBeVisible();
 
-	await page.locator('button', { hasText: 'Posto' }).first().click();
-	await page.getByRole('listbox').getByRole('option').nth(1).click();
-	await page.keyboard.press('Escape');
+	const posto = page.getByRole('combobox', { name: 'Posto' });
+	const titulo = page.locator('main h2').first();
+	const antes = await titulo.innerText();
+	await posto.selectOption({ index: 1 });
+	await expect(titulo).not.toHaveText(antes);
 	await expect(page.locator('main')).toContainText(/\dº de \d+/);
+	await expect(page.locator('.mapa-acompanhados .leaflet-interactive').first()).toBeAttached();
 	expect(errors).toEqual([]);
 });
 
@@ -458,6 +463,8 @@ test('a interface está em português', async ({ page }) => {
 	await page.goto('');
 	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
 	await page.goto('resumo/');
+	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
+	await page.goto('analises/');
 	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
 	await expect(page.getByText('Feito com o Evidence')).toBeAttached();
 	await expect(page.getByText('Built with Evidence')).toHaveCount(0);

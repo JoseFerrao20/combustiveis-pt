@@ -52,11 +52,11 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **SQL a fazer o trabalho pesado** (dbt com DuckDB): o imposto em vigor em cada semana com `ASOF JOIN`; os concorrentes a 2 e 5 km de cada posto com a fórmula de haversine, sem extensões; as mudanças diárias de cada posto com funções de janela.
 - **Erros da fonte investigados, não escondidos.** Quando as tabelas de impostos do boletim não explicam o preço, a diferença fica numa coluna. Os períodos já explicados ficam num seed, com a razão, e a análise está em [`docs/analises/`](docs/analises/) (Portugal, Lituânia, Países Baixos, Eslováquia e Espanha). Um aviso do dbt apanha qualquer caso novo.
 - **Uma previsão testada a sério.** Os coeficientes foram ajustados com 2012–2023, e o site mostra o erro em todas as semanas desde 2024, que o ajuste não viu: 1,1 a 1,3 cêntimos, contra 1,7 a 2,7 a dizer "fica igual".
-- **Um site sem servidor**, no GitHub Pages. A página inicial é Svelte, com um JSON pequeno por combustível e um service worker para quando não há rede ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md)): uns 200 KB, contra os 12 MB que o Evidence descarregava, porque precisa do DuckDB-WASM. As análises continuam no Evidence. O mapa é um componente próprio com o Leaflet, partilhado pelas duas, porque o do Evidence não diz à página que zona está à vista. A interface do Evidence foi traduzida com patches.
+- **Um site sem servidor**, no GitHub Pages. A página inicial é Svelte, com um JSON pequeno por combustível e um service worker para quando não há rede ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md)): uns 200 KB, contra os 12 MB que o Evidence descarregava, porque precisa do DuckDB-WASM. O resumo e os postos acompanhados seguiram o mesmo caminho, com gráficos em SVG simples ([ADR 0006](docs/adr/0006-resumo-e-acompanhados-fora-do-evidence.md)); só as análises continuam no Evidence. O mapa é um componente próprio com o Leaflet, partilhado pelas duas, porque o do Evidence não diz à página que zona está à vista. A interface do Evidence foi traduzida com patches.
 - **Testes em todas as camadas**, todos no CI:
-  - 76 testes em Python (98 % de cobertura);
+  - 78 testes em Python (99 % de cobertura);
   - 84 testes de dados e testes unitários no dbt;
-  - 55 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, o tema, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 56 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, o tema, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 
@@ -74,9 +74,9 @@ flowchart LR
   M --> L
   L --> D["dbt + DuckDB<br/>staging · marts · testes"]
   D --> R[("Parquet para o painel")]
-  R --> E["Evidence + DuckDB-WASM<br/>resumo e análises"]
+  R --> E["Evidence + DuckDB-WASM<br/>análises"]
   R --> J["combustiveis site<br/>JSON por combustível"]
-  J --> A["Página inicial<br/>Svelte + service worker"]
+  J --> A["Página inicial, resumo e acompanhados<br/>Svelte + service worker"]
   E --> P["GitHub Pages<br/>(pages.yml, todos os dias)"]
   A --> P
 ```
@@ -97,7 +97,8 @@ flowchart LR
 - [0002](docs/adr/0002-painel-evidence.md): o painel com o Evidence;
 - [0003](docs/adr/0003-precos-dos-postos-dgeg.md): os preços de cada posto, em fotografias da DGEG (semanais, desde 2/11/2026);
 - [0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md): a previsão de segunda-feira com as cotações do FRED;
-- [0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md): a página inicial fora do Evidence, e a funcionar com pouca rede.
+- [0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md): a página inicial fora do Evidence, e a funcionar com pouca rede;
+- [0006](docs/adr/0006-resumo-e-acompanhados-fora-do-evidence.md): o resumo e os postos acompanhados também fora do Evidence.
 
 O histórico de cada sessão de trabalho, com as decisões e as lições, está no [`DEVLOG.md`](DEVLOG.md).
 

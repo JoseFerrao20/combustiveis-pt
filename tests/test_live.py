@@ -29,6 +29,7 @@ def _site(**changes: bytes | None) -> dict[str, bytes | None]:
         ).encode(),
         "dados/postos-gasolina_95.json": json.dumps({"stations": [[1], [2]]}).encode(),
         "resumo/": "<h1>Resumo e estatísticas</h1>".encode(),
+        "dados/acompanhados.json": b'{"history": [{"station_id": 1}], "competitors": []}',
         "concelho/": "<h1>Preços por concelho</h1>".encode(),
         "sitemap.xml": b"<loc>https://exemplo.pt/combustiveis-pt/concelho/braga/</loc>",
         "sw.js": b"self.addEventListener",
@@ -62,6 +63,7 @@ def test_all_problems_in_one_message() -> None:
             "sw.js": None,
             "concelho/": b"<h1>Outra</h1>",
             "sitemap.xml": b"<urlset></urlset>",
+            "dados/acompanhados.json": b'{"history": [], "competitors": []}',
         }
     )
     with pytest.raises(SiteCheckError) as error:
@@ -72,6 +74,7 @@ def test_all_problems_in_one_message() -> None:
     assert "sw.js: HTTP Error 404" in message
     assert "concelho/: não é a página dos concelhos" in message
     assert "sitemap.xml sem as páginas por concelho" in message
+    assert "dados/acompanhados.json sem postos acompanhados" in message
 
 
 def test_old_snapshot_and_empty_fuel() -> None:
@@ -93,12 +96,14 @@ def test_broken_json() -> None:
         **{
             "dados/resumo.json": b"{",
             "resumo/": b"<h1>Outra coisa</h1>",
+            "dados/acompanhados.json": b"{",
         }
     )
     with pytest.raises(SiteCheckError) as error:
         check_site(BASE, 8, TODAY, _fetch(files))
     assert "dados/resumo.json inválido" in str(error.value)
     assert "resumo/: não tem o título" in str(error.value)
+    assert "dados/acompanhados.json inválido" in str(error.value)
 
 
 def test_no_fuels_and_broken_fuel_file() -> None:

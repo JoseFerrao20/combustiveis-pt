@@ -327,6 +327,15 @@
     No `pages.yml`, o trabalho `verificar` corre-o depois do deploy, com o endereço que o deploy devolve. Os problemas vão todos numa só mensagem, para o email do GitHub dizer tudo de uma vez. Contra o site publicado, passou à primeira.
   - **Lição:** um valor por omissão com uma função (`fetch=fetch_with_retries`) fica preso à função do momento em que se define, e o `monkeypatch` do módulo já não a troca. Passou a `fetch=None`, e a função escolhe-se dentro da função.
 
+- **2026-11-03 (sessão cloud do Claude Code):** o resumo e os postos acompanhados fora do Evidence.
+  - **Feito:**
+    - **Resumo** (`app/resumo/`): os mesmos filtros (combustível, distrito, concelho) em `<select>` nativos, os cartões, a conclusão, as barras por grupo de marcas, as tabelas por tipo, marca, concelho (com o link para a página de cada um) e distrito, os 10 mais caros, a concorrência e o gráfico da evolução. As médias calculam-se no browser, a partir do JSON do combustível que a página inicial já usa.
+    - **Postos acompanhados** (`app/acompanhados/`): os cartões, o gráfico com o posto, o mais barato e a média a 5 km e a média do concelho, a tabela de cada fotografia, o mapa e a tabela dos concorrentes.
+    - **`combustiveis site`** escreve também `dados/evolucao.json` e `dados/acompanhados.json`. O `verificar-site` confirma o segundo.
+    - Saem do Evidence as duas páginas e três fontes. As duas páginas deixam de descarregar o DuckDB (um teste confirma-o).
+  - **Decisões:** ADR 0006. O Evidence fica só com as análises, que usam a sério as consultas e os gráficos dele. Os gráficos novos são SVG sem bibliotecas, com os valores numa tabela para os leitores de ecrã.
+  - **Lição:** com o Evidence, uma mudança de página não recarrega; fora dele, sim. Por isso, os links do cabeçalho para as páginas leves levam `rel="external"`, para o router do Evidence não as tentar abrir nem as seguir no build.
+
 ## Plano
 
 1. **Google:** registar o site no Google Search Console e enviar o `sitemap.xml`, para as páginas por concelho aparecerem nas pesquisas.
