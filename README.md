@@ -18,7 +18,7 @@
 - **Partilhar um posto:** "Partilhar", no balão de cada posto, manda um link (pelo menu de partilha do telemóvel, ou copiado) que abre o site já nesse posto e com o mesmo combustível.
 - **Uma página por concelho** (`/concelho/braga/`, …): os 10 postos mais baratos de cada combustível, com a data e a hora de cada preço e as médias do concelho, do distrito e do país, e um botão que abre o mapa no concelho. São páginas estáticas, com um `sitemap.xml`, para quem procura no Google.
 - **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço, a mudança na semana e o "Ir". Cada um diz a posição entre os postos a 5 km e qual é o mais barato à volta. A lista fica só no telemóvel.
-- **"Na semana":** quanto cada posto subiu ou desceu desde a segunda-feira anterior, e os preços das últimas semanas.
+- **"Na semana":** quanto cada posto subiu ou desceu desde a segunda-feira anterior, e um gráfico com o preço das últimas fotografias (no balão e em "Os meus postos").
 - **Previsão para segunda-feira:** quanto deve mudar o preço, a partir dos mercados da semana anterior, com o erro de todas as semanas desde 2024 à vista. Na segunda de manhã, compara-se com a mudança real nos postos.
 - **Um só aspeto:** o mesmo cabeçalho e rodapé em todas as páginas, com o botão do tema claro ou escuro (a escolha fica guardada). As análises abrem a partir de cartões com o número principal, o resumo começa pelos números e pelas conclusões, e no computador o mapa e a lista ficam lado a lado.
 - **Leve e com pouca rede:** a página inicial descarrega uns 200 KB (em vez de 12 MB) e abre mesmo sem rede, com os últimos preços guardados no telemóvel.
@@ -56,7 +56,7 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **Testes em todas as camadas**, todos no CI:
   - 76 testes em Python (98 % de cobertura);
   - 84 testes de dados e testes unitários no dbt;
-  - 55 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, o tema, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 57 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, o tema, o gráfico de cada posto, um limite de peso da página inicial, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 

@@ -327,10 +327,15 @@
     No `pages.yml`, o trabalho `verificar` corre-o depois do deploy, com o endereço que o deploy devolve. Os problemas vão todos numa só mensagem, para o email do GitHub dizer tudo de uma vez. Contra o site publicado, passou à primeira.
   - **Lição:** um valor por omissão com uma função (`fetch=fetch_with_retries`) fica preso à função do momento em que se define, e o `monkeypatch` do módulo já não a troca. Passou a `fetch=None`, e a função escolhe-se dentro da função.
 
+- **2026-11-03 (sessão cloud do Claude Code):** gráfico do preço de cada posto e limite de peso.
+  - **Feito:**
+    - Um gráfico pequeno (SVG) com o preço nas últimas fotografias, no balão de cada posto e em "Os meus postos", com o mínimo e o máximo por baixo. Lê o `recent_history`, que já vinha nos JSON, por isso não acrescenta nada aos dados. O nome do gráfico, para os leitores de ecrã, diz todos os preços.
+    - Um teste com o limite de peso da página inicial: hoje são uns 255 KB de código e 760 KB de dados do combustível, sem comprimir, e o teste falha acima de 320 KB e de 1,2 MB.
+  - **Nota:** as fotografias foram diárias até 2/11 e passam a semanais, mas o gráfico põe os pontos à mesma distância. Com umas semanas de fotografias semanais, isso deixa de se notar.
+
 ## Plano
 
 1. **Google:** registar o site no Google Search Console e enviar o `sitemap.xml`, para as páginas por concelho aparecerem nas pesquisas.
-2. **Ideias para o site que ficaram por fazer:** o gráfico do preço de cada posto no balão (com umas semanas de fotografias).
 3. **Com 4 a 6 semanas de fotografias semanais:** se as marcas passam as subidas e descidas do boletim na mesma semana, e se os postos isolados demoram mais a baixar. Nos postos acompanhados, como ficam face aos concorrentes semana a semana. Com uma fotografia por semana já não se vê o dia exato da mudança.
 4. **Ver como a previsão se sai nas próximas semanas** (a primeira comparação com os postos é a de 2/11, se a fotografia de segunda-feira entrar); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
 5. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 fotografias).

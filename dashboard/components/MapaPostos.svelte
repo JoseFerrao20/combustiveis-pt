@@ -516,8 +516,42 @@
 		return String(text ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 	}
 
+	/** As últimas fotografias do posto (`recent_history`), da mais antiga para a mais recente. */
+	function historyPoints(row) {
+		if (!row.recent_history) return [];
+		return row.recent_history
+			.split(' · ')
+			.map((parte) => {
+				const [dia, preco] = parte.split(': ');
+				return { dia, preco: Number(String(preco).replace(',', '.')) };
+			})
+			.filter((ponto) => ponto.dia && Number.isFinite(ponto.preco))
+			.reverse();
+	}
+
+	/**
+	 * Um gráfico pequeno (SVG) do preço nas últimas fotografias, com o mínimo e o máximo por
+	 * baixo; vazio com menos de duas fotografias. O nome (aria-label) diz todos os preços.
+	 */
+	function sparkline(row, largura = 150, altura = 34) {
+		const pontos = historyPoints(row);
+		if (pontos.length < 2) return '';
+		const precos = pontos.map((p) => p.preco);
+		const min = Math.min(...precos);
+		const max = Math.max(...precos);
+		const margem = 4;
+		const x = (i) => margem + (i * (largura - 2 * margem)) / (pontos.length - 1);
+		const y = (v) => altura - margem - ((v - min) / (max - min || 1)) * (altura - 2 * margem);
+		const linha = pontos.map((p, i) => `${x(i).toFixed(1)},${y(p.preco).toFixed(1)}`).join(' ');
+		const circulos = pontos
+			.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.preco).toFixed(1)}" r="2.5" fill="#2563eb"/>`)
+			.join('');
+		const rotulo = `Preço nas últimas fotografias: ${pontos.map((p) => `${p.dia}, ${euros(p.preco)}`).join('; ')}`;
+		return `<span class="grafico-posto"><svg width="${largura}" height="${altura}" viewBox="0 0 ${largura} ${altura}" role="img" aria-label="${escape(rotulo)}"><polyline points="${linha}" fill="none" stroke="#2563eb" stroke-width="2"/>${circulos}</svg><small>${escape(pontos[0].dia)} a ${escape(pontos[pontos.length - 1].dia)}: de ${euros(min)} a ${euros(max)}</small></span>`;
+	}
+
 	function popup(row) {
-		return `<strong>${escape(nameOf(row))}</strong><br>${escape(brandOf(row))} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${row.recent_history ? `<br><small>Últimas fotografias: ${escape(row.recent_history)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a> · <button type="button" class="partilhar-posto" data-key="${row.key}">Partilhar</button>`;
+		return `<strong>${escape(nameOf(row))}</strong><br>${escape(brandOf(row))} · ${escape(row.municipality)}<br>${euros(row.price)}${change(row) && change(row) !== '=' ? ` (${changeLabel(row)})` : ''}<br><small>Atualizado: ${when(row.updated_at)}</small>${sparkline(row) ? `<br>${sparkline(row)}` : ''}${row.recent_history ? `<br><small>Últimas fotografias: ${escape(row.recent_history)}</small>` : ''}${dateOrNull(row.last_change_date) ? `<br><small>Última mudança de preço: ${day(dateOrNull(row.last_change_date))}</small>` : ''}<br><a href="${directions(row)}" target="_blank" rel="noopener">Ir até lá (Google Maps)</a> · <button type="button" class="partilhar-posto" data-key="${row.key}">Partilhar</button>`;
 	}
 
 	let fitted = null;
@@ -860,6 +894,9 @@
 								>Tirar {nameOf(row)} dos meus postos</span
 							></button
 						>
+						{#if sparkline(row)}
+							<div class="grafico-favorito">{@html sparkline(row, 180, 34)}</div>
+						{/if}
 						{#if competitors.get(row.key)}
 							{@const info = competitors.get(row.key)}
 							<p class="concorrentes text-sm">
@@ -1256,6 +1293,7 @@
 		grid-template-areas:
 			'nome nome nome nome nome'
 			'marca preco variacao ir estrela'
+			'grafico grafico grafico grafico grafico'
 			'concorrentes concorrentes concorrentes concorrentes concorrentes';
 		align-items: center;
 		gap: 0.25rem 0.75rem;
@@ -1287,6 +1325,16 @@
 	}
 	.meus-postos .estrela {
 		grid-area: estrela;
+	}
+	.meus-postos .grafico-favorito {
+		grid-area: grafico;
+	}
+	/* O gráfico do preço (no balão e nos meus postos; HTML feito em sparkline). */
+	.mapa-postos :global(.grafico-posto) {
+		display: inline-flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		margin: 0.25rem 0;
 	}
 	.meus-postos .concorrentes {
 		grid-area: concorrentes;
