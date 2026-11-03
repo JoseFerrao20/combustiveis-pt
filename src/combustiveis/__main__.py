@@ -16,6 +16,9 @@ agendamento usa-o para dar conta de uma recolha parada ou de uma resposta incomp
 e do câmbio do euro (FRED), em ``data/landing/mercados.parquet``, para a previsão de
 segunda-feira. ``--ficheiros PASTA`` usa CSV já descarregados (um por série, ``<código>.csv``).
 
+``combustiveis verificar-site --url URL``: confirma que o site publicado tem a página inicial, os
+preços de uma fotografia recente e as outras páginas (o ``pages.yml`` corre-o depois do deploy).
+
 ``combustiveis site``: os JSON da página inicial do site (``dashboard/app/public/dados/``), a
 partir dos Parquet que o dbt exporta (corre-se depois do dbt).
 """
@@ -32,6 +35,7 @@ import duckdb
 from .check import SnapshotError, check_snapshots
 from .dgeg import DgegFormatError, read_prices, search_url
 from .landing import write_landing, write_markets, write_station_snapshot
+from .live import SiteCheckError, check_site
 from .markets import SERIES, MarketFormatError, MarketValue, read_series, series_url
 from .parse import FormatError, read_bulletin
 from .site import export_site
@@ -111,6 +115,13 @@ def site(stations: Path, forecast: Path, target: Path) -> int:
     return 0
 
 
+def verify_site(url: str, max_age_days: int, today: date | None = None) -> int:
+    result = check_site(url, max_age_days, today or date.today())
+    counts = ", ".join(f"{fuel}: {count}" for fuel, count in result.stations.items())
+    print(f"Site publicado em ordem: fotografia de {result.snapshot_date} ({counts})")
+    return 0
+
+
 def verify_snapshots(directory: Path, max_age_days: int, today: date | None = None) -> int:
     result = check_snapshots(directory, max_age_days, today or date.today())
     message = f"Última fotografia da DGEG: {result.latest}, com {result.stations} postos"
@@ -157,6 +168,18 @@ def main(argv: list[str] | None = None) -> int:
         help="usar os CSV desta pasta (<código>.csv) em vez de descarregar",
     )
     command.add_argument("--destino", type=Path, default=DEFAULT_MARKETS)
+    command = commands.add_parser(
+        "verificar-site", help="confirma que o site publicado está como devia (depois do deploy)"
+    )
+    command.add_argument("--url", required=True, help="o endereço do site publicado")
+    command.add_argument(
+        "--idade-maxima",
+        type=int,
+        default=8,
+        metavar="DIAS",
+        help="falhar se a fotografia da DGEG no site tiver mais de DIAS dias (por omissão, 8)",
+    )
+    command.add_argument("--hoje", type=date.fromisoformat, help=argparse.SUPPRESS)
     command = commands.add_parser("site", help="os JSON da página inicial do site (depois do dbt)")
     command.add_argument("--postos", type=Path, default=Path("data/stations_latest.parquet"))
     command.add_argument("--previsao", type=Path, default=Path("data/price_forecast.parquet"))
@@ -167,6 +190,8 @@ def main(argv: list[str] | None = None) -> int:
             return snapshot(args.ficheiro, args.destino, args.data)
         if args.command == "mercados":
             return markets(args.ficheiros, args.destino)
+        if args.command == "verificar-site":
+            return verify_site(args.url, args.idade_maxima, args.hoje)
         if args.command == "site":
             return site(args.postos, args.previsao, args.destino)
         if args.command == "verificar-dgeg":
@@ -181,6 +206,7 @@ def main(argv: list[str] | None = None) -> int:
         MarketFormatError,
         OSError,
         duckdb.IOException,
+        SiteCheckError,
     ) as exc:
         print(f"erro: {exc}", file=sys.stderr)
         return 1

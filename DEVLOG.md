@@ -304,6 +304,16 @@
     - o DuckDB não reutiliza um alias da mesma `select` numa expressão com subconsulta, e é preciso uma consulta à volta;
     - nos testes, as células escondidas por CSS continuam a dar o texto (o `innerText` de um elemento que não se desenha é o `textContent`). Por isso, os testes da marca e do concelho não mudaram com as duas colunas.
 
+- **2026-11-03 (sessão cloud do Claude Code):** verificação do site publicado.
+  - **Feito:** `combustiveis verificar-site` (`live.py`) abre o site como um visitante e confirma:
+    - a página inicial (e não a do Evidence);
+    - os preços com uma fotografia de no máximo 8 dias e postos em todos os combustíveis;
+    - o JSON do primeiro combustível com os postos que o resumo anuncia;
+    - o resumo, o service worker e o manifesto.
+
+    No `pages.yml`, o trabalho `verificar` corre-o depois do deploy, com o endereço que o deploy devolve. Os problemas vão todos numa só mensagem, para o email do GitHub dizer tudo de uma vez. Contra o site publicado, passou à primeira.
+  - **Lição:** um valor por omissão com uma função (`fetch=fetch_with_retries`) fica preso à função do momento em que se define, e o `monkeypatch` do módulo já não a troca. Passou a `fetch=None`, e a função escolhe-se dentro da função.
+
 ## Plano
 
 1. **Capturas do README com a página inicial nova** (`docs/images/painel-telemovel.png` e `painel-mapa-tabela.png`): o aspeto mudou pouco (o cabeçalho e os filtros), mas já não é o do Evidence.

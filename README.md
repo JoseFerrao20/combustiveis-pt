@@ -50,7 +50,7 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **Uma previsão testada a sério.** Os coeficientes foram ajustados com 2012–2023, e o site mostra o erro em todas as semanas desde 2024, que o ajuste não viu: 1,1 a 1,3 cêntimos, contra 1,7 a 2,7 a dizer "fica igual".
 - **Um site sem servidor**, no GitHub Pages. A página inicial é Svelte, com um JSON pequeno por combustível e um service worker para quando não há rede ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md)): uns 200 KB, contra os 12 MB que o Evidence descarregava, porque precisa do DuckDB-WASM. As análises continuam no Evidence. O mapa é um componente próprio com o Leaflet, partilhado pelas duas, porque o do Evidence não diz à página que zona está à vista. A interface do Evidence foi traduzida com patches.
 - **Testes em todas as camadas**, todos no CI:
-  - 64 testes em Python (98 % de cobertura);
+  - 70 testes em Python (98 % de cobertura);
   - 84 testes de dados e testes unitários no dbt;
   - 48 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
@@ -109,6 +109,7 @@ uv run combustiveis ingest --idade-maxima 15          # falha se a última seman
 uv run combustiveis dgeg                           # fotografia de hoje dos postos (data/landing/dgeg/)
 uv run combustiveis verificar-dgeg                 # o histórico da DGEG está em dia?
 uv run combustiveis mercados                       # cotações e câmbio do FRED, para a previsão
+uv run combustiveis verificar-site --url https://joseferrao20.github.io/combustiveis-pt/   # o site publicado está em ordem?
 uv run combustiveis site                           # depois do dbt: os JSON da página inicial
 ```
 
@@ -145,7 +146,7 @@ npm run dev:inicio                                 # a página inicial (depois d
 npm run build                                      # o site todo em build/: Evidence e página inicial
 ```
 
-O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã: descarrega o boletim, junta as fotografias da DGEG (workflow `dgeg.yml`, ramo `dados`), corre o dbt, escreve os JSON da página inicial e publica o site no GitHub Pages. Corre também logo a seguir à fotografia de segunda-feira. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa.
+O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã: descarrega o boletim, junta as fotografias da DGEG (workflow `dgeg.yml`, ramo `dados`), corre o dbt, escreve os JSON da página inicial e publica o site no GitHub Pages. Corre também logo a seguir à fotografia de segunda-feira. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa. Depois de publicar, o `verificar-site` abre o site como um visitante (página inicial, preços recentes e com postos, as outras páginas) e avisa por email se algo não estiver lá.
 
 ## Desenvolvimento
 

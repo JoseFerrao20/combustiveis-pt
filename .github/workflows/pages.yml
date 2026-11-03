@@ -95,9 +95,26 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    outputs:
+      url: ${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # Depois de publicar, abre o site como um visitante: a página inicial, os preços de uma
+  # fotografia recente (no máximo 8 dias) com postos, uma página do Evidence, o service worker e
+  # o manifesto. Se falhar, o GitHub manda um email com todos os problemas (o site já está
+  # publicado; a falha é um aviso para ir ver).
+  verificar:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - run: uv sync --locked
+      - run: uv run combustiveis verificar-site --url "${{ needs.deploy.outputs.url }}"
