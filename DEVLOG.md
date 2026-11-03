@@ -343,6 +343,21 @@
     Há links no rodapé de todas as páginas, a página entra no `sitemap.xml`, e a verificação do site publicado confirma-a.
   - **Decisões:** os valores do boletim são arredondados a 2 casas, como o boletim os publica, e as partes a 4. As contas da divisão do preço davam 15 casas, e o ficheiro baixou de 5,3 MB para 2,9 MB. Os nomes das colunas ficam em inglês, como nos modelos do dbt; a página explica-os em português.
 
+- **2026-11-03 (sessão cloud do Claude Code):** avisos de segunda-feira pelo Telegram.
+  - **Feito:** `combustiveis telegram` (`telegram.py`) monta, para cada pessoa inscrita, uma mensagem com:
+    - a previsão para segunda e a mudança nos postos;
+    - o preço dos postos que segue, com a mudança na semana e a posição entre os postos a 5 km;
+    - o mais barato do seu distrito;
+    - o link para cada posto e para o mapa.
+
+    O `pages.yml` envia-a a seguir à fotografia semanal da DGEG, se ela correu bem. As instruções para criar o bot e inscrever alguém estão em `docs/telegram.md`.
+  - **Decisões:**
+    - Sem servidor, não há inscrição pelo próprio bot: as inscrições ficam num segredo do repositório (`TELEGRAM_SUBSCRIPTIONS`), em JSON. Chega para a família e os amigos; uma inscrição pelo bot precisaria de um serviço sempre ligado.
+    - O passo tem `continue-on-error`: uma falha do Telegram não impede a publicação do site.
+    - Sem os segredos, não envia nada, e o resto corre igual.
+  - **Também:** "distrito de Porto" passou a "distrito do Porto" (e "da Guarda"), também nas páginas por concelho (`of_district`).
+  - **Falta (do José):** criar o bot no @BotFather e os dois segredos (`docs/telegram.md`). Daqui não se chega ao `api.telegram.org`, por isso o envio a sério só se vê no Actions.
+
 - **2026-11-03 (sessão cloud do Claude Code):** o resumo e os postos acompanhados fora do Evidence.
   - **Feito:**
     - **Resumo** (`app/resumo/`): os mesmos filtros (combustível, distrito, concelho) em `<select>` nativos, os cartões, a conclusão, as barras por grupo de marcas, as tabelas por tipo, marca, concelho (com o link para a página de cada um) e distrito, os 10 mais caros, a concorrência e o gráfico da evolução. As médias calculam-se no browser, a partir do JSON do combustível que a página inicial já usa.
@@ -355,7 +370,9 @@
 ## Plano
 
 1. **Google:** registar o site no Google Search Console e enviar o `sitemap.xml`, para as páginas por concelho aparecerem nas pesquisas.
+2. **Telegram:** criar o bot no @BotFather e os segredos `TELEGRAM_BOT_TOKEN` e `TELEGRAM_SUBSCRIPTIONS` (`docs/telegram.md`); ver o primeiro envio a seguir à fotografia de segunda-feira.
 3. **Com 4 a 6 semanas de fotografias semanais:** se as marcas passam as subidas e descidas do boletim na mesma semana, e se os postos isolados demoram mais a baixar. Nos postos acompanhados, como ficam face aos concorrentes semana a semana. Com uma fotografia por semana já não se vê o dia exato da mudança.
-4. **Ver como a previsão se sai nas próximas semanas** (a primeira comparação com os postos é a de 2/11, se a fotografia de segunda-feira entrar); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
-5. **Captura da página "Postos acompanhados"** para o README, quando o gráfico da evolução já aparecer (mais de 5 fotografias).
-6. **Talvez:** avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.
+4. **Ver como a previsão se sai nas próximas semanas** (a de 2/11 falhou no gasóleo: −6,4 cêntimos previstos, +1,3 nos postos; ver com o boletim de quinta-feira); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
+5. **Captura das páginas "Resumo" e "Postos acompanhados"** (agora fora do Evidence) para o README, quando os gráficos da evolução tiverem mais fotografias.
+6. **Açores e Madeira:** os preços máximos saem em PDF (Jornal Oficial dos Açores, mensal; JORAM, semanal). Precisa de `jo.azores.gov.pt` e `joram.madeira.gov.pt` nos domínios permitidos da sessão, e de uma leitura de PDF que valide o que lê.
+7. **Talvez:** tirar as análises do Evidence também (ADR 0006); avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.
