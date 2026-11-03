@@ -11,7 +11,8 @@ const PAGES = [
 	['analises/previsao/', 'Previsão para segunda-feira'],
 	['analises/comparacao/', 'Portugal e a Europa'],
 	['analises/metodo/', 'Como se calcula'],
-	['concelho/', 'Preços por concelho']
+	['concelho/', 'Preços por concelho'],
+	['dados-abertos/', 'Dados abertos']
 ];
 const EURO = /\d,\d{3} €/;
 
@@ -381,6 +382,21 @@ test('o tema escolhido no cabeçalho fica em todas as páginas', async ({ page }
 	await page.getByRole('button', { name: 'Mudar para o tema claro' }).click();
 	await page.goto('concelho/');
 	await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+});
+
+test('os dados abertos descarregam-se a partir do rodapé', async ({ page }) => {
+	await page.goto('resumo/');
+	await page.getByRole('link', { name: 'Dados abertos' }).click();
+	await expect(page.getByRole('heading', { level: 1, name: 'Dados abertos' })).toBeVisible();
+	for (const nome of ['postos-historico.csv.gz', 'postos-ultima-fotografia.csv', 'boletim-europeu.csv.gz']) {
+		const link = page.locator(`a[href="${nome}"]`);
+		await expect(link).toHaveAttribute('download', '');
+		const resposta = await page.request.get(`dados-abertos/${nome}`);
+		expect(resposta.status(), nome).toBe(200);
+		expect((await resposta.body()).length, nome).toBeGreaterThan(100);
+	}
+	const ultima = await (await page.request.get('dados-abertos/postos-ultima-fotografia.csv')).text();
+	expect(ultima.split('\n')[0]).toContain('snapshot_date,station_id,station_name');
 });
 
 test('o balão tem o gráfico do preço nas últimas fotografias', async ({ page }) => {
