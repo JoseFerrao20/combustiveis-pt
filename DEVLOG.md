@@ -317,6 +317,16 @@
     - o build do Evidence segue os links das suas páginas e falha com um 404 para as que só entram depois. `rel="external"` tira o link desse percurso, e o browser abre-o normalmente;
     - um ficheiro antigo em `app/public/` passa por cima do de `static/`, porque o build da página inicial corre depois. Por isso, o gerador apaga a pasta `concelho/` antes de escrever.
 
+- **2026-11-03 (sessão cloud do Claude Code):** verificação do site publicado.
+  - **Feito:** `combustiveis verificar-site` (`live.py`) abre o site como um visitante e confirma:
+    - a página inicial (e não a do Evidence);
+    - os preços com uma fotografia de no máximo 8 dias e postos em todos os combustíveis;
+    - o JSON do primeiro combustível com os postos que o resumo anuncia;
+    - o resumo, o service worker e o manifesto.
+
+    No `pages.yml`, o trabalho `verificar` corre-o depois do deploy, com o endereço que o deploy devolve. Os problemas vão todos numa só mensagem, para o email do GitHub dizer tudo de uma vez. Contra o site publicado, passou à primeira.
+  - **Lição:** um valor por omissão com uma função (`fetch=fetch_with_retries`) fica preso à função do momento em que se define, e o `monkeypatch` do módulo já não a troca. Passou a `fetch=None`, e a função escolhe-se dentro da função.
+
 ## Plano
 
 1. **Google:** registar o site no Google Search Console e enviar o `sitemap.xml`, para as páginas por concelho aparecerem nas pesquisas.
