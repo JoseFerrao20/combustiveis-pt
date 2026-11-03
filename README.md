@@ -7,7 +7,7 @@
 
 **Site:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado todos os dias (os preços dos postos, às segundas-feiras).
 
-![No telemóvel: a página inicial com a previsão para segunda-feira e o botão "Perto de mim", e a tabela dos postos à volta, do mais barato para o mais caro, com a poupança num depósito e o botão "Ir"](docs/images/painel-telemovel.png)
+![No telemóvel: a página inicial com a previsão, o combustível e "Perto de mim" e a lista dos postos à volta com a poupança; o separador "Mapa" com o balão de um posto ("Ir" e "Partilhar"); e a página de Braga com os postos mais baratos e a data e a hora de cada preço](docs/images/painel-telemovel.png)
 
 **Para quem abastece:**
 
@@ -15,13 +15,15 @@
 - **Procurar e filtrar:** uma caixa de procura leva o mapa até uma localidade, um concelho ou um posto (sem precisar de acentos). Dá para ficar só com uma marca ou tirar os postos de autoestrada, e o site lembra-se do combustível e dos filtros na próxima visita.
 - **Feito para o telemóvel:** o combustível, "Perto de mim" e a procura no primeiro ecrã, os filtros num só botão, e a lista e o mapa em separadores. Quem já usou "Perto de mim" volta a abrir a página no sítio onde está. Instala-se como aplicação ("Adicionar ao ecrã principal").
 - **"Perto de mim":** centra o mapa onde a pessoa está. Para cada posto, mostra a distância e quanto se poupa num depósito face ao posto mais perto, já descontando a ida e volta. O botão "Ir" abre o caminho no Google Maps. A localização não sai do telemóvel.
+- **Partilhar um posto:** "Partilhar", no balão de cada posto, manda um link (pelo menu de partilha do telemóvel, ou copiado) que abre o site já nesse posto e com o mesmo combustível.
+- **Uma página por concelho** (`/concelho/braga/`, …): os 10 postos mais baratos de cada combustível, com a data e a hora de cada preço e as médias do concelho, do distrito e do país, e um botão que abre o mapa no concelho. São páginas estáticas, com um `sitemap.xml`, para quem procura no Google.
 - **"Os meus postos":** uma estrela em cada posto guarda-o numa lista no topo da página, com o preço, a mudança na semana e o "Ir". Cada um diz a posição entre os postos a 5 km e qual é o mais barato à volta. A lista fica só no telemóvel.
 - **"Na semana":** quanto cada posto subiu ou desceu desde a segunda-feira anterior, e os preços das últimas semanas.
 - **Previsão para segunda-feira:** quanto deve mudar o preço, a partir dos mercados da semana anterior, com o erro de todas as semanas desde 2024 à vista. Na segunda de manhã, compara-se com a mudança real nos postos.
-- **Um só aspeto:** o mesmo cabeçalho e rodapé em todas as páginas. As análises abrem a partir de cartões com o número principal, o resumo começa pelos números e pelas conclusões, e no computador o mapa e a lista ficam lado a lado.
+- **Um só aspeto:** o mesmo cabeçalho e rodapé em todas as páginas, com o botão do tema claro ou escuro (a escolha fica guardada). As análises abrem a partir de cartões com o número principal, o resumo começa pelos números e pelas conclusões, e no computador o mapa e a lista ficam lado a lado.
 - **Leve e com pouca rede:** a página inicial descarrega uns 200 KB (em vez de 12 MB) e abre mesmo sem rede, com os últimos preços guardados no telemóvel.
 
-![A página inicial no computador: o mapa de Lisboa com os postos coloridos do mais barato ao mais caro, a posição da pessoa a azul e, por baixo, a tabela com o preço, a mudança, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
+![A página inicial no computador: à esquerda, o mapa de Lisboa com os postos coloridos do mais barato ao mais caro e a posição da pessoa a azul; à direita, a lista dos postos à volta com o preço, a mudança na semana, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
 
 **Para quem quer perceber os preços:** na semana de 19/10/2026, um litro de gasolina 95 custava 2,099 € em Portugal.
 
@@ -33,7 +35,9 @@
 | IVA (23 %) | 0,392 |
 | **Preço** | **2,099** |
 
-Quase **47 %** do preço são impostos. A decomposição bate certo com o preço publicado ao cêntimo, e essa verificação faz parte dos testes. O menu "Análises" do site tem a evolução desde 2005, a comparação com a Europa e a previsão.
+Quase **47 %** do preço são impostos. A decomposição bate certo com o preço publicado ao cêntimo, e essa verificação faz parte dos testes. A página "Análises" do site abre cada análise a partir de um cartão com o número principal: a evolução dos impostos desde 2005, a previsão, a comparação com a Europa e o método.
+
+![Análises: quatro cartões, com 47 % de impostos no preço da gasolina 95, a previsão para segunda-feira (▼ 1,4 c) e o erro médio, a diferença para Espanha e as semanas de dados](docs/images/painel-analises.png)
 
 ![Análises, "Previsão para segunda-feira": a mudança prevista para a gasolina e o gasóleo, o erro médio nas 147 semanas de teste e os gráficos do previsto contra o real](docs/images/painel-previsao.png)
 
@@ -50,9 +54,9 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **Uma previsão testada a sério.** Os coeficientes foram ajustados com 2012–2023, e o site mostra o erro em todas as semanas desde 2024, que o ajuste não viu: 1,1 a 1,3 cêntimos, contra 1,7 a 2,7 a dizer "fica igual".
 - **Um site sem servidor**, no GitHub Pages. A página inicial é Svelte, com um JSON pequeno por combustível e um service worker para quando não há rede ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md)): uns 200 KB, contra os 12 MB que o Evidence descarregava, porque precisa do DuckDB-WASM. As análises continuam no Evidence. O mapa é um componente próprio com o Leaflet, partilhado pelas duas, porque o do Evidence não diz à página que zona está à vista. A interface do Evidence foi traduzida com patches.
 - **Testes em todas as camadas**, todos no CI:
-  - 64 testes em Python (98 % de cobertura);
+  - 70 testes em Python (98 % de cobertura);
   - 84 testes de dados e testes unitários no dbt;
-  - 48 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 55 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, o tema, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 
@@ -109,7 +113,7 @@ uv run combustiveis ingest --idade-maxima 15          # falha se a última seman
 uv run combustiveis dgeg                           # fotografia de hoje dos postos (data/landing/dgeg/)
 uv run combustiveis verificar-dgeg                 # o histórico da DGEG está em dia?
 uv run combustiveis mercados                       # cotações e câmbio do FRED, para a previsão
-uv run combustiveis site                           # depois do dbt: os JSON da página inicial
+uv run combustiveis site                           # depois do dbt: os JSON da página inicial e as páginas por concelho
 ```
 
 A camada landing fica em `data/landing/`: `prices.parquet` (semana, país, produto, com ou sem impostos, valor por 1000 L), `taxes.parquet` (IVA, ISP e outros impostos, com a data de entrada em vigor) e `manifest.json`.

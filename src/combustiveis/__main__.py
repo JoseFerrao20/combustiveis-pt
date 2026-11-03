@@ -104,10 +104,12 @@ def markets(files: Path | None, target: Path) -> int:
     return 0
 
 
-def site(stations: Path, forecast: Path, target: Path) -> int:
-    result = export_site(stations, forecast, target)
+def site(stations: Path, forecast: Path, target: Path, pages: Path | None = None) -> int:
+    result = export_site(stations, forecast, target, pages)
     counts = ", ".join(f"{fuel}: {count}" for fuel, count in result.stations.items())
     print(f"Página inicial: postos de {result.snapshot_date} ({counts}) em {target}/")
+    if pages is not None:
+        print(f"Páginas por concelho: {result.pages} em {pages}/concelho/")
     return 0
 
 
@@ -161,6 +163,12 @@ def main(argv: list[str] | None = None) -> int:
     command.add_argument("--postos", type=Path, default=Path("data/stations_latest.parquet"))
     command.add_argument("--previsao", type=Path, default=Path("data/price_forecast.parquet"))
     command.add_argument("--destino", type=Path, default=DEFAULT_SITE)
+    command.add_argument(
+        "--paginas",
+        type=Path,
+        default=DEFAULT_SITE.parent,
+        help="onde escrever as páginas por concelho (concelho/) e o sitemap.xml",
+    )
     args = parser.parse_args(argv)
     try:
         if args.command == "dgeg":
@@ -168,7 +176,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "mercados":
             return markets(args.ficheiros, args.destino)
         if args.command == "site":
-            return site(args.postos, args.previsao, args.destino)
+            return site(args.postos, args.previsao, args.destino, args.paginas)
         if args.command == "verificar-dgeg":
             return verify_snapshots(args.pasta, args.idade_maxima, args.hoje)
         return ingest(args.ficheiro, args.destino, args.idade_maxima)

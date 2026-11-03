@@ -11,7 +11,8 @@ const PAGES = [
 	'analises/impostos/',
 	'analises/previsao/',
 	'analises/comparacao/',
-	'analises/metodo/'
+	'analises/metodo/',
+	'concelho/'
 ];
 
 /** As violações numa forma que se lê no relatório do teste. */
@@ -51,6 +52,20 @@ test('"Os meus postos" com postos guardados cumpre a WCAG 2.2 AA', async ({ page
 			.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
 			.include('.mapa-postos')
 			.exclude('.leaflet-tile-pane')
+			.analyze();
+		expect(summary(results.violations)).toEqual([]);
+	}
+});
+
+test('uma página de concelho cumpre a WCAG 2.2 AA', async ({ page }) => {
+	await page.goto('concelho/');
+	await page.locator('main ul a').first().click();
+	await expect(page.locator('tbody tr').first()).toBeVisible();
+	for (const scheme of ['light', 'dark']) {
+		await page.emulateMedia({ colorScheme: scheme });
+		await page.reload();
+		const results = await new AxeBuilder({ page })
+			.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
 			.analyze();
 		expect(summary(results.violations)).toEqual([]);
 	}

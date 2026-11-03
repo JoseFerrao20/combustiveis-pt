@@ -10,7 +10,8 @@ const PAGES = [
 	['analises/impostos/', 'Quanto do preço é imposto?'],
 	['analises/previsao/', 'Previsão para segunda-feira'],
 	['analises/comparacao/', 'Portugal e a Europa'],
-	['analises/metodo/', 'Como se calcula']
+	['analises/metodo/', 'Como se calcula'],
+	['concelho/', 'Preços por concelho']
 ];
 const EURO = /\d,\d{3} €/;
 
@@ -327,6 +328,59 @@ test('o site pode instalar-se como aplicação', async ({ page, request }) => {
 	});
 	expect(manifest.icons.map((icon) => icon.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']));
 	await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', /^#/);
+});
+
+test('um posto partilhado abre já no mapa, e "Partilhar" copia o link', async ({ page, context }) => {
+	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	const resumo = await (await page.request.get('dados/postos-gasoleo.json')).json();
+	const id = resumo.stations[0][resumo.columns.indexOf('station_id')];
+
+	await page.goto(`?posto=${id}&combustivel=gasoleo`);
+	await expect(page.getByRole('combobox', { name: 'Combustível' })).toHaveValue('gasoleo');
+	const balao = page.locator('.leaflet-popup-content');
+	await expect(balao).toContainText(EURO);
+	// Sem o menu de partilha do telemóvel, o link vai para a área de transferência.
+	await page.evaluate(() => {
+		delete Navigator.prototype.share;
+	});
+	await balao.getByRole('button', { name: 'Partilhar' }).click();
+	await expect(balao.getByRole('button', { name: 'Link copiado' })).toBeVisible();
+	const copiado = await page.evaluate(() => navigator.clipboard.readText());
+	expect(copiado).toContain(`?posto=${id}&combustivel=gasoleo`);
+});
+
+test('as páginas por concelho mostram os mais baratos e abrem o mapa no concelho', async ({ page }) => {
+	const errors = watchErrors(page);
+	await page.goto('concelho/');
+	await page.locator('main ul a').first().click();
+	await expect(page.getByRole('heading', { level: 1, name: /^Combustível mais barato em / })).toBeVisible();
+	await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /a partir de \d,\d{3} €/);
+	await expect(page.locator('tbody tr').first()).toContainText(EURO);
+	// A data e a hora de cada preço (termos da DGEG).
+	await expect(page.locator('tbody tr').first()).toContainText(/\d\d\/\d\d\/\d{4} \d\d:\d\d/);
+	await page.getByRole('link', { name: 'Ver todos no mapa' }).click();
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	await expect(page.locator('details.filtros-postos summary')).toContainText('2 escolhidos');
+	expect(errors).toEqual([]);
+	const sitemap = await (await page.request.get('sitemap.xml')).text();
+	expect(sitemap).toContain('/combustiveis-pt/concelho/');
+});
+
+test('o tema escolhido no cabeçalho fica em todas as páginas', async ({ page }) => {
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.goto('');
+	await expect(page.locator('.mapa-postos[data-postos] tbody tr').first()).toBeVisible();
+	await page.getByRole('button', { name: 'Mudar para o tema escuro' }).click();
+	await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+	await page.goto('resumo/');
+	await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+	await page.getByRole('button', { name: 'Mudar para o tema claro' }).click();
+	await page.goto('concelho/');
+	await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
 test('a página inicial não descarrega o Evidence nem o DuckDB', async ({ page }) => {
