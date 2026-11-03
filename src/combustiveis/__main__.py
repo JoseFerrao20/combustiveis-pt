@@ -37,6 +37,7 @@ from .dgeg import DgegFormatError, read_prices, search_url
 from .landing import write_landing, write_markets, write_station_snapshot
 from .live import SiteCheckError, check_site
 from .markets import SERIES, MarketFormatError, MarketValue, read_series, series_url
+from .opendata import export_open_data
 from .parse import FormatError, read_bulletin
 from .site import export_history, export_site, export_tracked
 from .source import PAGE_URL, SourceError, fetch, fetch_with_retries, find_history_url
@@ -113,6 +114,7 @@ def site(
     forecast: Path,
     target: Path,
     pages: Path | None = None,
+    warehouse: Path | None = None,
     extras: tuple[Path, Path, Path] | None = None,
 ) -> int:
     result = export_site(stations, forecast, target, pages)
@@ -128,6 +130,10 @@ def site(
     print(f"Página inicial: postos de {result.snapshot_date} ({counts}) em {target}/")
     if pages is not None:
         print(f"Páginas por concelho: {result.pages} em {pages}/concelho/")
+    if pages is not None and warehouse is not None and warehouse.exists():
+        files = export_open_data(warehouse, pages, result.snapshot_date)
+        summary = ", ".join(f"{f.name} ({f.rows} linhas)" for f in files)
+        print(f"Dados abertos em {pages}/dados-abertos/: {summary}")
     return 0
 
 
@@ -207,6 +213,12 @@ def main(argv: list[str] | None = None) -> int:
         help="onde escrever as páginas por concelho (concelho/) e o sitemap.xml",
     )
     command.add_argument(
+        "--armazem",
+        type=Path,
+        default=Path("data/warehouse.duckdb"),
+        help="a base de dados do dbt, para os dados abertos (dados-abertos/); sem ela, não há",
+    )
+    command.add_argument(
         "--evolucao",
         type=Path,
         default=Path("data/station_prices_daily.parquet"),
@@ -234,7 +246,9 @@ def main(argv: list[str] | None = None) -> int:
             return verify_site(args.url, args.idade_maxima, args.hoje)
         if args.command == "site":
             extras = (args.evolucao, args.acompanhados, args.concorrentes)
-            return site(args.postos, args.previsao, args.destino, args.paginas, extras)
+            return site(
+                args.postos, args.previsao, args.destino, args.paginas, args.armazem, extras
+            )
         if args.command == "verificar-dgeg":
             return verify_snapshots(args.pasta, args.idade_maxima, args.hoje)
         return ingest(args.ficheiro, args.destino, args.idade_maxima)

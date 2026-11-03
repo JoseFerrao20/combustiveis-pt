@@ -11,7 +11,8 @@ const PAGES = [
 	['analises/previsao/', 'Previsão para segunda-feira'],
 	['analises/comparacao/', 'Portugal e a Europa'],
 	['analises/metodo/', 'Como se calcula'],
-	['concelho/', 'Preços por concelho']
+	['concelho/', 'Preços por concelho'],
+	['dados-abertos/', 'Dados abertos']
 ];
 const EURO = /\d,\d{3} €/;
 
@@ -384,6 +385,61 @@ test('o tema escolhido no cabeçalho fica em todas as páginas', async ({ page }
 	await page.getByRole('button', { name: 'Mudar para o tema claro' }).click();
 	await page.goto('concelho/');
 	await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+});
+
+test('os dados abertos descarregam-se a partir do rodapé', async ({ page }) => {
+	await page.goto('resumo/');
+	await page.getByRole('link', { name: 'Dados abertos', exact: true }).click();
+	await expect(page.getByRole('heading', { level: 1, name: 'Dados abertos' })).toBeVisible();
+	for (const nome of ['postos-historico.csv.gz', 'postos-ultima-fotografia.csv', 'boletim-europeu.csv.gz']) {
+		const link = page.locator(`a[href="${nome}"]`);
+		await expect(link).toHaveAttribute('download', '');
+		const resposta = await page.request.get(`dados-abertos/${nome}`);
+		expect(resposta.status(), nome).toBe(200);
+		expect((await resposta.body()).length, nome).toBeGreaterThan(100);
+	}
+	const ultima = await (await page.request.get('dados-abertos/postos-ultima-fotografia.csv')).text();
+	expect(ultima.split('\n')[0]).toContain('snapshot_date,station_id,station_name');
+});
+
+test('o balão tem o gráfico do preço nas últimas fotografias', async ({ page }) => {
+	await page.goto('');
+	const mapa = page.locator('.mapa-postos[data-postos]');
+	await expect(mapa.locator('tbody tr').first()).toBeVisible();
+	await mapa.locator('tbody button[title="Ver no mapa"]').first().click();
+	const balao = page.locator('.leaflet-popup-content');
+	await expect(balao).toContainText('Últimas fotografias:');
+	const historico = (await balao.innerText()).match(/Últimas fotografias: (.*)/)[1];
+	// Com uma só fotografia (a amostra do CI), não há gráfico.
+	const grafico = balao.getByRole('img', { name: /^Preço nas últimas fotografias: / });
+	if (historico.includes('·')) {
+		await expect(grafico).toBeVisible();
+		await expect(balao).toContainText(/de \d,\d{3} € a \d,\d{3} €/);
+	} else {
+		await expect(grafico).toHaveCount(0);
+	}
+});
+
+test('a página inicial fica leve (limite de peso)', async ({ page }) => {
+	// O código (HTML, JavaScript e CSS da página inicial) e os dados do combustível, sem
+	// comprimir (o GitHub Pages comprime-os): hoje uns 255 KB e 760 KB. Um aumento grande tem de
+	// ser uma decisão, e não um acidente.
+	const LIMITE_CODIGO = 320_000;
+	const LIMITE_DADOS = 1_200_000;
+	const tamanhos = { codigo: 0, dados: 0 };
+	page.on('requestfinished', async (request) => {
+		const url = new URL(request.url());
+		if (url.hostname !== 'localhost') return;
+		const { responseBodySize } = await request.sizes();
+		if (url.pathname.includes('/dados/')) tamanhos.dados += responseBodySize;
+		else tamanhos.codigo += responseBodySize;
+	});
+	await page.goto('');
+	await expect(page.locator('.mapa-postos[data-postos] tbody tr').first()).toBeVisible();
+	await page.waitForLoadState('networkidle');
+	expect(tamanhos.codigo).toBeGreaterThan(0);
+	expect(tamanhos.codigo, `código: ${tamanhos.codigo} bytes`).toBeLessThan(LIMITE_CODIGO);
+	expect(tamanhos.dados, `dados: ${tamanhos.dados} bytes`).toBeLessThan(LIMITE_DADOS);
 });
 
 test('a página inicial não descarrega o Evidence nem o DuckDB', async ({ page }) => {

@@ -31,6 +31,7 @@ def _site(**changes: bytes | None) -> dict[str, bytes | None]:
         "resumo/": "<h1>Resumo e estatísticas</h1>".encode(),
         "dados/acompanhados.json": b'{"history": [{"station_id": 1}], "competitors": []}',
         "concelho/": "<h1>Preços por concelho</h1>".encode(),
+        "dados-abertos/": b'<a href="postos-historico.csv.gz" download>',
         "sitemap.xml": b"<loc>https://exemplo.pt/combustiveis-pt/concelho/braga/</loc>",
         "sw.js": b"self.addEventListener",
         "manifest.webmanifest": b"{}",
@@ -62,6 +63,7 @@ def test_all_problems_in_one_message() -> None:
             "dados/postos-gasolina_95.json": json.dumps({"stations": [[1]]}).encode(),
             "sw.js": None,
             "concelho/": b"<h1>Outra</h1>",
+            "dados-abertos/": b"<h1>Outra</h1>",
             "sitemap.xml": b"<urlset></urlset>",
             "dados/acompanhados.json": b'{"history": [], "competitors": []}',
         }
@@ -73,6 +75,7 @@ def test_all_problems_in_one_message() -> None:
     assert "tem 1 postos, e o resumo diz 2" in message
     assert "sw.js: HTTP Error 404" in message
     assert "concelho/: não é a página dos concelhos" in message
+    assert "dados-abertos/: sem o link" in message
     assert "sitemap.xml sem as páginas por concelho" in message
     assert "dados/acompanhados.json sem postos acompanhados" in message
 
