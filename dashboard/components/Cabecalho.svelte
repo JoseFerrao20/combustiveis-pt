@@ -43,7 +43,7 @@
 		{ href: base, nome: 'Início' },
 		{ href: `${base}resumo/`, nome: 'Resumo' },
 		{ href: `${base}acompanhados/`, nome: 'Postos acompanhados' },
-		{ href: `${base}analises/`, nome: 'Análises' }
+		{ href: `${base}analises/`, nome: 'Análises', evidence: true }
 	];
 	const limpo = (caminho) => caminho.replace(/\/+$/, '');
 	/** A página aberta, ou a secção dela (as análises ficam marcadas em "Análises"). */
@@ -56,7 +56,7 @@
 </script>
 
 <header class="cabecalho">
-	<a class="marca" href={base}>
+	<a class="marca" href={base} rel="external">
 		<img src="{base}icon.svg" alt="" width="24" height="24" />
 		<span>Combustíveis em Portugal</span>
 	</a>
@@ -79,8 +79,13 @@
 		<ul id="menu-paginas" class:aberto>
 			{#each links as link (link.href)}
 				<li>
-					<a href={link.href} aria-current={marcado(link.href) ? 'page' : undefined} on:click={() => (aberto = false)}
-						>{link.nome}</a
+					<!-- rel="external" nas páginas que não são do Evidence: o build do Evidence não as
+					     procura (davam 404), e o browser abre-as como páginas novas. -->
+					<a
+						href={link.href}
+						rel={link.evidence ? undefined : 'external'}
+						aria-current={marcado(link.href) ? 'page' : undefined}
+						on:click={() => (aberto = false)}>{link.nome}</a
 					>
 				</li>
 			{/each}

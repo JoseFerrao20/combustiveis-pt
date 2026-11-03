@@ -6,10 +6,17 @@ import duckdb
 import pytest
 
 from combustiveis import __main__ as cli
-from combustiveis.site import COLUMNS, export_site, forecast_summary, forecast_text
+from combustiveis.site import (
+    COLUMNS,
+    export_history,
+    export_site,
+    export_tracked,
+    forecast_summary,
+    forecast_text,
+)
 
 STATIONS = """
-select * from (values
+select *, 'Petrolíferas' as brand_segment, 2 as competitors_5km from (values
     (date '2026-11-02', 1, 'Posto A', 'GALP', 'Outro', 'Porto', 'Porto', 'Paranhos', 41.17, -8.60,
      'gasoleo', 'Gasóleo', 1.899, timestamp '2026-11-02 07:30', true, -0.01, date '2026-10-26',
      date '2026-11-02', '02/11: 1,899 · 26/10: 1,909'),
@@ -119,9 +126,79 @@ def test_command_line(
 ) -> None:
     stations, forecast = sources
     args = ["site", "--postos", str(stations), "--previsao", str(forecast)]
-    assert cli.main([*args, "--destino", str(tmp_path / "dados")]) == 0
-    assert "Página inicial: postos de 2026-11-02 (gasolina_95: 1, gasoleo: 2)" in (
-        capsys.readouterr().out
-    )
+    # Sem os ficheiros do resumo e dos postos acompanhados, escreve só a página inicial.
+    missing = str(tmp_path / "nada.parquet")
+    extras = ["--evolucao", missing, "--acompanhados", missing, "--concorrentes", missing]
+    assert cli.main([*args, *extras, "--destino", str(tmp_path / "dados")]) == 0
+    out = capsys.readouterr().out
+    assert "Página inicial: postos de 2026-11-02 (gasolina_95: 1, gasoleo: 2)" in out
+    assert "Evolução" not in out
+    assert not (tmp_path / "dados" / "acompanhados.json").exists()
     assert cli.main(["site", "--postos", str(tmp_path / "nada.parquet")]) == 1
     assert "erro:" in capsys.readouterr().err
+
+
+def test_history_has_portugal_first_and_the_brand_groups(tmp_path: Path) -> None:
+    daily = _parquet(
+        tmp_path,
+        "diario.parquet",
+        """
+        select * from (values
+            (date '2026-11-02', 'gasoleo', 'Grupo de marcas', 'Petrolíferas', 1.81234, 10),
+            (date '2026-11-02', 'gasoleo', 'Portugal', 'Portugal', 1.79, 30),
+            (date '2026-10-26', 'gasoleo', 'Portugal', 'Portugal', 1.80, 29),
+            (date '2026-11-02', 'gasoleo', 'Distrito', 'Porto', 1.78, 5)
+        ) as t(snapshot_date, fuel, dimension, label, avg_price, stations)
+        """,
+    )
+    assert export_history(daily, tmp_path) == 3
+    rows = json.loads((tmp_path / "evolucao.json").read_text("utf-8"))["rows"]
+    assert [(r["snapshot_date"], r["label"]) for r in rows] == [
+        ("2026-10-26", "Portugal"),
+        ("2026-11-02", "Portugal"),
+        ("2026-11-02", "Petrolíferas"),
+    ]
+    assert rows[2]["avg_price"] == 1.8123
+
+
+def test_tracked_has_the_history_and_the_current_competitors(tmp_path: Path) -> None:
+    tracked = _parquet(
+        tmp_path,
+        "acompanhados.parquet",
+        """
+        select * from (values
+            (date '2026-11-02', 1, 'Posto A (Rua)', 'Rua', 'Posto A', 'GALP', 'Porto', 41.1, -8.6,
+             'gasoleo', 'Gasóleo', 1.899, timestamp '2026-11-02 07:30', 4, 1.91, 1.85, 2, 1.92),
+            (date '2026-10-26', 1, 'Posto A (Rua)', 'Rua', 'Posto A', 'GALP', 'Porto', 41.1, -8.6,
+             'gasoleo', 'Gasóleo', 1.909, timestamp '2026-10-26 07:30', 4, 1.92, 1.86, 3, 1.93),
+            -- Sem preço deste combustível: não entra.
+            (date '2026-11-02', 1, 'Posto A (Rua)', 'Rua', 'Posto A', 'GALP', 'Porto', 41.1, -8.6,
+             'gpl', 'GPL Auto', null, null, 0, null, null, null, null)
+        ) as t(snapshot_date, station_id, label, location, station_name, brand, municipality,
+               latitude, longitude, fuel, fuel_name, price, updated_at, competitors,
+               competitors_avg_price, competitors_min_price, rank_5km, municipality_avg_price)
+        """,
+    )
+    competitors = _parquet(
+        tmp_path,
+        "concorrentes.parquet",
+        """
+        select * from (values
+            (date '2026-11-02', 1, 7, 'Posto X', 'BP', 41.11, -8.61, 1.234, 'gasoleo', 1.85,
+             timestamp '2026-11-02 08:00', true),
+            -- Desatualizado ou de uma fotografia antiga: não entram.
+            (date '2026-11-02', 1, 8, 'Posto Y', 'BP', 41.12, -8.62, 2.5, 'gasoleo', 1.70,
+             timestamp '2026-08-01 08:00', false),
+            (date '2026-10-26', 1, 7, 'Posto X', 'BP', 41.11, -8.61, 1.234, 'gasoleo', 1.86,
+             timestamp '2026-10-26 08:00', true)
+        ) as t(snapshot_date, station_id, competitor_id, station_name, brand, latitude,
+               longitude, distance_km, fuel, price, updated_at, is_current)
+        """,
+    )
+    assert export_tracked(tracked, competitors, tmp_path) == 2
+    data = json.loads((tmp_path / "acompanhados.json").read_text("utf-8"))
+    assert [r["snapshot_date"] for r in data["history"]] == ["2026-10-26", "2026-11-02"]
+    assert data["history"][1]["rank_5km"] == 2
+    assert [(r["competitor_id"], r["price"], r["distance_km"]) for r in data["competitors"]] == [
+        (7, 1.85, 1.23)
+    ]

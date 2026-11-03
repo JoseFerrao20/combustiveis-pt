@@ -43,7 +43,7 @@ from .live import SiteCheckError, check_site
 from .markets import SERIES, MarketFormatError, MarketValue, read_series, series_url
 from .opendata import export_open_data
 from .parse import FormatError, read_bulletin
-from .site import export_site
+from .site import export_history, export_site, export_tracked
 from .source import PAGE_URL, SourceError, fetch, fetch_with_retries, find_history_url
 from .telegram import TelegramError, build_message, read_data, send, subscriptions_from_env
 
@@ -120,8 +120,17 @@ def site(
     target: Path,
     pages: Path | None = None,
     warehouse: Path | None = None,
+    extras: tuple[Path, Path, Path] | None = None,
 ) -> int:
     result = export_site(stations, forecast, target, pages)
+    # As páginas do resumo e dos postos acompanhados (app/resumo/, app/acompanhados/).
+    if extras is not None:
+        daily, tracked, competitors = extras
+        if daily.exists():
+            print(f"Evolução: {export_history(daily, target)} linhas em {target}/evolucao.json")
+        if tracked.exists() and competitors.exists():
+            count = export_tracked(tracked, competitors, target)
+            print(f"Postos acompanhados: {count} linhas em {target}/acompanhados.json")
     counts = ", ".join(f"{fuel}: {count}" for fuel, count in result.stations.items())
     print(f"Página inicial: postos de {result.snapshot_date} ({counts}) em {target}/")
     if pages is not None:
@@ -239,6 +248,24 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("data/warehouse.duckdb"),
         help="a base de dados do dbt, para os dados abertos (dados-abertos/); sem ela, não há",
     )
+    command.add_argument(
+        "--evolucao",
+        type=Path,
+        default=Path("data/station_prices_daily.parquet"),
+        help="as médias de cada fotografia, para o gráfico do resumo (sem o ficheiro, não escreve)",
+    )
+    command.add_argument(
+        "--acompanhados",
+        type=Path,
+        default=Path("data/tracked_stations_daily.parquet"),
+        help="o histórico dos postos acompanhados",
+    )
+    command.add_argument(
+        "--concorrentes",
+        type=Path,
+        default=Path("data/tracked_station_competitors.parquet"),
+        help="os concorrentes a 5 km dos postos acompanhados",
+    )
     args = parser.parse_args(argv)
     try:
         if args.command == "dgeg":
@@ -250,7 +277,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "telegram":
             return telegram(args.postos, args.previsao, args.enviar)
         if args.command == "site":
-            return site(args.postos, args.previsao, args.destino, args.paginas, args.armazem)
+            extras = (args.evolucao, args.acompanhados, args.concorrentes)
+            return site(
+                args.postos, args.previsao, args.destino, args.paginas, args.armazem, extras
+            )
         if args.command == "verificar-dgeg":
             return verify_snapshots(args.pasta, args.idade_maxima, args.hoje)
         return ingest(args.ficheiro, args.destino, args.idade_maxima)

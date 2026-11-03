@@ -43,6 +43,8 @@ COLUMNS = (
     "previous_snapshot_date",
     "last_change_date",
     "recent_history",
+    "brand_segment",
+    "competitors_5km",
 )
 MINUS = "\u2212"  # o sinal de menos tipográfico, como no painel
 # A ordem dos combustíveis no filtro, como no painel.
@@ -128,6 +130,64 @@ def forecast_text(rows: list[dict[str, Any]]) -> str | None:
         )
         text += f" Nos postos, a mudança foi de {changes} cêntimos."
     return text
+
+
+def _rows(db: duckdb.DuckDBPyConnection, query: str, params: list[Any]) -> list[dict[str, Any]]:
+    cursor = db.execute(query, params)
+    names = [column[0] for column in cursor.description]
+    return [
+        {name: _json_value(value) for name, value in zip(names, row, strict=True)}
+        for row in cursor.fetchall()
+    ]
+
+
+def export_history(daily: Path, target: Path) -> int:
+    """``evolucao.json``: o preço médio em cada fotografia, no país e por grupo de marcas."""
+    db = duckdb.connect()
+    rows = _rows(
+        db,
+        """
+        select snapshot_date, fuel, label, round(avg_price, 4) as avg_price, stations
+        from read_parquet(?)
+        where dimension in ('Portugal', 'Grupo de marcas')
+        order by fuel, snapshot_date, dimension <> 'Portugal', label
+        """,
+        [str(daily)],
+    )
+    _write_json(target / "evolucao.json", {"rows": rows})
+    return len(rows)
+
+
+def export_tracked(tracked: Path, competitors: Path, target: Path) -> int:
+    """``acompanhados.json``: cada posto acompanhado, fotografia a fotografia, e os concorrentes
+    a 5 km na última fotografia (só os preços atualizados)."""
+    db = duckdb.connect()
+    history = _rows(
+        db,
+        """
+        select snapshot_date, station_id, label, location, station_name, brand, municipality,
+            latitude, longitude, fuel, fuel_name, price, updated_at, competitors,
+            round(competitors_avg_price, 4) as competitors_avg_price, competitors_min_price,
+            rank_5km, round(municipality_avg_price, 4) as municipality_avg_price
+        from read_parquet(?)
+        where price is not null
+        order by label, fuel, snapshot_date
+        """,
+        [str(tracked)],
+    )
+    rivals = _rows(
+        db,
+        """
+        select station_id, competitor_id, station_name, brand, latitude, longitude,
+            round(distance_km, 2) as distance_km, fuel, price, updated_at
+        from read_parquet(?)
+        where is_current and snapshot_date = (select max(snapshot_date) from read_parquet(?))
+        order by station_id, fuel, price, distance_km
+        """,
+        [str(competitors), str(competitors)],
+    )
+    _write_json(target / "acompanhados.json", {"history": history, "competitors": rivals})
+    return len(history)
 
 
 def _write_json(path: Path, content: Any) -> None:
