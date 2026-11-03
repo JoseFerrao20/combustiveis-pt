@@ -327,6 +327,21 @@
     No `pages.yml`, o trabalho `verificar` corre-o depois do deploy, com o endereço que o deploy devolve. Os problemas vão todos numa só mensagem, para o email do GitHub dizer tudo de uma vez. Contra o site publicado, passou à primeira.
   - **Lição:** um valor por omissão com uma função (`fetch=fetch_with_retries`) fica preso à função do momento em que se define, e o `monkeypatch` do módulo já não a troca. Passou a `fetch=None`, e a função escolhe-se dentro da função.
 
+- **2026-11-03 (sessão cloud do Claude Code):** avisos de segunda-feira pelo Telegram.
+  - **Feito:** `combustiveis telegram` (`telegram.py`) monta, para cada pessoa inscrita, uma mensagem com:
+    - a previsão para segunda e a mudança nos postos;
+    - o preço dos postos que segue, com a mudança na semana e a posição entre os postos a 5 km;
+    - o mais barato do seu distrito;
+    - o link para cada posto e para o mapa.
+
+    O `pages.yml` envia-a a seguir à fotografia semanal da DGEG, se ela correu bem. As instruções para criar o bot e inscrever alguém estão em `docs/telegram.md`.
+  - **Decisões:**
+    - Sem servidor, não há inscrição pelo próprio bot: as inscrições ficam num segredo do repositório (`TELEGRAM_SUBSCRIPTIONS`), em JSON. Chega para a família e os amigos; uma inscrição pelo bot precisaria de um serviço sempre ligado.
+    - O passo tem `continue-on-error`: uma falha do Telegram não impede a publicação do site.
+    - Sem os segredos, não envia nada, e o resto corre igual.
+  - **Também:** "distrito de Porto" passou a "distrito do Porto" (e "da Guarda"), também nas páginas por concelho (`of_district`).
+  - **Falta (do José):** criar o bot no @BotFather e os dois segredos (`docs/telegram.md`). Daqui não se chega ao `api.telegram.org`, por isso o envio a sério só se vê no Actions.
+
 ## Plano
 
 1. **Google:** registar o site no Google Search Console e enviar o `sitemap.xml`, para as páginas por concelho aparecerem nas pesquisas.

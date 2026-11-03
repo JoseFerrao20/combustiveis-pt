@@ -19,6 +19,9 @@ segunda-feira. ``--ficheiros PASTA`` usa CSV já descarregados (um por série, `
 ``combustiveis verificar-site --url URL``: confirma que o site publicado tem a página inicial, os
 preços de uma fotografia recente e as outras páginas (o ``pages.yml`` corre-o depois do deploy).
 
+``combustiveis telegram [--enviar]``: os avisos de segunda-feira pelo Telegram (inscrições em
+``TELEGRAM_SUBSCRIPTIONS`` e o token em ``TELEGRAM_BOT_TOKEN``; sem ``--enviar``, só mostra).
+
 ``combustiveis site``: os JSON da página inicial do site (``dashboard/app/public/dados/``), a
 partir dos Parquet que o dbt exporta (corre-se depois do dbt).
 """
@@ -26,6 +29,7 @@ partir dos Parquet que o dbt exporta (corre-se depois do dbt).
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from datetime import date, timedelta
 from pathlib import Path
@@ -40,6 +44,7 @@ from .markets import SERIES, MarketFormatError, MarketValue, read_series, series
 from .parse import FormatError, read_bulletin
 from .site import export_site
 from .source import PAGE_URL, SourceError, fetch, fetch_with_retries, find_history_url
+from .telegram import TelegramError, build_message, read_data, send, subscriptions_from_env
 
 DEFAULT_LANDING = Path("data/landing")
 DEFAULT_DGEG = DEFAULT_LANDING / "dgeg"
@@ -124,6 +129,25 @@ def verify_site(url: str, max_age_days: int, today: date | None = None) -> int:
     return 0
 
 
+def telegram(stations: Path, forecast: Path, deliver: bool) -> int:
+    subscriptions = subscriptions_from_env()
+    if not subscriptions:
+        print("Ninguém inscrito nos avisos (TELEGRAM_SUBSCRIPTIONS vazio): nada a enviar.")
+        return 0
+    snapshot, rows, summary = read_data(stations, forecast)
+    messages = [(s, build_message(s, snapshot, rows, summary)) for s in subscriptions]
+    if not deliver:
+        for subscription, text in messages:
+            print(f"--- para {subscription.chat_id}\n{text}\n")
+        return 0
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    if not token:
+        print("Sem TELEGRAM_BOT_TOKEN: nada enviado.")
+        return 0
+    print(f"Avisos enviados: {send(token, messages)}")
+    return 0
+
+
 def verify_snapshots(directory: Path, max_age_days: int, today: date | None = None) -> int:
     result = check_snapshots(directory, max_age_days, today or date.today())
     message = f"Última fotografia da DGEG: {result.latest}, com {result.stations} postos"
@@ -182,6 +206,12 @@ def main(argv: list[str] | None = None) -> int:
         help="falhar se a fotografia da DGEG no site tiver mais de DIAS dias (por omissão, 8)",
     )
     command.add_argument("--hoje", type=date.fromisoformat, help=argparse.SUPPRESS)
+    command = commands.add_parser("telegram", help="avisos de segunda-feira pelo Telegram")
+    command.add_argument("--postos", type=Path, default=Path("data/stations_latest.parquet"))
+    command.add_argument("--previsao", type=Path, default=Path("data/price_forecast.parquet"))
+    command.add_argument(
+        "--enviar", action="store_true", help="enviar (sem isto, só mostra as mensagens)"
+    )
     command = commands.add_parser("site", help="os JSON da página inicial do site (depois do dbt)")
     command.add_argument("--postos", type=Path, default=Path("data/stations_latest.parquet"))
     command.add_argument("--previsao", type=Path, default=Path("data/price_forecast.parquet"))
@@ -200,6 +230,8 @@ def main(argv: list[str] | None = None) -> int:
             return markets(args.ficheiros, args.destino)
         if args.command == "verificar-site":
             return verify_site(args.url, args.idade_maxima, args.hoje)
+        if args.command == "telegram":
+            return telegram(args.postos, args.previsao, args.enviar)
         if args.command == "site":
             return site(args.postos, args.previsao, args.destino, args.paginas)
         if args.command == "verificar-dgeg":
@@ -215,6 +247,7 @@ def main(argv: list[str] | None = None) -> int:
         OSError,
         duckdb.IOException,
         SiteCheckError,
+        TelegramError,
     ) as exc:
         print(f"erro: {exc}", file=sys.stderr)
         return 1

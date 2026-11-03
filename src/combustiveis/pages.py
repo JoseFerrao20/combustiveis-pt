@@ -89,6 +89,12 @@ def tidy(text: str) -> str:
     return _WORD.sub(word, text)
 
 
+def of_district(name: str) -> str:
+    """'distrito do Porto', 'distrito da Guarda', 'distrito de Braga'."""
+    article = {"Porto": "do", "Guarda": "da"}.get(name, "de")
+    return f"distrito {article} {name}"
+
+
 def _euros(value: float) -> str:
     return f"{value:.3f}".replace(".", ",") + " €"
 
@@ -218,7 +224,7 @@ def _municipality_page(
 <h2>{esc(first.fuel_name)}</h2>
 <p>Média em {esc(municipality)}: <strong>{_euros(first.municipality_avg)}</strong>
 ({first.stations} {"posto" if first.stations == 1 else "postos"}) ·
-distrito de {esc(district)}: {_euros(first.district_avg)} ·
+{esc(of_district(district))}: {_euros(first.district_avg)} ·
 continente: {_euros(first.country_avg)}</p>
 <table>
 <thead><tr><th>Posto</th><th class="num">Preço e atualização</th>\
@@ -240,7 +246,7 @@ continente: {_euros(first.country_avg)}</p>
 {snapshot:%d/%m/%Y} da DGEG.</p>
 <p><a class="botao" href="{root}?concelho={quote(municipality)}">Ver todos no mapa</a></p>
 {"".join(sections)}
-<h2>Outros concelhos do distrito de {esc(district)}</h2>
+<h2>Outros concelhos do {esc(of_district(district))}</h2>
 <p>{others}</p>"""
     title = f"Combustível mais barato em {municipality}"
     description = (
