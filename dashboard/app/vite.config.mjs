@@ -1,9 +1,21 @@
-// As páginas leves do site, fora do Evidence (ADR 0005 e 0006): a inicial, o resumo e os
-// postos acompanhados. Corre depois do build do Evidence e escreve no mesmo build/: o index.html
-// da raiz, resumo/, acompanhados/ e os ficheiros em build/inicio/.
+// O site todo (ADR 0005, 0006 e 0008): páginas estáticas feitas com o Vite e o Svelte, uma por
+// entrada, com o código comum em build/inicio/. app/public/ (ícones, manifesto, service worker,
+// e os JSON e páginas que o `combustiveis site` escreve) vai tal e qual para a raiz do build/.
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+
+const PAGINAS = [
+	'index.html',
+	'resumo/index.html',
+	'acompanhados/index.html',
+	'ilhas/index.html',
+	'analises/index.html',
+	'analises/impostos/index.html',
+	'analises/previsao/index.html',
+	'analises/comparacao/index.html',
+	'analises/metodo/index.html'
+];
 
 export default defineConfig({
 	root: fileURLToPath(new URL('.', import.meta.url)),
@@ -11,16 +23,15 @@ export default defineConfig({
 	plugins: [svelte()],
 	build: {
 		outDir: '../build',
-		// O build do Evidence já lá está: só se junta o index.html e a pasta inicio/.
-		emptyOutDir: false,
+		emptyOutDir: true,
 		assetsDir: 'inicio',
 		rollupOptions: {
-			input: {
-				inicio: fileURLToPath(new URL('index.html', import.meta.url)),
-				resumo: fileURLToPath(new URL('resumo/index.html', import.meta.url)),
-				acompanhados: fileURLToPath(new URL('acompanhados/index.html', import.meta.url)),
-				ilhas: fileURLToPath(new URL('ilhas/index.html', import.meta.url))
-			}
+			input: Object.fromEntries(
+				PAGINAS.map((pagina) => [
+					pagina === 'index.html' ? 'inicio' : pagina.replace('/index.html', '').replace('/', '-'),
+					fileURLToPath(new URL(pagina, import.meta.url))
+				])
+			)
 		}
 	}
 });

@@ -2,13 +2,12 @@
     materialized='external',
     location=env_var('EXPORT_PATH', 'data/road_fuel_prices.parquet'),
 ) }}
--- Combustíveis rodoviários em euros por litro, para o painel (dashboard/). Fica em Parquet
--- porque o Evidence traz um DuckDB mais antigo, que não abre a base de dados do dbt.
+-- Combustíveis rodoviários em euros por litro, para as análises do site (o `combustiveis site`
+-- escreve com ele o dados/boletim.json; ADR 0008).
 --
--- O Evidence descarrega cada fonte inteira em todas as páginas (também na dos postos, que não a
--- usa). Por isso, só vai o histórico que as páginas mostram: todas as semanas de Portugal,
--- Espanha e da média da UE, e a última semana dos outros países (a comparação da página
--- "Portugal e a Europa"). Os valores vão arredondados ao décimo de milésimo de euro.
+-- Só vai o histórico que as páginas mostram: todas as semanas de Portugal, Espanha e da média
+-- da UE, e a última semana dos outros países (a comparação da página "Portugal e a Europa").
+-- Os valores vão arredondados ao décimo de milésimo de euro.
 with latest as (
     select product, max(week) as week
     from {{ ref('fct_fuel_prices') }}

@@ -31,6 +31,8 @@ def _site(**changes: bytes | None) -> dict[str, bytes | None]:
         "resumo/": "<h1>Resumo e estatísticas</h1>".encode(),
         "dados/acompanhados.json": b'{"history": [{"station_id": 1}], "competitors": []}',
         "dados/ilhas.json": b'{"rows": []}',
+        "dados/boletim.json": b'{"portugal": {"columns": ["week"], "rows": [["2026-10-19"]]}}',
+        "analises/impostos/": "<title>Quanto do preço é imposto? | Combustíveis</title>".encode(),
         "ilhas/": "<title>Açores e Madeira | Combustíveis em Portugal</title>".encode(),
         "concelho/": "<h1>Preços por concelho</h1>".encode(),
         "dados-abertos/": b'<a href="postos-historico.csv.gz" download>',
@@ -68,6 +70,7 @@ def test_all_problems_in_one_message() -> None:
             "dados-abertos/": b"<h1>Outra</h1>",
             "sitemap.xml": b"<urlset></urlset>",
             "dados/acompanhados.json": b'{"history": [], "competitors": []}',
+            "dados/boletim.json": b'{"portugal": {"rows": []}}',
         }
     )
     with pytest.raises(SiteCheckError) as error:
@@ -80,6 +83,7 @@ def test_all_problems_in_one_message() -> None:
     assert "dados-abertos/: sem o link" in message
     assert "sitemap.xml sem as páginas por concelho" in message
     assert "dados/acompanhados.json sem postos acompanhados" in message
+    assert "dados/boletim.json sem as semanas de Portugal" in message
 
 
 def test_old_snapshot_and_empty_fuel() -> None:
@@ -104,6 +108,8 @@ def test_broken_json() -> None:
             "dados/acompanhados.json": b"{",
             "dados/ilhas.json": b"[]",
             "ilhas/": b"<h1>Outra</h1>",
+            "dados/boletim.json": b"{}",
+            "analises/impostos/": b"<h1>Outra</h1>",
         }
     )
     with pytest.raises(SiteCheckError) as error:
@@ -113,6 +119,8 @@ def test_broken_json() -> None:
     assert "dados/acompanhados.json inválido" in str(error.value)
     assert "dados/ilhas.json inválido" in str(error.value)
     assert "ilhas/: não tem o título" in str(error.value)
+    assert "dados/boletim.json inválido" in str(error.value)
+    assert "analises/impostos/: não tem o título" in str(error.value)
 
 
 def test_no_fuels_and_broken_fuel_file() -> None:

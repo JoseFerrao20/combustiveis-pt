@@ -76,3 +76,33 @@ export function guardarCombustivel(valor) {
 		// Não fica guardado.
 	}
 }
+
+/** Um { columns, rows } dos JSON (listas pela ordem das colunas), como objetos. */
+export const tabela = ({ columns, rows }) =>
+	rows.map((linha) => Object.fromEntries(columns.map((coluna, i) => [coluna, linha[i]])));
+
+/** "46,5 %" (de 0,465). */
+export const pct = (valor, casas = 1) =>
+	valor == null
+		? '–'
+		: `${(valor * 100).toLocaleString('pt-PT', { minimumFractionDigits: casas, maximumFractionDigits: casas })} %`;
+
+/** "2,10 €" (duas casas, para os eixos dos gráficos de euros). */
+export const euros2 = (valor) =>
+	valor == null ? '–' : `${valor.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+
+/** Os produtos do boletim que se escolhem nas análises, com o nome; guarda o escolhido. */
+export function produtoGuardado() {
+	try {
+		return localStorage.getItem('combustiveis-pt:produto') ?? 'euro95';
+	} catch {
+		return 'euro95';
+	}
+}
+export function guardarProduto(valor) {
+	try {
+		localStorage.setItem('combustiveis-pt:produto', valor);
+	} catch {
+		// Não fica guardado.
+	}
+}

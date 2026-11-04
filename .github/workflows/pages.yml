@@ -76,14 +76,13 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_SUBSCRIPTIONS: ${{ secrets.TELEGRAM_SUBSCRIPTIONS }}
         run: uv run combustiveis telegram --enviar
-      - name: Painel (Evidence e página inicial)
+      - name: Site (Vite)
         working-directory: dashboard
         run: |
           npm ci
-          npm run sources:strict
-          npm run build:strict
-      # O GitHub Pages serve o artefacto em /combustiveis-pt/, o deployment.basePath do
-      # evidence.config.yaml: os ficheiros vão na raiz do artefacto.
+          npm run build
+      # O GitHub Pages serve o artefacto em /combustiveis-pt/, o `base` do app/vite.config.mjs:
+      # os ficheiros vão na raiz do artefacto.
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dashboard/build
@@ -123,7 +122,7 @@ jobs:
         uses: actions/deploy-pages@v5
 
   # Depois de publicar, abre o site como um visitante: a página inicial, os preços de uma
-  # fotografia recente (no máximo 8 dias) com postos, uma página do Evidence, o service worker e
+  # fotografia recente (no máximo 8 dias) com postos, as outras páginas, o service worker e
   # o manifesto. Se falhar, o GitHub manda um email com todos os problemas (o site já está
   # publicado; a falha é um aviso para ir ver).
   verificar:

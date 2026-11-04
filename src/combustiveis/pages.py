@@ -3,7 +3,7 @@
 Uma página por concelho, com os postos mais baratos de cada combustível (com a data e a hora de
 cada preço, como pedem os termos da DGEG) e as médias do concelho, do distrito e do país; uma
 página com todos os concelhos, por distrito; e o ``sitemap.xml`` do site. São HTML simples, sem
-JavaScript além do tema (o estilo está em ``dashboard/static/concelho/estilo.css``), e o botão
+JavaScript além do tema (o estilo está em ``dashboard/app/public/estilos/concelho.css``), e o botão
 "Ver no mapa" abre a página inicial já no concelho
 (``?concelho=``) ou no posto (``?posto=``).
 """
@@ -25,8 +25,8 @@ import duckdb
 SITE_URL = "https://joseferrao20.github.io/combustiveis-pt/"
 # Quantos postos de cada combustível aparecem em cada página.
 TOP = 10
-# As outras páginas, para o sitemap (a inicial e as por concelho juntam-se a estas).
-EVIDENCE_PAGES = (
+# As outras páginas do site, para o sitemap (a inicial e as por concelho juntam-se a estas).
+SITE_PAGES = (
     "resumo/",
     "acompanhados/",
     "ilhas/",
@@ -161,7 +161,7 @@ def _page(title: str, description: str, path: str, root: str, body: str) -> str:
 <meta name="theme-color" content="#2563eb">
 <link rel="icon" href="{root}favicon.ico" sizes="32x32">
 <link rel="icon" href="{root}icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="{root}concelho/estilo.css">
+<link rel="stylesheet" href="{root}estilos/concelho.css">
 {_THEME}
 </head>
 <body>
@@ -278,7 +278,7 @@ def write_pages(stations: Path, target: Path, snapshot: date) -> int:
         by_district[district].append((municipality, page_slug))
 
     # A pasta é toda gerada: começa vazia, para não ficarem páginas de concelhos sem postos (o
-    # estilo está em dashboard/static/concelho/, à parte).
+    # estilo está em dashboard/app/public/estilos/, à parte).
     folder = target / "concelho"
     if folder.exists():
         shutil.rmtree(folder)
@@ -318,7 +318,7 @@ def write_pages(stations: Path, target: Path, snapshot: date) -> int:
     )
     paths = [
         "",
-        *EVIDENCE_PAGES,
+        *SITE_PAGES,
         "dados-abertos/",
         "concelho/",
         *(f"concelho/{s}/" for s in sorted(slugs.values())),

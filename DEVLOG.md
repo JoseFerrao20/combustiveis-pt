@@ -395,6 +395,19 @@
     - **Gráficos:** a primeira série desenha-se por cima, porque o posto acompanhado ficava tapado pelo "mais barato a 5 km" quando é ele o mais barato.
   - **Decisão:** a vigilância já existe em cada fonte (o boletim no `ingest`, a DGEG no `dgeg.yml` e no trabalho `vigilancia`, as ilhas no `ilhas.yml`, o site no `verificar`). Faltava dizer o que fazer com cada aviso, e não mais um workflow.
 
+- **2026-11-04 (sessão cloud do Claude Code):** o site sem o Evidence.
+  - **Feito:**
+    - **As cinco páginas das análises passam a Svelte** (`app/analises/…`): o índice com os cartões, os impostos (cartões, a divisão do preço, as áreas empilhadas desde 2005 e a parte que é imposto), a previsão (a próxima, a comparação com os postos, o acerto e as barras dos últimos 6 meses), a comparação com a Europa (Portugal, Espanha e a UE desde 2005, e os países na última semana) e o método.
+    - **`combustiveis site`** escreve também `dados/boletim.json` (uns 90 KB comprimidos) e `dados/previsao.json`, e o `resumo.json` passa a ter o número de postos. O `verificar-site` confirma o boletim e a página dos impostos.
+    - **Gráficos:** o `Grafico.svelte` faz também áreas empilhadas e séries longas (rótulos por ano e a tabela para os leitores de ecrã com a média de cada ano); o `GraficoBarras.svelte` é novo.
+    - **O Evidence sai de vez:** as páginas, as fontes, os patches, o `evidence.config.yaml`. O `npm run build` é só o Vite (uns 6 s), o `package-lock.json` passa de 938 pacotes para 92, e o CI deixa de precisar de `extensions.duckdb.org`. O `static/` passou para `app/public/`, o service worker guarda também as análises, e um teste confirma que nenhuma página descarrega o DuckDB.
+    - **Capturas das análises** refeitas com o `capturas.cjs`.
+  - **Decisões:** ADR 0008 (a 0002 fica substituída). A chave do tema continua a ser `evidence-theme`, para ninguém perder a escolha.
+  - **Lições:**
+    - No Svelte, uma função chamada no template que lê variáveis reativas (aqui, as escalas do gráfico) não se repete quando elas mudam: as escalas vão como argumentos, senão o gráfico não acompanhava a largura do ecrã.
+    - O `EURO` dos testes é uma expressão regular: `includes` não a aceita.
+    - Um modelo exportado para Parquet que fica vazio sai com uma linha só de nulos (o dbt-duckdb guarda assim os tipos): antes da primeira leitura das ilhas, a página recebia essa linha. O `export_islands` passou a tirá-la, com um teste.
+
 ## Plano
 
 O projeto está concluído: o que se segue é opcional ou manutenção ([docs/manutencao.md](docs/manutencao.md)).
@@ -404,4 +417,4 @@ O projeto está concluído: o que se segue é opcional ou manutenção ([docs/ma
 3. **Açores e Madeira:** depois do merge, correr o `ilhas.yml` à mão (Actions → Açores e Madeira → Run workflow) para a primeira leitura.
 4. **Ver como a previsão se sai nas próximas semanas** (a de 2/11 falhou no gasóleo: −6,4 cêntimos previstos, +1,3 nos postos; ver com o boletim de quinta-feira); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
 5. **Com 4 a 6 semanas de fotografias semanais:** se as marcas passam as subidas e descidas do boletim na mesma semana, e se os postos isolados demoram mais a baixar.
-6. **Talvez:** tirar as análises do Evidence (o passo que falta do ADR 0006), para o site ficar todo leve e sem o DuckDB-WASM; avisar a Comissão dos erros nas tabelas.
+6. **Talvez:** avisar a Comissão dos erros nas tabelas do boletim.

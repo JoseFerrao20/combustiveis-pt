@@ -1,6 +1,6 @@
 <!--
-	A página inicial do site: o mapa e a tabela dos postos (o mesmo componente das páginas do
-	Evidence), com os filtros do combustível, do distrito e do concelho. Lê os JSON que o
+	A página inicial do site: o mapa e a tabela dos postos (components/MapaPostos.svelte), com os
+	filtros do combustível, do distrito e do concelho. Lê os JSON que o
 	`combustiveis site` escreve em dados/: o resumo e os postos do combustível escolhido.
 -->
 <script>
@@ -218,7 +218,7 @@
 		font-size: 0.875rem;
 		margin-bottom: 0.5rem;
 	}
-	/* Como na faixa da previsão das páginas do Evidence (pages/+layout.svelte), numa linha. */
+	/* A previsão, numa linha. */
 	.previsao-segunda {
 		border-left: 4px solid #d97706;
 		background: rgba(217, 119, 6, 0.08);

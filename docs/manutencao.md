@@ -53,7 +53,7 @@ O passo "Avisos pelo Telegram" não faz falhar o site (`continue-on-error`): ver
 - **O GitHub desliga os agendamentos** de um repositório público sem atividade durante 60 dias. Se o site deixar de se atualizar sem nenhum email, voltar a ligá-los: Actions → cada workflow → "Enable workflow".
 - **A previsão de segunda-feira** usa coeficientes ajustados com 2012–2023. Uma vez por ano, ou se o erro médio na página da previsão subir muito, correr `uv run python scripts/fit_forecast.py` com os dados reais e, se o erro descer, `--gravar` num PR.
 - **Versões:**
-  - o Evidence (40.1.8) já não recebe novidades e fica fixado, com os patches em `dashboard/patches/`;
+  - o Vite 5 e o Svelte 4 ficam fixados no `package.json`; mudar de versão grande é um PR à parte, com os testes do site;
   - o `@playwright/test` (1.64.1) segue a imagem dos runners do GitHub: quando o CI falhar ao instalar o Chromium, subir a versão;
   - o resto atualiza-se quando for preciso, num PR com o CI verde.
 - **Capturas do README:** quando o aspeto mudar, gerar outra vez as das páginas leves com o painel a correr e os dados reais: `node scripts/capturas.cjs http://localhost:8765/combustiveis-pt/`, na pasta `dashboard/`.

@@ -1,10 +1,10 @@
-// Gera os ícones do site (static/*.png e static/favicon.ico) a partir de static/icon.svg,
+// Gera os ícones do site (app/public/*.png e app/public/favicon.ico) a partir de app/public/icon.svg,
 // com o Chromium do Playwright: node scripts/icons.cjs (pasta dashboard/).
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
 
-const STATIC = path.join(__dirname, '..', 'static');
+const STATIC = path.join(__dirname, '..', 'app', 'public');
 const svg = fs.readFileSync(path.join(STATIC, 'icon.svg'), 'utf8');
 
 /** Um ICO com um só PNG lá dentro (o formato aceita PNG desde o Windows Vista). */

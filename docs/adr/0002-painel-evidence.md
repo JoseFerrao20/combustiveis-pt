@@ -1,6 +1,6 @@
 # 0002. Painel: Evidence open source, com os dados em Parquet
 
-- **Estado:** aceite
+- **Estado:** substituída pela [0008](0008-site-sem-evidence.md) (o site deixou o Evidence)
 - **Data:** 2026-10-26
 
 ## Contexto

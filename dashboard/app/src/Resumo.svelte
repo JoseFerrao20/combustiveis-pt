@@ -1,5 +1,5 @@
 <!--
-	O resumo e as estatísticas dos postos (antes uma página do Evidence, pages/resumo.md): as
+	O resumo e as estatísticas dos postos (antes uma página do Evidence, ADR 0006): as
 	contas fazem-se no browser, com o mesmo JSON do combustível da página inicial
 	(dados/postos-<combustível>.json) e a evolução (dados/evolucao.json). ADR 0006.
 -->

@@ -50,12 +50,11 @@ jobs:
           mkdir -p data/landing/ilhas && cp tests/fixtures/ilhas/precos.csv data/landing/ilhas/
           uv run dbt build --project-dir transform --profiles-dir transform
           uv run combustiveis site
-      - name: Painel (Evidence e página inicial)
+      - name: Site (Vite)
         working-directory: dashboard
         run: |
           npm ci
-          npm run sources:strict
-          npm run build:strict
+          npm run build
       # Abre cada página do painel construído com o Playwright: sem erros e com números.
       - name: Testes do painel (Playwright)
         working-directory: dashboard

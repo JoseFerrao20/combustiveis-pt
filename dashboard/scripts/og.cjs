@@ -1,11 +1,11 @@
-// Gera static/og.png (1200×630), a imagem que aparece quando se partilha o link (WhatsApp,
+// Gera app/public/og.png (1200×630), a imagem que aparece quando se partilha o link (WhatsApp,
 // Facebook, etc.): o ícone, o título e o mapa dos postos. Precisa do painel a correr:
 //   node scripts/og.cjs http://localhost:8765/combustiveis-pt/postos/   (pasta dashboard/)
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
 
-const STATIC = path.join(__dirname, '..', 'static');
+const STATIC = path.join(__dirname, '..', 'app', 'public');
 const url = process.argv[2];
 if (!url) throw new Error('Falta o endereço da página dos postos.');
 

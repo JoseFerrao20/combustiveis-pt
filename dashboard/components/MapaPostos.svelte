@@ -1,8 +1,7 @@
 <!--
 	Mapa dos postos com a tabela dos que se veem, do mais barato para o mais caro. A tabela
-	acompanha o mapa: ao aproximar ou arrastar, fica só com os postos dentro do mapa. Os
-	componentes de mapa do Evidence não dão os limites do mapa à página, por isso este usa o
-	Leaflet diretamente (já vem com o Evidence), com os mosaicos do OpenStreetMap.
+	acompanha o mapa: ao aproximar ou arrastar, fica só com os postos dentro do mapa. Usa o
+	Leaflet, com os mosaicos do OpenStreetMap.
 
 	"Perto de mim" usa a localização do browser (só depois de a pessoa autorizar; a posição
 	fica no telemóvel) para centrar o mapa e mostrar a distância de cada posto. "Ir" abre o
@@ -33,7 +32,7 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
 
-	/** Resultado de uma consulta do Evidence (um store com as linhas). */
+	/** As linhas dos postos (um store, que a página inicial preenche com o JSON do combustível). */
 	export let data;
 	export let height = 520;
 	/** Linhas da tabela de cada vez; "Mostrar mais" junta outras tantas. */
@@ -500,7 +499,7 @@
 		return `${verb} ${text.slice(2)} cêntimos${since ? ` desde ${day(since)}` : ''}`;
 	}
 
-	/** Uma data, ou null: o Evidence pode dar uma data vazia como 1/1/1970. */
+	/** Uma data, ou null (uma data vazia pode vir como 1/1/1970). */
 	function dateOrNull(value) {
 		if (value == null) return null;
 		const date = value instanceof Date ? value : new Date(value);
