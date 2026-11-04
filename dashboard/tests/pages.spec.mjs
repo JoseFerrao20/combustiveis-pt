@@ -46,11 +46,18 @@ for (const [path, title] of PAGES) {
 	});
 }
 
-test('a página dos impostos mostra o preço da última semana', async ({ page }) => {
+test('a página dos impostos mostra o preço da última semana e a divisão', async ({ page }) => {
 	await page.goto('analises/impostos/');
 	await expect(page.locator('main')).toContainText('Preço por litro');
 	await expect(page.locator('main')).toContainText(EURO);
 	await expect(page.locator('main')).toContainText('Última descarga do boletim');
+	// As três partes somam o preço (a última linha da tabela).
+	const valores = (await page.locator('table.tabela td.num, table.tabela th.num').allInnerTexts())
+		.filter((t) => EURO.test(t))
+		.map((t) => Number(t.replace(/[^\d,]/g, '').replace(',', '.')));
+	expect(valores).toHaveLength(4);
+	expect(Math.abs(valores[0] + valores[1] + valores[2] - valores[3])).toBeLessThan(0.0015);
+	await expect(page.locator('figure.grafico')).toHaveCount(2);
 });
 
 test('a comparação tem Portugal na tabela dos países', async ({ page }) => {
@@ -77,16 +84,6 @@ test('o resumo mostra preços e o filtro de distrito reduz a lista', async ({ pa
 	await page.getByRole('combobox', { name: 'Concelho' }).selectOption({ index: 1 });
 	await expect.poll(contar).toBeGreaterThan(0);
 	expect(errors).toEqual([]);
-});
-
-test('o resumo e os postos acompanhados não descarregam o Evidence nem o DuckDB', async ({ page }) => {
-	const pedidos = [];
-	page.on('request', (request) => pedidos.push(request.url()));
-	await page.goto('resumo/');
-	await expect(page.locator('.cartao').first()).toBeVisible();
-	await page.goto('acompanhados/');
-	await expect(page.locator('main')).toContainText(/\dº de \d+/);
-	expect(pedidos.filter((url) => /\.wasm|\.parquet|\/_app\//.test(url))).toEqual([]);
 });
 
 test('a tabela por baixo do mapa vai do mais barato para o mais caro e segue o mapa', async ({ page }) => {
@@ -443,7 +440,7 @@ test('a página inicial fica leve (limite de peso)', async ({ page }) => {
 	expect(tamanhos.dados, `dados: ${tamanhos.dados} bytes`).toBeLessThan(LIMITE_DADOS);
 });
 
-test('a página inicial não descarrega o Evidence nem o DuckDB', async ({ page }) => {
+test('a página inicial só descarrega os preços do combustível escolhido', async ({ page }) => {
 	const pedidos = [];
 	page.on('request', (request) => pedidos.push(request.url()));
 	await page.goto('');
@@ -478,7 +475,7 @@ test('sem rede, a página inicial abre com os últimos preços guardados', async
 	await context.setOffline(false);
 });
 
-test('o "Início" das páginas do Evidence leva à página inicial', async ({ page }) => {
+test('o nome do site, no cabeçalho, leva à página inicial', async ({ page }) => {
 	await page.goto('analises/');
 	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 	await page.getByRole('link', { name: 'Combustíveis em Portugal' }).first().click();
@@ -517,14 +514,38 @@ test('os endereços antigos levam às páginas novas', async ({ page }) => {
 });
 
 test('a interface está em português', async ({ page }) => {
-	await page.goto('');
-	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
-	await page.goto('resumo/');
-	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
+	for (const [path] of PAGES) {
+		await page.goto(path);
+		await expect(page.locator('html'), path).toHaveAttribute('lang', 'pt-PT');
+	}
+});
+
+test('nenhuma página descarrega o DuckDB nem Parquet (o site não usa o Evidence)', async ({ page }) => {
+	const pedidos = [];
+	page.on('request', (request) => pedidos.push(request.url()));
+	for (const [path, title] of PAGES) {
+		await page.goto(path);
+		await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+	}
+	await page.waitForLoadState('networkidle');
+	expect(pedidos.filter((url) => /\.wasm|\.parquet|\.arrow|\/_app\//.test(url))).toEqual([]);
+});
+
+test('as análises abrem pelos cartões, com o número principal de cada uma', async ({ page }) => {
+	const errors = watchErrors(page);
 	await page.goto('analises/');
-	await expect(page.locator('html')).toHaveAttribute('lang', 'pt-PT');
-	await expect(page.getByText('Feito com o Evidence')).toBeAttached();
-	await expect(page.getByText('Built with Evidence')).toHaveCount(0);
+	const cartoes = page.locator('a.cartao');
+	await expect(cartoes).toHaveCount(4);
+	await expect(cartoes.filter({ hasText: 'Quanto do preço é imposto?' }).locator('.cartao-numero')).toHaveText(/^\d+ %$/);
+	await expect(cartoes.filter({ hasText: 'Como se calcula' }).locator('.cartao-numero')).toHaveText(/^\d[\d\s]* semanas$/);
+	await cartoes.filter({ hasText: 'Portugal e a Europa' }).click();
+	await expect(page.getByRole('heading', { level: 1, name: 'Portugal e a Europa' })).toBeVisible();
+	// Outro combustível muda a tabela dos países.
+	const primeiro = page.locator('table.tabela tbody tr').first();
+	const antes = await primeiro.innerText();
+	await page.getByRole('combobox', { name: 'Combustível' }).selectOption('diesel');
+	await expect(primeiro).not.toHaveText(antes);
+	expect(errors).toEqual([]);
 });
 
 test('a previsão para segunda-feira aparece na página inicial e na sua página', async ({ page }) => {

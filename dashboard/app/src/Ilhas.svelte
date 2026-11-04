@@ -190,7 +190,7 @@
 			{/if}
 		</details>
 		<p>
-			Os dados também estão nos <a href="{BASE}dados-abertos/" rel="external">dados abertos</a>, em CSV.
+			Os dados também estão nos <a href="{BASE}dados-abertos/">dados abertos</a>, em CSV.
 		</p>
 	{/if}
 

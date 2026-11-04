@@ -1,16 +1,17 @@
-"""Os dados da página inicial do site (``dashboard/app/``), em JSON pequenos.
+"""Os dados das páginas do site (``dashboard/app/``), em JSON pequenos (ADR 0005, 0006 e 0008).
 
-A página inicial não usa o Evidence: o Evidence descarrega o DuckDB-WASM (uns 8 MB) e todas as
-fontes em cada página. Esta lê só o JSON do combustível escolhido, feito aqui a partir dos
-Parquet que o dbt exporta para o painel:
+Cada página lê só o JSON de que precisa, feito aqui a partir dos Parquet que o dbt exporta:
 
 - ``postos-<combustível>.json``: um posto por linha (só os preços atualizados nos últimos 30
   dias e com coordenadas, como no mapa do painel), em listas pela ordem de ``COLUMNS``;
 - ``resumo.json``: o dia da fotografia, a última atualização recebida, os combustíveis, os
-  distritos com os concelhos, e o texto da previsão para segunda-feira.
+  distritos com os concelhos, o número de postos e o texto da previsão para segunda-feira;
+- ``evolucao.json`` e ``acompanhados.json``: o resumo e os postos acompanhados;
+- ``ilhas.json``: os preços máximos dos Açores e da Madeira;
+- ``boletim.json`` e ``previsao.json``: as análises.
 
-As horas saem como ``AAAA-MM-DDTHH:MM:SSZ``, como o Evidence as dá ao componente do mapa (a hora
-de Lisboa lida como UTC, que o componente mostra com os métodos ``getUTC*``).
+As horas saem como ``AAAA-MM-DDTHH:MM:SSZ`` (a hora de Lisboa escrita como UTC, que as páginas
+mostram com os métodos ``getUTC*``).
 """
 
 from __future__ import annotations
@@ -257,6 +258,9 @@ def export_site(
                 {"fuel": fuel, "name": name, "stations": counts[fuel]} for fuel, name in fuels
             ],
             "districts": districts,
+            "stations_total": db.execute(
+                "select count(distinct station_id) from read_parquet(?)", [str(stations)]
+            ).fetchall()[0][0],
             "forecast": text,
             "forecast_summary": forecast_summary(forecast_rows),
         },
@@ -282,3 +286,101 @@ def export_islands(islands: Path, target: Path) -> int:
     )
     _write_json(target / "ilhas.json", {"rows": rows})
     return len(rows)
+
+
+# As colunas dos JSON das análises (listas pela ordem destas colunas, para ficarem pequenos).
+PORTUGAL_COLUMNS = (
+    "week",
+    "product",
+    "price",
+    "price_without_tax",
+    "excise_and_other_taxes",
+    "vat_amount",
+    "taxes_total",
+    "tax_share",
+)
+COUNTRY_COLUMNS = (
+    "country_code",
+    "country",
+    "price",
+    "price_without_tax",
+    "taxes_total",
+    "tax_share",
+)
+
+
+def _table(db: duckdb.DuckDBPyConnection, query: str, params: list[Any]) -> list[list[Any]]:
+    return [[_json_value(value) for value in row] for row in db.execute(query, params).fetchall()]
+
+
+def export_analyses(prices: Path, forecast: Path, manifest: Path | None, target: Path) -> int:
+    """Os JSON das páginas das análises (ADR 0008), a partir do que o dbt exporta:
+
+    - ``boletim.json``: o Weekly Oil Bulletin em € por litro. Portugal com a divisão do preço
+      em todas as semanas; Espanha e a média da UE com o preço; e todos os países na última
+      semana de cada combustível. Com a data da última descarga do boletim (``manifest.json``).
+    - ``previsao.json``: a previsão de segunda-feira de todas as semanas desde 2024.
+
+    Devolve o número de semanas do boletim.
+    """
+    db = duckdb.connect()
+    source = "read_parquet(?)"
+    products = _table(
+        db,
+        f"select distinct product, fuel from {source} "  # noqa: S608 (consulta fixa)
+        "order by product = 'lpg', product = 'diesel'",
+        [str(prices)],
+    )
+    portugal = _table(
+        db,
+        f"select {', '.join(PORTUGAL_COLUMNS)} from {source} "  # noqa: S608 (colunas fixas)
+        "where country_code = 'PT' order by product, week",
+        [str(prices)],
+    )
+    neighbours = _table(
+        db,
+        f"select week, product, country_code, price from {source} "  # noqa: S608 (fixa)
+        "where country_code in ('ES', 'EU') order by product, country_code, week",
+        [str(prices)],
+    )
+    latest = _table(
+        db,
+        f"""
+        select product, week, {", ".join(COUNTRY_COLUMNS)}
+        from {source} as prices
+        where week = (select max(week) from {source} where product = prices.product)
+            and not is_average
+        order by product, price desc
+        """,  # noqa: S608 (colunas fixas)
+        [str(prices), str(prices)],
+    )
+    countries = dict(
+        db.execute(
+            f"select distinct country_code, country from {source}",  # noqa: S608 (fixa)
+            [str(prices)],
+        ).fetchall()
+    )
+    downloaded_at = None
+    if manifest is not None and manifest.exists():
+        downloaded_at = json.loads(manifest.read_text("utf-8")).get("downloaded_at")
+    weeks = sorted({row[0] for row in portugal})
+    _write_json(
+        target / "boletim.json",
+        {
+            "downloaded_at": downloaded_at,
+            "weeks": len(weeks),
+            "first_week": weeks[0] if weeks else None,
+            "last_week": weeks[-1] if weeks else None,
+            "products": [{"product": p, "name": n} for p, n in products],
+            "countries": countries,
+            "portugal": {"columns": PORTUGAL_COLUMNS, "rows": portugal},
+            "neighbours": {
+                "columns": ("week", "product", "country_code", "price"),
+                "rows": neighbours,
+            },
+            "latest": {"columns": ("product", "week", *COUNTRY_COLUMNS), "rows": latest},
+        },
+    )
+    rows = _rows(db, f"select * from {source} order by target_week, product", [str(forecast)])  # noqa: S608
+    _write_json(target / "previsao.json", {"rows": rows})
+    return len(weeks)

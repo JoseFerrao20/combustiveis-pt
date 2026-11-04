@@ -48,7 +48,13 @@ from .live import SiteCheckError, check_site
 from .markets import SERIES, MarketFormatError, MarketValue, read_series, series_url
 from .opendata import export_open_data
 from .parse import FormatError, read_bulletin
-from .site import export_history, export_islands, export_site, export_tracked
+from .site import (
+    export_analyses,
+    export_history,
+    export_islands,
+    export_site,
+    export_tracked,
+)
 from .source import PAGE_URL, SourceError, fetch, fetch_with_retries, find_history_url
 from .telegram import TelegramError, build_message, read_data, send, subscriptions_from_env
 
@@ -128,8 +134,12 @@ def site(
     warehouse: Path | None = None,
     extras: tuple[Path, Path, Path] | None = None,
     islands_prices: Path | None = None,
+    bulletin: Path | None = None,
 ) -> int:
     result = export_site(stations, forecast, target, pages)
+    if bulletin is not None and bulletin.exists():
+        weeks = export_analyses(bulletin, forecast, DEFAULT_LANDING / "manifest.json", target)
+        print(f"Análises: {weeks} semanas do boletim em {target}/boletim.json e previsao.json")
     if islands_prices is not None and islands_prices.exists():
         count = export_islands(islands_prices, target)
         print(f"Açores e Madeira: {count} preços máximos em {target}/ilhas.json")
@@ -326,6 +336,12 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("data/island_prices.parquet"),
         help="os preços máximos dos Açores e da Madeira (sem o ficheiro, não escreve)",
     )
+    command.add_argument(
+        "--boletim",
+        type=Path,
+        default=Path("data/road_fuel_prices.parquet"),
+        help="o boletim europeu em € por litro, para as análises (sem o ficheiro, não escreve)",
+    )
     args = parser.parse_args(argv)
     try:
         if args.command == "dgeg":
@@ -346,6 +362,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.armazem,
                 extras,
                 args.ilhas,
+                args.boletim,
             )
         if args.command == "ilhas":
             return update_islands(args.pasta, args.desde, args.hoje)

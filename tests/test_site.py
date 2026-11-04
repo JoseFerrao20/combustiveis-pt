@@ -8,6 +8,7 @@ import pytest
 from combustiveis import __main__ as cli
 from combustiveis.site import (
     COLUMNS,
+    export_analyses,
     export_history,
     export_site,
     export_tracked,
@@ -90,6 +91,7 @@ def test_the_summary_has_the_fuels_districts_and_forecast(
         {"fuel": "gasoleo", "name": "Gasóleo", "stations": 2},
     ]
     assert summary["districts"] == {"Lisboa": ["Lisboa"], "Porto": ["Maia", "Porto"]}
+    assert summary["stations_total"] == 4
     assert summary["forecast"].startswith("Previsão para segunda-feira, 02/11: Gasolina 95")
     assert summary["forecast_summary"] == {
         "week": "2026-11-02",
@@ -202,3 +204,49 @@ def test_tracked_has_the_history_and_the_current_competitors(tmp_path: Path) -> 
     assert [(r["competitor_id"], r["price"], r["distance_km"]) for r in data["competitors"]] == [
         (7, 1.85, 1.23)
     ]
+
+
+def test_analyses_have_portugal_neighbours_and_the_latest_week(tmp_path: Path) -> None:
+    prices = _parquet(
+        tmp_path,
+        "boletim.parquet",
+        """
+        select * from (values
+            (date '2026-10-12', 'PT', 'Portugal', false, 'euro95', 'Gasolina 95', 2.05, 1.10,
+             0.57, 0.38, 0.95, 0.23, 0.4634),
+            (date '2026-10-19', 'PT', 'Portugal', false, 'euro95', 'Gasolina 95', 2.099, 1.122,
+             0.585, 0.392, 0.977, 0.23, 0.4655),
+            (date '2026-10-19', 'ES', 'Espanha', false, 'euro95', 'Gasolina 95', 1.781, 1.199,
+             0.273, 0.309, 0.582, 0.21, 0.3268),
+            (date '2026-10-19', 'EU', 'União Europeia (média)', true, 'euro95', 'Gasolina 95',
+             1.95, 1.1, 0.5, 0.35, 0.85, 0.2, 0.43),
+            (date '2026-10-19', 'DK', 'Dinamarca', false, 'euro95', 'Gasolina 95', 2.605, 1.366,
+             0.718, 0.521, 1.239, 0.25, 0.4756),
+            (date '2026-10-19', 'PT', 'Portugal', false, 'diesel', 'Gasóleo', 2.20, 1.30,
+             0.49, 0.41, 0.90, 0.23, 0.409)
+        ) as t(week, country_code, country, is_average, product, fuel, price, price_without_tax,
+               excise_and_other_taxes, vat_amount, taxes_total, vat_rate, tax_share)
+        """,
+    )
+    forecast = _parquet(tmp_path, "previsao.parquet", FORECAST)
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text('{"downloaded_at": "2026-10-28T17:13:16+00:00"}', "utf-8")
+
+    assert export_analyses(prices, forecast, manifest, tmp_path) == 2
+    bulletin = json.loads((tmp_path / "boletim.json").read_text("utf-8"))
+    assert bulletin["downloaded_at"] == "2026-10-28T17:13:16+00:00"
+    assert (bulletin["first_week"], bulletin["last_week"]) == ("2026-10-12", "2026-10-19")
+    # A gasolina antes do gasóleo, como nos filtros.
+    assert [p["product"] for p in bulletin["products"]] == ["euro95", "diesel"]
+    portugal = [dict(zip(bulletin["portugal"]["columns"], r, strict=True))
+                for r in bulletin["portugal"]["rows"]]  # fmt: skip
+    assert portugal[-1]["tax_share"] == 0.4655
+    assert {r[2] for r in bulletin["neighbours"]["rows"]} == {"ES", "EU"}
+    # A última semana: só países (sem as médias), do mais caro para o mais barato.
+    latest = [r for r in bulletin["latest"]["rows"] if r[0] == "euro95"]
+    assert [r[2] for r in latest] == ["DK", "PT", "ES"]
+    forecast_rows = json.loads((tmp_path / "previsao.json").read_text("utf-8"))["rows"]
+    assert forecast_rows[0]["target_week"] == "2026-10-26"
+    # Sem o manifesto, sem a data da descarga.
+    export_analyses(prices, forecast, tmp_path / "nada.json", tmp_path)
+    assert json.loads((tmp_path / "boletim.json").read_text("utf-8"))["downloaded_at"] is None

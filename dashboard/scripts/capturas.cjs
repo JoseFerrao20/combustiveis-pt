@@ -2,7 +2,9 @@
 // dados reais (tema claro):
 //   node scripts/capturas.cjs http://localhost:8765/combustiveis-pt/   (pasta dashboard/)
 //
-// - painel-resumo.png, painel-acompanhados.png e painel-ilhas.png: o computador, 1280×860;
+// - painel-resumo.png, painel-acompanhados.png, painel-ilhas.png e as análises
+//   (painel-analises.png, painel-impostos.png, painel-previsao.png, painel-comparacao.png): o
+//   computador, 1280×860;
 // - painel-telemovel-paginas.png: as três páginas lado a lado num telemóvel (390×844).
 const fs = require('fs');
 const path = require('path');
@@ -12,15 +14,20 @@ const IMAGES = path.join(__dirname, '..', '..', 'docs', 'images');
 const base = process.argv[2];
 if (!base) throw new Error('Falta o endereço do painel (…/combustiveis-pt/).');
 
+// As três primeiras vão também para a imagem do telemóvel.
 const PAGINAS = [
 	['resumo/', 'painel-resumo.png'],
 	['acompanhados/', 'painel-acompanhados.png'],
-	['ilhas/', 'painel-ilhas.png']
+	['ilhas/', 'painel-ilhas.png'],
+	['analises/', 'painel-analises.png'],
+	['analises/impostos/', 'painel-impostos.png'],
+	['analises/previsao/', 'painel-previsao.png'],
+	['analises/comparacao/', 'painel-comparacao.png']
 ];
 
 async function abrir(page, caminho) {
 	await page.goto(new URL(caminho, base).href, { waitUntil: 'networkidle' });
-	await page.locator('.cartao').first().waitFor();
+	await page.locator('.cartao, figure').first().waitFor();
 	// O mapa dos postos acompanhados: os mosaicos e os pontos.
 	await page.waitForTimeout(1500);
 }
@@ -43,7 +50,7 @@ async function abrir(page, caminho) {
 		colorScheme: 'light'
 	});
 	const imagens = [];
-	for (const [caminho] of PAGINAS) {
+	for (const [caminho] of PAGINAS.slice(0, 3)) {
 		await abrir(telemovel, caminho);
 		// Logo abaixo do título, para se ver o que interessa (os cartões).
 		await telemovel.evaluate(() => {

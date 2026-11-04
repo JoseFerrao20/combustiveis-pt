@@ -2,9 +2,9 @@
 
 Abre o site como um visitante e confirma o que tem de estar lá: a página inicial (a de
 ``dashboard/app/``), os preços em ``dados/`` com uma fotografia recente e com postos, o JSON do
-primeiro combustível com os postos que o resumo anuncia, uma página do Evidence, o service worker,
-o manifesto, a página dos concelhos e o ``sitemap.xml``. Junta todos os problemas numa só
-mensagem, para o email do GitHub dizer tudo.
+primeiro combustível com os postos que o resumo anuncia, as outras páginas e os seus dados, o
+service worker, o manifesto, a página dos concelhos e o ``sitemap.xml``. Junta todos os
+problemas numa só mensagem, para o email do GitHub dizer tudo.
 """
 
 from __future__ import annotations
@@ -113,6 +113,16 @@ def check_site(
     page = _text(fetch, base + "ilhas/", problems)
     if page is not None and "Açores e Madeira" not in page:
         problems.append(f"{base}ilhas/: não tem o título da página")
+    bulletin = _text(fetch, base + "dados/boletim.json", problems)
+    if bulletin is not None:
+        try:
+            if not json.loads(bulletin)["portugal"]["rows"]:
+                problems.append("dados/boletim.json sem as semanas de Portugal")
+        except (ValueError, KeyError, TypeError) as exc:
+            problems.append(f"dados/boletim.json inválido: {exc}")
+    page = _text(fetch, base + "analises/impostos/", problems)
+    if page is not None and "Quanto do preço é imposto?" not in page:
+        problems.append(f"{base}analises/impostos/: não tem o título da página")
     abertos = _text(fetch, base + "dados-abertos/", problems)
     if abertos is not None and "postos-historico.csv.gz" not in abertos:
         problems.append(f"{base}dados-abertos/: sem o link para o histórico dos postos")

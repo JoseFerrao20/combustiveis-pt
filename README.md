@@ -46,7 +46,7 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 
 ![Análises: quatro cartões, com 47 % de impostos no preço da gasolina 95, a previsão para segunda-feira (▼ 1,4 c) e o erro médio, a diferença para Espanha e as semanas de dados](docs/images/painel-analises.png)
 
-![Análises, "Previsão para segunda-feira": a mudança prevista para a gasolina e o gasóleo, o erro médio nas 147 semanas de teste e os gráficos do previsto contra o real](docs/images/painel-previsao.png)
+![Análises, "Previsão para segunda-feira": a mudança prevista para a gasolina e o gasóleo na próxima segunda-feira e a comparação com a mudança nos postos](docs/images/painel-previsao.png)
 
 ![Análises, "Quanto do preço é imposto?": preço da gasolina 95 em Portugal, dividido em produto, ISP e outros impostos e IVA, e a evolução desde 2005](docs/images/painel-impostos.png)
 
@@ -70,11 +70,11 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **SQL a fazer o trabalho pesado** (dbt com DuckDB): o imposto em vigor em cada semana com `ASOF JOIN`; os concorrentes a 2 e 5 km de cada posto com a fórmula de haversine, sem extensões; as mudanças diárias de cada posto com funções de janela.
 - **Erros da fonte investigados, não escondidos.** Quando as tabelas de impostos do boletim não explicam o preço, a diferença fica numa coluna. Os períodos já explicados ficam num seed, com a razão, e a análise está em [`docs/analises/`](docs/analises/) (Portugal, Lituânia, Países Baixos, Eslováquia e Espanha). Um aviso do dbt apanha qualquer caso novo.
 - **Uma previsão testada a sério.** Os coeficientes foram ajustados com 2012–2023, e o site mostra o erro em todas as semanas desde 2024, que o ajuste não viu: 1,1 a 1,3 cêntimos, contra 1,7 a 2,7 a dizer "fica igual".
-- **Um site sem servidor**, no GitHub Pages. A página inicial é Svelte, com um JSON pequeno por combustível e um service worker para quando não há rede ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md)): uns 200 KB, contra os 12 MB que o Evidence descarregava, porque precisa do DuckDB-WASM. O resumo e os postos acompanhados seguiram o mesmo caminho, com gráficos em SVG simples ([ADR 0006](docs/adr/0006-resumo-e-acompanhados-fora-do-evidence.md)); só as análises continuam no Evidence. O mapa é um componente próprio com o Leaflet, partilhado pelas duas, porque o do Evidence não diz à página que zona está à vista. A interface do Evidence foi traduzida com patches.
+- **Um site sem servidor e leve**, no GitHub Pages: páginas estáticas com o Vite e o Svelte, cada uma com os JSON pequenos de que precisa, e um service worker para quando não há rede. O site começou no Evidence, que descarregava 12 MB (o DuckDB-WASM corria as consultas no browser). As páginas saíram uma a uma ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md), [0006](docs/adr/0006-resumo-e-acompanhados-fora-do-evidence.md) e [0008](docs/adr/0008-site-sem-evidence.md)): a inicial ficou com uns 200 KB, e nenhuma página descarrega hoje o DuckDB. Os gráficos são SVG sem bibliotecas, com os valores numa tabela para os leitores de ecrã, e o mapa usa o Leaflet.
 - **Testes em todas as camadas**, todos no CI:
-  - 104 testes em Python (99 % de cobertura);
+  - 105 testes em Python (99 % de cobertura);
   - 94 testes de dados e testes unitários no dbt;
-  - 74 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, os dados abertos, o tema, o gráfico de cada posto, um limite de peso da página inicial, o resumo e os postos acompanhados sem o DuckDB, as páginas no tamanho de um telemóvel (sem deslizar para o lado), a instalação como aplicação, os Açores e a Madeira, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 75 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", as análises, a página inicial sem rede, nenhuma página com o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, os dados abertos, o tema, o gráfico de cada posto, um limite de peso da página inicial, o resumo e os postos acompanhados sem o DuckDB, as páginas no tamanho de um telemóvel (sem deslizar para o lado), a instalação como aplicação, os Açores e a Madeira, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 
@@ -93,19 +93,17 @@ flowchart LR
   I --> L[("landing<br/>Parquet + manifesto")]
   M --> L
   L --> D["dbt + DuckDB<br/>staging · marts · testes"]
-  D --> R[("Parquet para o painel")]
-  R --> E["Evidence + DuckDB-WASM<br/>análises"]
-  R --> J["combustiveis site<br/>JSON por combustível"]
-  J --> A["Página inicial, resumo e acompanhados<br/>Svelte + service worker"]
-  E --> P["GitHub Pages<br/>(pages.yml, todos os dias)"]
-  A --> P
+  D --> R[("Parquet para o site")]
+  R --> J["combustiveis site<br/>JSON pequenos"]
+  J --> A["Páginas estáticas<br/>Vite + Svelte + service worker"]
+  A --> P["GitHub Pages<br/>(pages.yml, todos os dias)"]
 ```
 
 | Fase | Estado |
 |---|---|
 | **Ingestão**: descarrega o histórico, passa as folhas "largas" (uma coluna por país) a tabelas "longas" e escreve Parquet, com um manifesto (origem, data, SHA-256) | ✅ |
 | **Transformação**: modelos dbt em DuckDB (staging, imposto em vigor em cada semana com `ASOF JOIN`, decomposição do preço), testes de dados e testes unitários do dbt | ✅ |
-| **Painel**: site estático com o Evidence no GitHub Pages: os postos, a divisão do preço, a evolução desde 2005 e a comparação com a Europa | ✅ |
+| **Site**: páginas estáticas no GitHub Pages: os postos, a divisão do preço, a evolução desde 2005, a previsão e a comparação com a Europa (começou no Evidence; [ADR 0008](docs/adr/0008-site-sem-evidence.md)) | ✅ |
 | **Agendamento**: o GitHub Actions corre tudo todos os dias, e falha (com email) se o boletim deixar de ser atualizado ou se as fotografias da DGEG pararem | ✅ |
 | **Postos em Portugal**: fotografia semanal (à segunda-feira) dos preços de cada posto (portal da DGEG), guardada no ramo `dados`; no painel, o mapa com a tabela, "Perto de mim", a poupança, o caminho no Google Maps, "Na semana" e as médias por grupo de marcas, marca e distrito ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md)) | ✅ |
 | **Previsão de segunda-feira**: a partir das cotações da gasolina e do gasóleo em Nova Iorque (FRED), comparada com o boletim e com os postos na própria segunda ([análise](docs/analises/previsao-segunda-feira.md), [ADR 0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md)) | ✅ |
@@ -115,12 +113,13 @@ flowchart LR
 **Decisões** (uma por ficheiro, em [`docs/adr/`](docs/adr/)):
 
 - [0001](docs/adr/0001-fonte-weekly-oil-bulletin.md): o Weekly Oil Bulletin como fonte principal;
-- [0002](docs/adr/0002-painel-evidence.md): o painel com o Evidence;
+- [0002](docs/adr/0002-painel-evidence.md): o painel com o Evidence (substituída pela 0008);
 - [0003](docs/adr/0003-precos-dos-postos-dgeg.md): os preços de cada posto, em fotografias da DGEG (semanais, desde 2/11/2026);
 - [0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md): a previsão de segunda-feira com as cotações do FRED;
 - [0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md): a página inicial fora do Evidence, e a funcionar com pouca rede;
 - [0006](docs/adr/0006-resumo-e-acompanhados-fora-do-evidence.md): o resumo e os postos acompanhados também fora do Evidence;
-- [0007](docs/adr/0007-precos-maximos-acores-madeira.md): os preços máximos dos Açores e da Madeira, lidos dos jornais oficiais.
+- [0007](docs/adr/0007-precos-maximos-acores-madeira.md): os preços máximos dos Açores e da Madeira, lidos dos jornais oficiais;
+- [0008](docs/adr/0008-site-sem-evidence.md): o site sem o Evidence, só com páginas estáticas.
 
 O histórico de cada sessão de trabalho, com as decisões e as lições, está no [`DEVLOG.md`](DEVLOG.md).
 
@@ -164,15 +163,14 @@ O resultado é a tabela `fct_fuel_prices`, uma linha por semana, país e produto
 
 A decomposição soma sempre o preço; quando as tabelas de impostos do boletim não a explicam, a diferença fica à vista em `tax_tables_gap`, em vez de escondida. As diferenças de Portugal, da Lituânia, dos Países Baixos, da Eslováquia e de Espanha estão explicadas em [`docs/analises/`](docs/analises/): em Portugal, por exemplo, a tabela de outros impostos tem valores com um algarismo a menos (12,15 € em vez de 102,15 €).
 
-O dbt exporta também `data/road_fuel_prices.parquet` (gasolina 95, gasóleo e GPL, em € por litro) para o painel. O painel (`dashboard/`, com o [Evidence](https://github.com/evidence-dev/evidence)) corre com o Node 22:
+O dbt exporta também Parquet para o site (por exemplo, `data/road_fuel_prices.parquet`, com a gasolina 95, o gasóleo e o GPL em € por litro), e o `combustiveis site` faz com eles os JSON das páginas. O site (`dashboard/`, Vite e Svelte) corre com o Node 22:
 
 ```bash
 cd dashboard
 npm ci
-npm run sources                                    # lê o Parquet (precisa de acesso a extensions.duckdb.org)
-npm run dev                                        # abre as páginas do Evidence no browser
-npm run dev:inicio                                 # a página inicial (depois de uv run combustiveis site)
-npm run build                                      # o site todo em build/: Evidence e página inicial
+npm run dev                                        # o site no browser (depois de uv run combustiveis site)
+npm run build                                      # o site todo em build/
+npm test                                           # os testes com o Playwright, sobre o build
 ```
 
 O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã: descarrega o boletim, junta as fotografias da DGEG (workflow `dgeg.yml`, ramo `dados`), corre o dbt, escreve os JSON da página inicial e publica o site no GitHub Pages. Corre também logo a seguir à fotografia de segunda-feira. Se o boletim não tiver uma semana dos últimos 15 dias, ou se um teste do dbt falhar, a execução falha e o GitHub avisa por email; o painel fica com os dados da última execução boa. Depois de publicar, o `verificar-site` abre o site como um visitante (página inicial, preços recentes e com postos, as outras páginas, os concelhos e o sitemap) e avisa por email se algo não estiver lá.

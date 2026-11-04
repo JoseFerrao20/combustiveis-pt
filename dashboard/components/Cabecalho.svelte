@@ -1,13 +1,13 @@
 <!--
-	O cabeçalho de todas as páginas: o da página inicial (app/) e o das páginas do Evidence
-	(pages/+layout.svelte, que esconde o cabeçalho e a barra lateral do Evidence). Uma linha com o
-	ícone, o nome do site e os links; no telemóvel, os links ficam num "Menu".
+	O cabeçalho de todas as páginas (app/): uma linha com o ícone, o nome do site e os links; no
+	telemóvel, os links ficam num "Menu". As páginas por concelho e os dados abertos (HTML
+	estático do `combustiveis site`) têm uma cópia simples em src/combustiveis/pages.py.
 
 	`atual` é o caminho da página aberta (para marcar o link com aria-current).
 
 	O botão do tema troca o claro e o escuro: muda o data-theme do <html> e guarda a escolha em
-	`evidence-theme`, a chave do Evidence (que segue o data-theme e a guarda também), lida pela
-	página inicial (app/src/main.js) e pelas páginas por concelho. Sem escolha, segue o sistema.
+	`evidence-theme` (a chave do tempo do Evidence, mantida para quem já a tinha), lida por
+	app/src/arranque.js e pelas páginas por concelho. Sem escolha, segue o sistema.
 -->
 <script>
 	import { onMount } from 'svelte';
@@ -18,7 +18,7 @@
 	let tema = 'light';
 	onMount(() => {
 		tema = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-		// O Evidence pode mudar o tema depois (o do sistema): o botão acompanha.
+		// O tema pode mudar depois (o do sistema): o botão acompanha.
 		const observador = new MutationObserver(() => {
 			tema = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 		});
@@ -44,7 +44,7 @@
 		{ href: `${base}resumo/`, nome: 'Resumo' },
 		{ href: `${base}acompanhados/`, nome: 'Postos acompanhados' },
 		{ href: `${base}ilhas/`, nome: 'Açores e Madeira' },
-		{ href: `${base}analises/`, nome: 'Análises', evidence: true }
+		{ href: `${base}analises/`, nome: 'Análises' }
 	];
 	const limpo = (caminho) => caminho.replace(/\/+$/, '');
 	/** A página aberta, ou a secção dela (as análises ficam marcadas em "Análises"). */
@@ -57,7 +57,7 @@
 </script>
 
 <header class="cabecalho">
-	<a class="marca" href={base} rel="external">
+	<a class="marca" href={base}>
 		<img src="{base}icon.svg" alt="" width="24" height="24" />
 		<span>Combustíveis em Portugal</span>
 	</a>
@@ -80,11 +80,8 @@
 		<ul id="menu-paginas" class:aberto>
 			{#each links as link (link.href)}
 				<li>
-					<!-- rel="external" nas páginas que não são do Evidence: o build do Evidence não as
-					     procura (davam 404), e o browser abre-as como páginas novas. -->
 					<a
 						href={link.href}
-						rel={link.evidence ? undefined : 'external'}
 						aria-current={marcado(link.href) ? 'page' : undefined}
 						on:click={() => (aberto = false)}>{link.nome}</a
 					>

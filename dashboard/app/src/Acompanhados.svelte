@@ -1,5 +1,5 @@
 <!--
-	Os postos acompanhados (antes uma página do Evidence, pages/acompanhados.md): cada posto do
+	Os postos acompanhados (antes uma página do Evidence, ADR 0006): cada posto do
 	seed tracked_stations, fotografia a fotografia, face aos concorrentes a 5 km e à média do
 	concelho. Lê dados/acompanhados.json (`combustiveis site`). ADR 0006.
 -->

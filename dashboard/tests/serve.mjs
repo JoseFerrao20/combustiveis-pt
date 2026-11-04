@@ -1,4 +1,4 @@
-// Serve o build do Evidence (build/) em /combustiveis-pt/, como o GitHub Pages, para os testes
+// Serve o build do site (build/) em /combustiveis-pt/, como o GitHub Pages, para os testes
 // do Playwright. Só ficheiros estáticos; as páginas são pastas com um index.html.
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
