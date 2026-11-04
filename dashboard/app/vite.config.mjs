@@ -18,7 +18,8 @@ export default defineConfig({
 			input: {
 				inicio: fileURLToPath(new URL('index.html', import.meta.url)),
 				resumo: fileURLToPath(new URL('resumo/index.html', import.meta.url)),
-				acompanhados: fileURLToPath(new URL('acompanhados/index.html', import.meta.url))
+				acompanhados: fileURLToPath(new URL('acompanhados/index.html', import.meta.url)),
+				ilhas: fileURLToPath(new URL('ilhas/index.html', import.meta.url))
 			}
 		}
 	}

@@ -1,4 +1,5 @@
 {
+	"id": "/combustiveis-pt/",
 	"name": "Combustível mais barato",
 	"short_name": "Combustível",
 	"description": "O preço de cada posto de combustível em Portugal, do mais barato para o mais caro.",
@@ -11,5 +12,10 @@
 	"icons": [
 		{ "src": "/combustiveis-pt/icon-192.png", "type": "image/png", "sizes": "192x192" },
 		{ "src": "/combustiveis-pt/icon-512.png", "type": "image/png", "sizes": "512x512" }
+	],
+	"shortcuts": [
+		{ "name": "Resumo e estatísticas", "short_name": "Resumo", "url": "/combustiveis-pt/resumo/" },
+		{ "name": "Açores e Madeira", "short_name": "Ilhas", "url": "/combustiveis-pt/ilhas/" },
+		{ "name": "Postos acompanhados", "short_name": "Acompanhados", "url": "/combustiveis-pt/acompanhados/" }
 	]
 }

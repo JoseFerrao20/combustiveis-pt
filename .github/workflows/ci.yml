@@ -26,6 +26,7 @@ jobs:
           uv run combustiveis ingest --ficheiro tests/fixtures/oil_bulletin_sample.xlsx
           uv run combustiveis dgeg --ficheiro tests/fixtures/dgeg_sample.json --data 2026-10-28
           uv run combustiveis mercados --ficheiros tests/fixtures/fred
+          mkdir -p data/landing/ilhas && cp tests/fixtures/ilhas/precos.csv data/landing/ilhas/
           uv run dbt build --project-dir transform --profiles-dir transform
 
   dashboard:
@@ -46,6 +47,7 @@ jobs:
           uv run combustiveis ingest --ficheiro tests/fixtures/oil_bulletin_sample.xlsx
           uv run combustiveis dgeg --ficheiro tests/fixtures/dgeg_sample.json --data 2026-10-28
           uv run combustiveis mercados --ficheiros tests/fixtures/fred
+          mkdir -p data/landing/ilhas && cp tests/fixtures/ilhas/precos.csv data/landing/ilhas/
           uv run dbt build --project-dir transform --profiles-dir transform
           uv run combustiveis site
       - name: Painel (Evidence e página inicial)

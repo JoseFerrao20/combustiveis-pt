@@ -7,6 +7,7 @@ const PAGES = [
 	'',
 	'resumo/',
 	'acompanhados/',
+	'ilhas/',
 	'analises/',
 	'analises/impostos/',
 	'analises/previsao/',

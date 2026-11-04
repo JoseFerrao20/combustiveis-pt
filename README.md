@@ -23,6 +23,7 @@
 - **Um só aspeto:** o mesmo cabeçalho e rodapé em todas as páginas, com o botão do tema claro ou escuro (a escolha fica guardada). As análises abrem a partir de cartões com o número principal, o resumo começa pelos números e pelas conclusões, e no computador o mapa e a lista ficam lado a lado.
 - **Avisos pelo Telegram:** à segunda-feira, um bot manda a previsão, o preço dos postos que cada pessoa segue (com a mudança na semana e a posição entre os vizinhos) e o mais barato do distrito ([como configurar](docs/telegram.md)).
 - **Dados abertos:** o histórico do preço de cada posto (que a DGEG não guarda) e o boletim europeu desde 2005, em CSV, com as colunas explicadas, numa página própria.
+- **Açores e Madeira:** o preço máximo da gasolina 95 e do gasóleo em cada região autónoma, lido todos os dias dos despachos em PDF dos jornais oficiais (semanais na Madeira, mensais nos Açores), com o histórico desde 2025 e a comparação com o preço médio dos postos do continente.
 - **Leve e com pouca rede:** a página inicial descarrega uns 200 KB (em vez de 12 MB) e abre mesmo sem rede, com os últimos preços guardados no telemóvel.
 
 ![A página inicial no computador: à esquerda, o mapa de Lisboa com os postos coloridos do mais barato ao mais caro e a posição da pessoa a azul; à direita, a lista dos postos à volta com o preço, a mudança na semana, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
@@ -56,9 +57,9 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 - **Uma previsão testada a sério.** Os coeficientes foram ajustados com 2012–2023, e o site mostra o erro em todas as semanas desde 2024, que o ajuste não viu: 1,1 a 1,3 cêntimos, contra 1,7 a 2,7 a dizer "fica igual".
 - **Um site sem servidor**, no GitHub Pages. A página inicial é Svelte, com um JSON pequeno por combustível e um service worker para quando não há rede ([ADR 0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md)): uns 200 KB, contra os 12 MB que o Evidence descarregava, porque precisa do DuckDB-WASM. O resumo e os postos acompanhados seguiram o mesmo caminho, com gráficos em SVG simples ([ADR 0006](docs/adr/0006-resumo-e-acompanhados-fora-do-evidence.md)); só as análises continuam no Evidence. O mapa é um componente próprio com o Leaflet, partilhado pelas duas, porque o do Evidence não diz à página que zona está à vista. A interface do Evidence foi traduzida com patches.
 - **Testes em todas as camadas**, todos no CI:
-  - 84 testes em Python (99 % de cobertura);
-  - 84 testes de dados e testes unitários no dbt;
-  - 62 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, os dados abertos, o tema, o gráfico de cada posto, um limite de peso da página inicial, o resumo e os postos acompanhados sem o DuckDB, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
+  - 104 testes em Python (99 % de cobertura);
+  - 94 testes de dados e testes unitários no dbt;
+  - 74 testes do site com o Playwright: as páginas, os filtros, a procura, o "Perto de mim" com a localização simulada, a poupança, "Os meus postos", a página inicial sem rede e sem o DuckDB, os separadores no telemóvel, a localização lembrada, o link de um posto, as páginas por concelho, os dados abertos, o tema, o gráfico de cada posto, um limite de peso da página inicial, o resumo e os postos acompanhados sem o DuckDB, as páginas no tamanho de um telemóvel (sem deslizar para o lado), a instalação como aplicação, os Açores e a Madeira, e a acessibilidade de todas as páginas (axe, WCAG 2.2 AA) nos temas claro e escuro.
 
   O CI corre tudo com amostras reais das três fontes, e o site publica-se sozinho todas as manhãs.
 
@@ -69,6 +70,8 @@ flowchart LR
   WOB["Weekly Oil Bulletin<br/>(Comissão Europeia, .xlsx)"] --> I["combustiveis ingest"]
   DGEG["Portal da DGEG<br/>(preço de cada posto)"] --> S["combustiveis dgeg<br/>às segundas (dgeg.yml)"]
   FRED["FRED<br/>(cotações e câmbio)"] --> M["combustiveis mercados"]
+  JO["Jornais oficiais<br/>(Açores e Madeira, PDF)"] --> IL["combustiveis ilhas<br/>todos os dias (ilhas.yml)"]
+  IL --> H
   S --> H[("ramo dados<br/>um Parquet por semana")]
   H --> V["verificar-dgeg<br/>(vigilância)"]
   H --> L
@@ -92,6 +95,7 @@ flowchart LR
 | **Postos em Portugal**: fotografia semanal (à segunda-feira) dos preços de cada posto (portal da DGEG), guardada no ramo `dados`; no painel, o mapa com a tabela, "Perto de mim", a poupança, o caminho no Google Maps, "Na semana" e as médias por grupo de marcas, marca e distrito ([ADR 0003](docs/adr/0003-precos-dos-postos-dgeg.md)) | ✅ |
 | **Previsão de segunda-feira**: a partir das cotações da gasolina e do gasóleo em Nova Iorque (FRED), comparada com o boletim e com os postos na própria segunda ([análise](docs/analises/previsao-segunda-feira.md), [ADR 0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md)) | ✅ |
 | **Postos acompanhados**: alguns postos seguidos dia a dia (seed `tracked_stations`: o Auchan da Circunvalação, no Porto, e o de Viseu), com a posição entre os concorrentes a 5 km e a média do concelho | ✅ |
+| **Açores e Madeira**: o preço máximo da gasolina 95 e do gasóleo, lido todos os dias dos despachos em PDF dos jornais oficiais das regiões, com o histórico desde 2025 ([ADR 0007](docs/adr/0007-precos-maximos-acores-madeira.md)) | ✅ |
 
 **Decisões** (uma por ficheiro, em [`docs/adr/`](docs/adr/)):
 
@@ -100,7 +104,8 @@ flowchart LR
 - [0003](docs/adr/0003-precos-dos-postos-dgeg.md): os preços de cada posto, em fotografias da DGEG (semanais, desde 2/11/2026);
 - [0004](docs/adr/0004-previsao-com-cotacoes-do-fred.md): a previsão de segunda-feira com as cotações do FRED;
 - [0005](docs/adr/0005-pagina-inicial-fora-do-evidence.md): a página inicial fora do Evidence, e a funcionar com pouca rede;
-- [0006](docs/adr/0006-resumo-e-acompanhados-fora-do-evidence.md): o resumo e os postos acompanhados também fora do Evidence.
+- [0006](docs/adr/0006-resumo-e-acompanhados-fora-do-evidence.md): o resumo e os postos acompanhados também fora do Evidence;
+- [0007](docs/adr/0007-precos-maximos-acores-madeira.md): os preços máximos dos Açores e da Madeira, lidos dos jornais oficiais.
 
 O histórico de cada sessão de trabalho, com as decisões e as lições, está no [`DEVLOG.md`](DEVLOG.md).
 

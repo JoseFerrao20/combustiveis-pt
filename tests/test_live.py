@@ -30,6 +30,8 @@ def _site(**changes: bytes | None) -> dict[str, bytes | None]:
         "dados/postos-gasolina_95.json": json.dumps({"stations": [[1], [2]]}).encode(),
         "resumo/": "<h1>Resumo e estatísticas</h1>".encode(),
         "dados/acompanhados.json": b'{"history": [{"station_id": 1}], "competitors": []}',
+        "dados/ilhas.json": b'{"rows": []}',
+        "ilhas/": "<title>Açores e Madeira | Combustíveis em Portugal</title>".encode(),
         "concelho/": "<h1>Preços por concelho</h1>".encode(),
         "dados-abertos/": b'<a href="postos-historico.csv.gz" download>',
         "sitemap.xml": b"<loc>https://exemplo.pt/combustiveis-pt/concelho/braga/</loc>",
@@ -100,6 +102,8 @@ def test_broken_json() -> None:
             "dados/resumo.json": b"{",
             "resumo/": b"<h1>Outra coisa</h1>",
             "dados/acompanhados.json": b"{",
+            "dados/ilhas.json": b"[]",
+            "ilhas/": b"<h1>Outra</h1>",
         }
     )
     with pytest.raises(SiteCheckError) as error:
@@ -107,6 +111,8 @@ def test_broken_json() -> None:
     assert "dados/resumo.json inválido" in str(error.value)
     assert "resumo/: não tem o título" in str(error.value)
     assert "dados/acompanhados.json inválido" in str(error.value)
+    assert "dados/ilhas.json inválido" in str(error.value)
+    assert "ilhas/: não tem o título" in str(error.value)
 
 
 def test_no_fuels_and_broken_fuel_file() -> None:

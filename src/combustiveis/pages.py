@@ -25,10 +25,11 @@ import duckdb
 SITE_URL = "https://joseferrao20.github.io/combustiveis-pt/"
 # Quantos postos de cada combustível aparecem em cada página.
 TOP = 10
-# As páginas do Evidence, para o sitemap (a inicial e as por concelho juntam-se a estas).
+# As outras páginas, para o sitemap (a inicial e as por concelho juntam-se a estas).
 EVIDENCE_PAGES = (
     "resumo/",
     "acompanhados/",
+    "ilhas/",
     "analises/",
     "analises/impostos/",
     "analises/previsao/",
@@ -168,7 +169,8 @@ def _page(title: str, description: str, path: str, root: str, body: str) -> str:
 <a class="marca" href="{root}"><img src="{root}icon.svg" alt="" width="24" height="24">\
 <span>Combustíveis em Portugal</span></a>
 <nav aria-label="Páginas do site"><a href="{root}">Início</a><a href="{root}resumo/">Resumo</a>\
-<a href="{root}acompanhados/">Postos acompanhados</a><a href="{root}analises/">Análises</a></nav>
+<a href="{root}acompanhados/">Postos acompanhados</a><a href="{root}ilhas/">Açores e Madeira</a>\
+<a href="{root}analises/">Análises</a></nav>
 <button type="button" class="tema" aria-label="Mudar o tema">☾</button>
 </header>
 <main>

@@ -6,6 +6,7 @@ const PAGES = [
 	['', 'Combustível mais barato'],
 	['resumo/', 'Resumo e estatísticas'],
 	['acompanhados/', 'Postos acompanhados'],
+	['ilhas/', 'Açores e Madeira'],
 	['analises/', 'Análises'],
 	['analises/impostos/', 'Quanto do preço é imposto?'],
 	['analises/previsao/', 'Previsão para segunda-feira'],
@@ -549,4 +550,111 @@ test('a previsão para segunda-feira aparece na página inicial e na sua página
 test('o método diz quantas semanas de dados há', async ({ page }) => {
 	await page.goto('analises/metodo/');
 	await expect(page.locator('main')).toContainText(/\d[\d\s]* semanas de dados/);
+});
+
+test('a página dos Açores e da Madeira mostra os preços máximos e os despachos', async ({ page }) => {
+	const errors = watchErrors(page);
+	await page.goto('ilhas/');
+	const cartoes = page.locator('.cartao');
+	await expect(cartoes.filter({ hasText: 'Madeira' })).toContainText(EURO);
+	await expect(cartoes.filter({ hasText: 'Açores' })).toContainText(EURO);
+	await expect(page.locator('.conclusao')).toContainText('do continente');
+	await expect(page.locator('figure.grafico')).toBeVisible();
+
+	// Outro combustível: os preços mudam.
+	const madeira = cartoes.filter({ hasText: 'Madeira' }).locator('.cartao-numero');
+	const antes = await madeira.innerText();
+	await page.getByRole('combobox', { name: 'Combustível' }).selectOption('gasoleo');
+	await expect(madeira).not.toHaveText(antes);
+
+	// Cada despacho tem o link para o PDF do jornal oficial.
+	await page.getByText(/Ver todos os despachos/).click();
+	const link = page.locator('details a[href$=".pdf"]').first();
+	await expect(link).toHaveAttribute('href', /^https:\/\/(jo\.azores|joram\.madeira)\.gov\.pt\//);
+	expect(errors).toEqual([]);
+});
+
+test.describe('no telemóvel', () => {
+	test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+	for (const [path, pronta] of [
+		['resumo/', '.cartao'],
+		['acompanhados/', '.cartao'],
+		['ilhas/', '.cartao'],
+		['dados-abertos/', 'h1'],
+		['concelho/', 'h1']
+	]) {
+		test(`a página ${path} cabe no ecrã, sem deslizar para o lado`, async ({ page }) => {
+			const errors = watchErrors(page);
+			await page.goto(path);
+			await expect(page.locator(pronta).first()).toBeVisible();
+			// O que é mais largo do que o ecrã (as tabelas) desliza dentro da sua caixa.
+			const largura = await page.evaluate(() => ({
+				pagina: document.documentElement.scrollWidth,
+				ecra: document.documentElement.clientWidth
+			}));
+			expect(largura.pagina, `${path}: ${largura.pagina} px num ecrã de ${largura.ecra} px`).toBeLessThanOrEqual(largura.ecra);
+			// Os filtros e o gráfico ficam dentro do ecrã.
+			for (const elemento of await page.locator('.filtros-pagina select, figure.grafico svg').all()) {
+				const caixa = await elemento.boundingBox();
+				expect(caixa.x + caixa.width).toBeLessThanOrEqual(largura.ecra + 1);
+			}
+			expect(errors).toEqual([]);
+		});
+	}
+
+	test('o menu do cabeçalho leva às outras páginas', async ({ page }) => {
+		await page.goto('ilhas/');
+		await page.getByRole('button', { name: 'Menu' }).click();
+		await page.getByRole('link', { name: 'Resumo' }).click();
+		await expect(page.getByRole('heading', { level: 1, name: 'Resumo e estatísticas' })).toBeVisible();
+	});
+});
+
+test('as páginas leves ficam guardadas para abrir sem rede', async ({ page, context }) => {
+	await page.goto('');
+	await expect(page.locator('.mapa-postos[data-postos] tbody tr').first()).toBeVisible();
+	await page.evaluate(() => navigator.serviceWorker.ready);
+	for (const path of ['resumo/', 'acompanhados/', 'ilhas/']) {
+		await page.goto(path);
+		await expect(page.locator('.cartao').first()).toBeVisible();
+	}
+	const guardados = await page.evaluate(async () => {
+		const cache = await caches.open('combustiveis-pt-1');
+		return (await cache.keys()).map((request) => new URL(request.url).pathname);
+	});
+	expect(guardados).toEqual(
+		expect.arrayContaining([
+			'/combustiveis-pt/resumo/',
+			'/combustiveis-pt/acompanhados/',
+			'/combustiveis-pt/ilhas/',
+			'/combustiveis-pt/dados/acompanhados.json',
+			'/combustiveis-pt/dados/ilhas.json'
+		])
+	);
+	await context.setOffline(true);
+	await page.goto('ilhas/').catch(() => null);
+	await expect(page.locator('.cartao').first()).toBeVisible();
+	await context.setOffline(false);
+});
+
+test('o site instala-se como aplicação a partir de qualquer página leve', async ({ page }) => {
+	const manifesto = await (await page.request.get('manifest.webmanifest')).json();
+	expect(manifesto).toMatchObject({ display: 'standalone', start_url: '/combustiveis-pt/', lang: 'pt-PT' });
+	for (const { src, sizes } of manifesto.icons) {
+		const resposta = await page.request.get(src.replace('/combustiveis-pt/', ''));
+		expect(resposta.status(), src).toBe(200);
+		expect(resposta.headers()['content-type'], src).toContain('image/png');
+		expect(['192x192', '512x512']).toContain(sizes);
+	}
+	// Os atalhos (tocar e manter o ícone, no Android) abrem páginas que existem.
+	for (const { url } of manifesto.shortcuts) {
+		expect((await page.request.get(url.replace('/combustiveis-pt/', ''))).status(), url).toBe(200);
+	}
+	for (const path of ['', 'resumo/', 'acompanhados/', 'ilhas/']) {
+		await page.goto(path);
+		await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/combustiveis-pt/manifest.webmanifest');
+		await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1);
+		await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#2563eb');
+	}
 });

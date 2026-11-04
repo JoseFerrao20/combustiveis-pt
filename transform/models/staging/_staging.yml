@@ -25,3 +25,29 @@ models:
       - unique_combination:
           arguments:
             columns: [tax, country_code, product, valid_from]
+
+  - name: stg_ilhas__max_prices
+    description: Os preços máximos das regiões autónomas, um por região, combustível e data.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [region, fuel, valid_from]
+    columns:
+      - name: region
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['acores', 'madeira']
+      - name: fuel
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['gasolina_95', 'gasoleo']
+      - name: price
+        data_tests:
+          - not_null
+      - name: valid_from
+        data_tests:
+          - not_null

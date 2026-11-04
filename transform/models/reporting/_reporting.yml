@@ -64,3 +64,13 @@ models:
       - unique_combination:
           arguments:
             columns: [target_week, product]
+
+  - name: rpt_island_prices
+    description: >
+      Os preços máximos dos Açores e da Madeira, com o período em vigor e o preço médio dos postos
+      do continente na última fotografia desse período, exportados para Parquet
+      (ISLANDS_EXPORT_PATH, por omissão data/island_prices.parquet). ADR 0007.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [region, fuel, valid_from]

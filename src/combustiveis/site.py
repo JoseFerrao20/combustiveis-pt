@@ -263,3 +263,22 @@ def export_site(
     )
     written = 0 if pages is None else write_pages(stations, pages, snapshot_date)
     return SiteData(snapshot_date=snapshot_date, stations=counts, forecast=text, pages=written)
+
+
+def export_islands(islands: Path, target: Path) -> int:
+    """``ilhas.json``: os preços máximos dos Açores e da Madeira (ADR 0007), com o período em
+    vigor e o preço médio dos postos do continente nesse período."""
+    db = duckdb.connect()
+    rows = _rows(
+        db,
+        """
+        select region, region_name, fuel, fuel_name, valid_from, valid_to, price, act,
+            published, source_url, continent_snapshot,
+            round(continent_avg_price, 4) as continent_avg_price, continent_stations
+        from read_parquet(?)
+        order by region, fuel, valid_from
+        """,
+        [str(islands)],
+    )
+    _write_json(target / "ilhas.json", {"rows": rows})
+    return len(rows)

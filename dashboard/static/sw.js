@@ -2,7 +2,8 @@
 // Evidence (patch ao EvidenceDefaultLayout, que registava o fix-tprotocol-service-worker.js no
 // mesmo âmbito: dois service workers no mesmo âmbito substituíam-se um ao outro).
 //
-// 1. Pouca rede: a página inicial e os preços (dados/*.json) guardam-se no telemóvel. Pede-se
+// 1. Pouca rede: as páginas leves (a inicial, o resumo, os postos acompanhados e a dos Açores e
+//    da Madeira) e os preços (dados/*.json) guardam-se no telemóvel, depois de abertas uma vez. Pede-se
 //    sempre à rede primeiro; se a rede falhar, ou não responder em 4 segundos, usa-se o que
 //    ficou guardado (e a resposta da rede, se chegar depois, fica para a próxima vez). As
 //    respostas guardadas levam o cabeçalho x-combustiveis-guardado, para a página o dizer.
@@ -15,6 +16,8 @@
 const CACHE = 'combustiveis-pt-1';
 const BASE = new URL('./', self.location).pathname; // /combustiveis-pt/
 const NETWORK_TIMEOUT_MS = 4000;
+// As páginas leves, fora do Evidence (ADR 0005 a 0007), além da inicial.
+const LIGHT_PAGES = ['resumo/', 'acompanhados/', 'ilhas/'].map((page) => BASE + page);
 
 self.addEventListener('install', (event) => {
 	self.skipWaiting();
@@ -95,6 +98,8 @@ self.addEventListener('fetch', (event) => {
 
 	if (url.pathname === BASE || url.pathname === `${BASE}index.html`) {
 		event.respondWith(networkFirst(event, BASE));
+	} else if (LIGHT_PAGES.includes(url.pathname.replace(/index\.html$/, ''))) {
+		event.respondWith(networkFirst(event, url.pathname.replace(/index\.html$/, '')));
 	} else if (url.pathname.startsWith(`${BASE}dados/`)) {
 		event.respondWith(networkFirst(event, url.pathname));
 	} else if (url.pathname.startsWith(`${BASE}inicio/`)) {

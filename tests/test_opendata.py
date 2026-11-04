@@ -95,3 +95,21 @@ def test_command_line_with_and_without_the_warehouse(
     # Sem a base de dados do dbt, não há dados abertos (e não é um erro).
     assert cli.main([*args, "--armazem", str(tmp_path / "nada.duckdb")]) == 0
     assert "Dados abertos" not in capsys.readouterr().out
+
+
+def test_includes_the_islands_when_the_warehouse_has_them(tmp_path: Path, warehouse: Path) -> None:
+    db = duckdb.connect(str(warehouse))
+    db.execute("""
+        create table stg_ilhas__max_prices as select * from (values
+            ('madeira', 'gasoleo', date '2026-11-02', 2.125, 'Despacho Conjunto n.º 99/2026',
+             date '2026-10-30', 'https://joram.madeira.gov.pt/x.pdf')
+        ) as t(region, fuel, valid_from, price, act, published, source_url)
+    """)
+    db.close()
+    files = export_open_data(warehouse, tmp_path / "site", SNAPSHOT)
+    assert {f.name: f.rows for f in files}["ilhas-precos-maximos.csv"] == 1
+    page = (tmp_path / "site" / "dados-abertos" / "index.html").read_text("utf-8")
+    assert 'href="ilhas-precos-maximos.csv"' in page
+    assert "Açores e Madeira (preços máximos)" in page
+    text = (tmp_path / "site" / "dados-abertos" / "ilhas-precos-maximos.csv").read_text("utf-8")
+    assert text.splitlines()[0] == "region,fuel,valid_from,price,act,published,source_url"

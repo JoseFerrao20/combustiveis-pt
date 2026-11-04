@@ -55,6 +55,14 @@ jobs:
           git fetch --depth=1 origin dados
           git archive FETCH_HEAD dgeg | tar -x -C data/landing
           ls data/landing/dgeg/*.parquet
+      # Os preços máximos dos Açores e da Madeira (ilhas.yml), também no ramo dados. Antes da
+      # primeira leitura, um CSV só com o cabeçalho: a página diz que ainda não há preços.
+      - name: Preços máximos dos Açores e da Madeira
+        run: |
+          git archive FETCH_HEAD ilhas | tar -x -C data/landing || {
+            mkdir -p data/landing/ilhas
+            echo "region,fuel,valid_from,price,act,published,source_url" > data/landing/ilhas/precos.csv
+          }
       - run: uv run dbt build --project-dir transform --profiles-dir transform
       # Os JSON da página inicial (dashboard/app/), a partir dos Parquet do dbt.
       - run: uv run combustiveis site

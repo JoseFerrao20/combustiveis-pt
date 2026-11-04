@@ -22,6 +22,10 @@ preços de uma fotografia recente e as outras páginas (o ``pages.yml`` corre-o 
 ``combustiveis telegram [--enviar]``: os avisos de segunda-feira pelo Telegram (inscrições em
 ``TELEGRAM_SUBSCRIPTIONS`` e o token em ``TELEGRAM_BOT_TOKEN``; sem ``--enviar``, só mostra).
 
+``combustiveis ilhas``: os preços máximos dos Açores e da Madeira, lidos dos despachos em PDF
+publicados desde a última execução (histórico em ``data/landing/ilhas/precos.csv``).
+``combustiveis verificar-ilhas`` falha se faltar o preço da semana (Madeira) ou do mês (Açores).
+
 ``combustiveis site``: os JSON da página inicial do site (``dashboard/app/public/dados/``), a
 partir dos Parquet que o dbt exporta (corre-se depois do dbt).
 """
@@ -36,6 +40,7 @@ from pathlib import Path
 
 import duckdb
 
+from . import ilhas as islands
 from .check import SnapshotError, check_snapshots
 from .dgeg import DgegFormatError, read_prices, search_url
 from .landing import write_landing, write_markets, write_station_snapshot
@@ -43,13 +48,14 @@ from .live import SiteCheckError, check_site
 from .markets import SERIES, MarketFormatError, MarketValue, read_series, series_url
 from .opendata import export_open_data
 from .parse import FormatError, read_bulletin
-from .site import export_history, export_site, export_tracked
+from .site import export_history, export_islands, export_site, export_tracked
 from .source import PAGE_URL, SourceError, fetch, fetch_with_retries, find_history_url
 from .telegram import TelegramError, build_message, read_data, send, subscriptions_from_env
 
 DEFAULT_LANDING = Path("data/landing")
 DEFAULT_DGEG = DEFAULT_LANDING / "dgeg"
 DEFAULT_MARKETS = DEFAULT_LANDING / "mercados.parquet"
+DEFAULT_ISLANDS = DEFAULT_LANDING / "ilhas"
 DEFAULT_SITE = Path("dashboard/app/public/dados")
 
 
@@ -121,8 +127,12 @@ def site(
     pages: Path | None = None,
     warehouse: Path | None = None,
     extras: tuple[Path, Path, Path] | None = None,
+    islands_prices: Path | None = None,
 ) -> int:
     result = export_site(stations, forecast, target, pages)
+    if islands_prices is not None and islands_prices.exists():
+        count = export_islands(islands_prices, target)
+        print(f"Açores e Madeira: {count} preços máximos em {target}/ilhas.json")
     # As páginas do resumo e dos postos acompanhados (app/resumo/, app/acompanhados/).
     if extras is not None:
         daily, tracked, competitors = extras
@@ -165,6 +175,33 @@ def telegram(stations: Path, forecast: Path, deliver: bool) -> int:
         print("Sem TELEGRAM_BOT_TOKEN: nada enviado.")
         return 0
     print(f"Avisos enviados: {send(token, messages)}")
+    return 0
+
+
+def update_islands(directory: Path, since: date, today: date | None = None) -> int:
+    history_path, state_path = directory / "precos.csv", directory / "estado.json"
+    state = islands.read_state(state_path, since)
+    result = islands.update(state, today or date.today())
+    history = islands.write_history(
+        history_path, islands.read_history(history_path) + result.prices
+    )
+    islands.write_state(state_path, result.state)
+    print(
+        f"Regiões autónomas: {len(result.prices)} preços novos, {len(history)} no histórico "
+        f"(Madeira até {result.state.madeira}, Açores até ao n.º {result.state.acores_number}"
+        f"/{result.state.acores_year})"
+    )
+    if result.error is not None:
+        raise result.error
+    return 0
+
+
+def verify_islands(directory: Path, today: date | None = None) -> int:
+    check = islands.check_history(
+        islands.read_history(directory / "precos.csv"), today or date.today()
+    )
+    latest = ", ".join(f"{islands.REGIONS[r]} em vigor desde {d}" for r, d in check.latest.items())
+    print(f"Preços máximos em dia: {latest}")
     return 0
 
 
@@ -232,6 +269,23 @@ def main(argv: list[str] | None = None) -> int:
     command.add_argument(
         "--enviar", action="store_true", help="enviar (sem isto, só mostra as mensagens)"
     )
+    command = commands.add_parser(
+        "ilhas", help="preços máximos dos Açores e da Madeira (despachos novos, em PDF)"
+    )
+    command.add_argument("--pasta", type=Path, default=DEFAULT_ISLANDS)
+    command.add_argument(
+        "--desde",
+        type=date.fromisoformat,
+        default=date(2025, 1, 1),
+        help="na primeira execução (sem estado.json), ler a partir deste dia",
+    )
+    command.add_argument("--hoje", type=date.fromisoformat, help=argparse.SUPPRESS)
+    command = commands.add_parser(
+        "verificar-ilhas",
+        help="confirma que há o preço máximo da semana (Madeira) e do mês (Açores)",
+    )
+    command.add_argument("--pasta", type=Path, default=DEFAULT_ISLANDS)
+    command.add_argument("--hoje", type=date.fromisoformat, help=argparse.SUPPRESS)
     command = commands.add_parser("site", help="os JSON da página inicial do site (depois do dbt)")
     command.add_argument("--postos", type=Path, default=Path("data/stations_latest.parquet"))
     command.add_argument("--previsao", type=Path, default=Path("data/price_forecast.parquet"))
@@ -266,6 +320,12 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("data/tracked_station_competitors.parquet"),
         help="os concorrentes a 5 km dos postos acompanhados",
     )
+    command.add_argument(
+        "--ilhas",
+        type=Path,
+        default=Path("data/island_prices.parquet"),
+        help="os preços máximos dos Açores e da Madeira (sem o ficheiro, não escreve)",
+    )
     args = parser.parse_args(argv)
     try:
         if args.command == "dgeg":
@@ -279,8 +339,18 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "site":
             extras = (args.evolucao, args.acompanhados, args.concorrentes)
             return site(
-                args.postos, args.previsao, args.destino, args.paginas, args.armazem, extras
+                args.postos,
+                args.previsao,
+                args.destino,
+                args.paginas,
+                args.armazem,
+                extras,
+                args.ilhas,
             )
+        if args.command == "ilhas":
+            return update_islands(args.pasta, args.desde, args.hoje)
+        if args.command == "verificar-ilhas":
+            return verify_islands(args.pasta, args.hoje)
         if args.command == "verificar-dgeg":
             return verify_snapshots(args.pasta, args.idade_maxima, args.hoje)
         return ingest(args.ficheiro, args.destino, args.idade_maxima)
@@ -295,6 +365,7 @@ def main(argv: list[str] | None = None) -> int:
         duckdb.IOException,
         SiteCheckError,
         TelegramError,
+        islands.IslandFormatError,
     ) as exc:
         print(f"erro: {exc}", file=sys.stderr)
         return 1

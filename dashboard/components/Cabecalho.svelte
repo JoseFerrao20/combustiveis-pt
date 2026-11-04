@@ -43,6 +43,7 @@
 		{ href: base, nome: 'Início' },
 		{ href: `${base}resumo/`, nome: 'Resumo' },
 		{ href: `${base}acompanhados/`, nome: 'Postos acompanhados' },
+		{ href: `${base}ilhas/`, nome: 'Açores e Madeira' },
 		{ href: `${base}analises/`, nome: 'Análises', evidence: true }
 	];
 	const limpo = (caminho) => caminho.replace(/\/+$/, '');
