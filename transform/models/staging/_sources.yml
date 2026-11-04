@@ -35,3 +35,14 @@ sources:
         description: >
           Formato longo: uma linha por série e dia com cotação. DGASNYH e DDFUELNYH em dólares
           por galão, DCOILBRENTEU em dólares por barril, DEXUSEU em dólares por euro.
+
+  - name: ilhas
+    description: >
+      Os preços máximos de venda ao público da gasolina 95 e do gasóleo nos Açores (mensais,
+      Jornal Oficial) e na Madeira (semanais, JORAM), lidos dos despachos em PDF por
+      `combustiveis ilhas` e guardados no ramo dados (ilhas/precos.csv). ADR 0007.
+    meta:
+      external_location: "{{ env_var('ILHAS_DIR', 'data/landing/ilhas') }}/precos.csv"
+    tables:
+      - name: max_prices
+        description: Uma linha por região, combustível e data de entrada em vigor.

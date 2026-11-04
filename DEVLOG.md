@@ -367,6 +367,26 @@
   - **Decisões:** ADR 0006. O Evidence fica só com as análises, que usam a sério as consultas e os gráficos dele. Os gráficos novos são SVG sem bibliotecas, com os valores numa tabela para os leitores de ecrã.
   - **Lição:** com o Evidence, uma mudança de página não recarrega; fora dele, sim. Por isso, os links do cabeçalho para as páginas leves levam `rel="external"`, para o router do Evidence não as tentar abrir nem as seguir no build.
 
+- **2026-11-04 (sessão cloud do Claude Code):** Açores e Madeira, e o site no telemóvel.
+  - **Feito:**
+    - **Açores e Madeira** (`ilhas.py`, ADR 0007): a leitura dos despachos dos preços máximos em PDF.
+      - Madeira: semanal, no JORAM. Açores: mensal, no Jornal Oficial.
+      - Um workflow diário (`ilhas.yml`) guarda o histórico no ramo `dados` e avisa se faltar a semana ou o mês.
+      - O dbt junta o preço médio dos postos do continente (`rpt_island_prices`).
+      - O site tem a página "Açores e Madeira" e o CSV nos dados abertos.
+      - A primeira leitura (desde janeiro de 2025) deu 95 despachos da Madeira e 22 dos Açores, sem falhas.
+    - **Telemóvel:**
+      - Testes a 390 px: nenhuma página leve pode ser mais larga do que o ecrã, e os filtros, os gráficos e o menu cabem.
+      - O service worker passa a guardar o resumo, os postos acompanhados e a página das ilhas, que abrem sem rede.
+      - O manifesto tem atalhos para essas páginas, e todas as páginas leves têm o ícone e o tema para instalar como aplicação.
+  - **Decisões:**
+    - O site do Jornal Oficial dos Açores tem uma verificação anti-robôs. Não se contorna: seguem-se os PDFs dos números, que têm endereços sequenciais e são servidos diretamente.
+    - Os PDFs da Madeira chegam a dezenas de MB: lê-se primeiro o sumário (2 páginas) e o resto só quando o despacho lá está.
+    - Leem-se os números de todos os dias: o despacho de 29/12/2025 saiu numa terça-feira.
+  - **Lições:**
+    - Um `.sr-only` numa `<table>` não a encolhe para 1 px: a tabela escondida do gráfico alargava a página para 620 px no telemóvel. O teste novo do telemóvel apanhou-o, e a classe passou para uma `div` à volta.
+    - Numa declaração reativa do Svelte, uma função que lê outra variável reativa não cria a dependência: a variável tem de ir como argumento.
+
 ## Plano
 
 1. **Google:** registar o site no Google Search Console e enviar o `sitemap.xml`, para as páginas por concelho aparecerem nas pesquisas.
@@ -374,5 +394,5 @@
 3. **Com 4 a 6 semanas de fotografias semanais:** se as marcas passam as subidas e descidas do boletim na mesma semana, e se os postos isolados demoram mais a baixar. Nos postos acompanhados, como ficam face aos concorrentes semana a semana. Com uma fotografia por semana já não se vê o dia exato da mudança.
 4. **Ver como a previsão se sai nas próximas semanas** (a de 2/11 falhou no gasóleo: −6,4 cêntimos previstos, +1,3 nos postos; ver com o boletim de quinta-feira); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
 5. **Captura das páginas "Resumo" e "Postos acompanhados"** (agora fora do Evidence) para o README, quando os gráficos da evolução tiverem mais fotografias.
-6. **Açores e Madeira:** os preços máximos saem em PDF (Jornal Oficial dos Açores, mensal; JORAM, semanal). Precisa de `jo.azores.gov.pt` e `joram.madeira.gov.pt` nos domínios permitidos da sessão, e de uma leitura de PDF que valide o que lê.
+6. **Açores e Madeira:** depois do merge, correr o `ilhas.yml` à mão (Actions → Açores e Madeira → Run workflow) para a primeira leitura; ver o primeiro aviso da vigilância, se vier.
 7. **Talvez:** tirar as análises do Evidence também (ADR 0006); avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.

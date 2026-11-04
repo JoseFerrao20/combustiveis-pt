@@ -1,0 +1,59 @@
+name: Açores e Madeira
+
+# Os preços máximos dos combustíveis nas regiões autónomas (ADR 0007): todos os dias, lê os
+# despachos publicados desde a última execução (Madeira: JORAM, semanal, à sexta-feira; Açores:
+# Jornal Oficial, mensal, no fim do mês) e guarda o histórico no ramo `dados` (ilhas/precos.csv,
+# com o que já se leu em ilhas/estado.json). O painel (pages.yml) lê-o na manhã seguinte.
+#
+# Se um despacho não se conseguir ler (o formato mudou), o passo falha depois de guardar o que
+# leu antes dele, e o GitHub manda um email; corrigida a leitura, a execução seguinte volta a
+# esse despacho. Na primeira execução, lê tudo desde 1/1/2025 (demora: alguns PDFs da Madeira
+# têm dezenas de MB).
+on:
+  schedule:
+    - cron: "23 19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dados
+  cancel-in-progress: false
+
+jobs:
+  ilhas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - run: uv sync --locked
+      - name: Ramo dados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin dados; then
+            git fetch --depth=1 origin dados:refs/remotes/origin/dados
+            git worktree add dados origin/dados
+          else
+            git worktree add --orphan -b dados dados
+          fi
+      - name: Despachos novos
+        id: ler
+        continue-on-error: true
+        run: uv run combustiveis ilhas --pasta dados/ilhas
+      - name: Guardar no ramo dados
+        run: |
+          cd dados
+          git add ilhas
+          git diff --cached --quiet || git commit -m "Island maximum prices $(date -u +%F)"
+          git push origin HEAD:dados
+      - name: Leitura sem erros
+        if: steps.ler.outcome == 'failure'
+        run: |
+          echo "Um despacho não se conseguiu ler: ver o passo 'Despachos novos'."
+          exit 1
+      # Falha (com email) se faltar o preço da semana na Madeira ou o do mês nos Açores.
+      - run: uv run combustiveis verificar-ilhas --pasta dados/ilhas

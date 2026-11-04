@@ -103,6 +103,16 @@ def check_site(
     concelhos = _text(fetch, base + "concelho/", problems)
     if concelhos is not None and "Preços por concelho" not in concelhos:
         problems.append(f"{base}concelho/: não é a página dos concelhos")
+    islands = _text(fetch, base + "dados/ilhas.json", problems)
+    if islands is not None:
+        try:
+            if not isinstance(json.loads(islands)["rows"], list):
+                raise TypeError("rows não é uma lista")
+        except (ValueError, KeyError, TypeError) as exc:
+            problems.append(f"dados/ilhas.json inválido: {exc}")
+    page = _text(fetch, base + "ilhas/", problems)
+    if page is not None and "Açores e Madeira" not in page:
+        problems.append(f"{base}ilhas/: não tem o título da página")
     abertos = _text(fetch, base + "dados-abertos/", problems)
     if abertos is not None and "postos-historico.csv.gz" not in abertos:
         problems.append(f"{base}dados-abertos/: sem o link para o histórico dos postos")

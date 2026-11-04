@@ -7,7 +7,9 @@ fotografia por semana (ADR 0003), e por isso vale a pena publicá-lo. Saem do ar
 - ``postos-historico.csv.gz``: todas as fotografias da DGEG (``fct_station_prices``);
 - ``postos-ultima-fotografia.csv``: só a última, sem comprimir;
 - ``boletim-europeu.csv.gz``: o Weekly Oil Bulletin desde 2005, com os impostos
-  (``fct_fuel_prices``).
+  (``fct_fuel_prices``);
+- ``ilhas-precos-maximos.csv``: os preços máximos dos Açores e da Madeira, despacho a despacho
+  (``stg_ilhas__max_prices``; ADR 0007), quando o armazém os tem.
 
 E uma página (``dados-abertos/index.html``) com as colunas, as fontes e como citar.
 """
@@ -52,6 +54,12 @@ BULLETIN_QUERY = """
     order by prices.week, prices.country_code, prices.product
 """
 
+ISLANDS_QUERY = """
+    select region, fuel, valid_from, price, act, published, source_url
+    from stg_ilhas__max_prices
+    order by region, fuel, valid_from
+"""
+
 # As colunas de cada ficheiro, para a página (nome, descrição).
 STATION_COLUMNS = (
     ("snapshot_date", "dia da fotografia (diária de 28/10 a 2/11/2026, depois às segundas-feiras)"),
@@ -74,6 +82,14 @@ BULLETIN_COLUMNS = (
     ("euro_since",
      "desde quando o país usa o euro: antes disso, os valores estão na moeda nacional"),
 )  # fmt: skip
+
+ISLAND_COLUMNS = (
+    ("region", "acores ou madeira"),
+    ("fuel", "gasolina_95 (gasolina sem chumbo 95) ou gasoleo (gasóleo rodoviário)"),
+    ("valid_from", "dia em que o preço máximo entra em vigor"),
+    ("price", "preço máximo de venda ao público, em euros por litro, com IVA"),
+    ("act, published, source_url", "o despacho, o dia em que foi publicado e o PDF"),
+)
 
 
 @dataclass(frozen=True)
@@ -104,6 +120,11 @@ def export_open_data(warehouse: Path, target: Path, snapshot: date) -> list[Open
         "postos-ultima-fotografia.csv": f"{latest} order by station_id, fuel",
         "boletim-europeu.csv.gz": BULLETIN_QUERY,
     }
+    tables = {
+        row[0] for row in db.execute("select table_name from information_schema.tables").fetchall()
+    }
+    if "stg_ilhas__max_prices" in tables:
+        queries["ilhas-precos-maximos.csv"] = ISLANDS_QUERY
     files = []
     for name, query in queries.items():
         rows = _copy(db, query, folder / name)
@@ -126,15 +147,39 @@ def _columns(columns: tuple[tuple[str, str], ...]) -> str:
     return f"<table>{head}<tbody>{rows}</tbody></table>"
 
 
+def _link(by_name: dict[str, OpenFile], name: str, text: str) -> str:
+    f = by_name[name]
+    return (
+        f'<a href="{name}" download>{text}</a> '
+        f'<span class="suave">({f.rows:,} linhas, {_size(f.size)})</span>'.replace(",", " ")
+    )
+
+
+def _islands(by_name: dict[str, OpenFile]) -> str:
+    if "ilhas-precos-maximos.csv" not in by_name:
+        return ""
+    link = _link(by_name, "ilhas-precos-maximos.csv", "Todos os despachos desde 2025")
+    return f"""<h2>Açores e Madeira (preços máximos)</h2>
+<p>A DGEG só tem os postos do continente. Nas regiões autónomas, o governo regional fixa o preço
+máximo da gasolina 95 e do gasóleo: todos os meses nos Açores (Jornal Oficial, I série) e todas
+as semanas na Madeira (JORAM, II série). Este projeto lê os despachos em PDF
+(<a href="../ilhas/">ver no site</a>).</p>
+<ul>
+<li>{link}</li>
+</ul>
+{_columns(ISLAND_COLUMNS)}
+<p>Fontes: Jornal Oficial da Região Autónoma dos Açores
+(<a href="https://jo.azores.gov.pt">jo.azores.gov.pt</a>) e Jornal Oficial da Região Autónoma
+da Madeira (<a href="https://joram.madeira.gov.pt">joram.madeira.gov.pt</a>). Cada linha tem o
+endereço do despacho.</p>
+"""
+
+
 def _index(files: list[OpenFile], snapshot: date, first_week: date, last_week: date) -> str:
     by_name = {f.name: f for f in files}
 
     def link(name: str, text: str) -> str:
-        f = by_name[name]
-        return (
-            f'<a href="{name}" download>{text}</a> '
-            f'<span class="suave">({f.rows:,} linhas, {_size(f.size)})</span>'.replace(",", " ")
-        )
+        return _link(by_name, name, text)
 
     body = f"""<h1>Dados abertos</h1>
 <p>Os dados que o site usa, em CSV (separados por vírgulas, com cabeçalho, em UTF-8), para
@@ -166,6 +211,7 @@ impostos e IVA feita por este projeto (<a href="../analises/metodo/">como se cal
 (<a href="https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en">energy.ec.europa.eu</a>),
 reutilizável com a indicação da fonte.</p>
 
+{_islands(by_name)}
 <h2>Como citar</h2>
 <p>"Combustíveis em Portugal (José Ferrão), a partir de dados da DGEG e da Comissão Europeia",
 com o endereço desta página. O código que gera os dados está no

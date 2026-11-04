@@ -28,7 +28,7 @@
 		M.esquerda + (datas.length < 2 ? 0.5 : datas.indexOf(data) / (datas.length - 1)) * (LARGURA - M.esquerda - M.direita);
 	$: y = (valor) => M.cima + (1 - (valor - y0) / (y1 - y0)) * (ALTURA - M.cima - M.baixo);
 	$: marcas = [0, 0.5, 1].map((t) => y0 + t * (y1 - y0));
-	// No máximo uns 6 rótulos de datas, para não se atropelarem.
+	// No máximo uns 6 rótulos de datas, para não se atropelarem (nem com o último).
 	$: passo = Math.max(1, Math.ceil(datas.length / 6));
 </script>
 
@@ -40,7 +40,7 @@
 			<text x={M.esquerda - 6} y={y(marca) + 4} text-anchor="end" class="eixo">{formato(marca)}</text>
 		{/each}
 		{#each datas as data, i}
-			{#if i % passo === 0 || i === datas.length - 1}
+			{#if i === datas.length - 1 || (i % passo === 0 && datas.length - 1 - i >= passo / 2)}
 				<text x={x(data)} y={ALTURA - 8} text-anchor="middle" class="eixo">{diaCurto(data)}</text>
 			{/if}
 		{/each}
@@ -63,7 +63,8 @@
 			<li><span class="cor" style="background: {serie.cor}" />{serie.nome}</li>
 		{/each}
 	</ul>
-	<table class="sr-only">
+	<!-- A classe na div, não na tabela: uma tabela não encolhe para 1 px e alargava a página. -->
+	<div class="sr-only"><table>
 		<caption>{titulo}</caption>
 		<thead>
 			<tr>
@@ -81,7 +82,7 @@
 				</tr>
 			{/each}
 		</tbody>
-	</table>
+	</table></div>
 </figure>
 
 <style>
