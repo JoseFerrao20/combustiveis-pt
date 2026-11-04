@@ -7,6 +7,8 @@
 
 **Site:** [joseferrao20.github.io/combustiveis-pt](https://joseferrao20.github.io/combustiveis-pt/), atualizado todos os dias (os preços dos postos, às segundas-feiras).
 
+**Estado:** concluído. O site atualiza-se sozinho e avisa por email quando uma fonte para ou muda de formato; o que fazer em cada caso está em [docs/manutencao.md](docs/manutencao.md).
+
 ![No telemóvel: a página inicial com a previsão, o combustível e "Perto de mim" e a lista dos postos à volta com a poupança; o separador "Mapa" com o balão de um posto ("Ir" e "Partilhar"); e a página de Braga com os postos mais baratos e a data e a hora de cada preço](docs/images/painel-telemovel.png)
 
 **Para quem abastece:**
@@ -25,6 +27,8 @@
 - **Dados abertos:** o histórico do preço de cada posto (que a DGEG não guarda) e o boletim europeu desde 2005, em CSV, com as colunas explicadas, numa página própria.
 - **Açores e Madeira:** o preço máximo da gasolina 95 e do gasóleo em cada região autónoma, lido todos os dias dos despachos em PDF dos jornais oficiais (semanais na Madeira, mensais nos Açores), com o histórico desde 2025 e a comparação com o preço médio dos postos do continente.
 - **Leve e com pouca rede:** a página inicial descarrega uns 200 KB (em vez de 12 MB) e abre mesmo sem rede, com os últimos preços guardados no telemóvel.
+
+![No telemóvel, três páginas lado a lado: o resumo (número de postos, preço médio, mais barato e mais caro, e as diferenças por grupo de marcas), um posto acompanhado (preço, 1.º de 55 a 5 km, 15,2 cêntimos abaixo da média à volta) e os Açores e a Madeira (preço máximo da gasolina 95 em cada região, comparado com a média do continente)](docs/images/painel-telemovel-paginas.png)
 
 ![A página inicial no computador: à esquerda, o mapa de Lisboa com os postos coloridos do mais barato ao mais caro e a posição da pessoa a azul; à direita, a lista dos postos à volta com o preço, a mudança na semana, a distância e a poupança num depósito](docs/images/painel-mapa-tabela.png)
 
@@ -47,6 +51,17 @@ Quase **47 %** do preço são impostos. A decomposição bate certo com o preço
 ![Análises, "Quanto do preço é imposto?": preço da gasolina 95 em Portugal, dividido em produto, ISP e outros impostos e IVA, e a evolução desde 2005](docs/images/painel-impostos.png)
 
 ![Análises, "Portugal e a Europa": Portugal comparado com Espanha e com a média da UE, e o preço em cada país dividido em produto e impostos](docs/images/painel-comparacao.png)
+
+<details>
+<summary>Mais capturas: o resumo, os postos acompanhados e os Açores e a Madeira no computador</summary>
+
+![Resumo e estatísticas: filtros de combustível, distrito e concelho, quatro cartões (postos, preço médio, mais barato e mais caro) e as médias por grupo de marcas](docs/images/painel-resumo.png)
+
+![Postos acompanhados: o Auchan de Gondomar, com o preço, a posição entre os 55 postos a 5 km e as diferenças para a média à volta e do concelho, e o gráfico das últimas fotografias](docs/images/painel-acompanhados.png)
+
+![Açores e Madeira: o preço máximo da gasolina 95 em vigor na Madeira (1,961 €) e nos Açores (1,934 €), comparado com a média dos postos do continente (2,061 €)](docs/images/painel-ilhas.png)
+
+</details>
 
 ## Destaques técnicos
 
@@ -121,6 +136,7 @@ uv run combustiveis ingest --idade-maxima 15          # falha se a última seman
 uv run combustiveis dgeg                           # fotografia de hoje dos postos (data/landing/dgeg/)
 uv run combustiveis verificar-dgeg                 # o histórico da DGEG está em dia?
 uv run combustiveis mercados                       # cotações e câmbio do FRED, para a previsão
+uv run combustiveis ilhas                          # os preços máximos dos Açores e da Madeira (despachos novos)
 uv run combustiveis telegram                       # os avisos de segunda-feira (só mostra; --enviar envia)
 uv run combustiveis verificar-site --url https://joseferrao20.github.io/combustiveis-pt/   # o site publicado está em ordem?
 uv run combustiveis site                           # depois do dbt: os JSON da página inicial, as páginas por concelho e os dados abertos
@@ -167,6 +183,8 @@ O workflow `pages.yml` faz tudo a cada push na `main` e todos os dias de manhã:
 uv run pytest                                      # testes, cobertura ≥ 90 %
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
+
+A [manutenção](docs/manutencao.md) diz o que corre sozinho, que avisos podem chegar e o que fazer em cada um.
 
 Os testes usam uma amostra do ficheiro real (`tests/fixtures/oil_bulletin_sample.xlsx`, gerada com `scripts/make_sample.py`), com o mesmo formato: se a Comissão mudar o ficheiro, é aí que se vê. O CI corre também o `dbt build` e o build do painel com essa amostra, e abre cada página do painel com o Playwright (`dashboard/tests/`): sem erros de JavaScript, com números, e com os filtros de distrito e de posto a funcionar.
 

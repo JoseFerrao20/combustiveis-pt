@@ -44,7 +44,8 @@
 				<text x={x(data)} y={ALTURA - 8} text-anchor="middle" class="eixo">{diaCurto(data)}</text>
 			{/if}
 		{/each}
-		{#each series as serie (serie.nome)}
+		<!-- Ao contrário, para a primeira série (a principal) ficar por cima quando coincidem. -->
+		{#each [...series].reverse() as serie (serie.nome)}
 			{@const pontos = serie.pontos.filter((p) => p.y != null)}
 			<polyline
 				points={pontos.map((p) => `${x(p.x)},${y(p.y)}`).join(' ')}
