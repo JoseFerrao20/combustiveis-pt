@@ -280,6 +280,8 @@ def export_islands(islands: Path, target: Path) -> int:
             published, source_url, continent_snapshot,
             round(continent_avg_price, 4) as continent_avg_price, continent_stations
         from read_parquet(?)
+        -- Sem preços, o dbt exporta uma linha só com nulos (para guardar os tipos).
+        where region is not null
         order by region, fuel, valid_from
         """,
         [str(islands)],

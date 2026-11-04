@@ -10,6 +10,7 @@ from combustiveis.site import (
     COLUMNS,
     export_analyses,
     export_history,
+    export_islands,
     export_site,
     export_tracked,
     forecast_summary,
@@ -250,3 +251,26 @@ def test_analyses_have_portugal_neighbours_and_the_latest_week(tmp_path: Path) -
     # Sem o manifesto, sem a data da descarga.
     export_analyses(prices, forecast, tmp_path / "nada.json", tmp_path)
     assert json.loads((tmp_path / "boletim.json").read_text("utf-8"))["downloaded_at"] is None
+
+
+def test_islands_skip_the_empty_row_of_the_dbt_export(tmp_path: Path) -> None:
+    islands = _parquet(
+        tmp_path,
+        "ilhas.parquet",
+        """
+        select * from (values
+            ('madeira', 'Madeira', 'gasoleo', 'Gasóleo', date '2026-11-02', null::date, 2.125,
+             'Despacho Conjunto n.º 99/2026', date '2026-10-30', 'https://joram/x.pdf',
+             date '2026-11-02', 2.26834, 2915),
+            -- Sem preços, o dbt exporta uma linha só com nulos: não entra.
+            (null, null, null, null, null, null, null, null, null, null, null, null, null)
+        ) as t(region, region_name, fuel, fuel_name, valid_from, valid_to, price, act,
+               published, source_url, continent_snapshot, continent_avg_price,
+               continent_stations)
+        """,
+    )
+    assert export_islands(islands, tmp_path) == 1
+    rows = json.loads((tmp_path / "ilhas.json").read_text("utf-8"))["rows"]
+    assert rows[0]["valid_from"] == "2026-11-02"
+    assert rows[0]["valid_to"] is None
+    assert rows[0]["continent_avg_price"] == 2.2683

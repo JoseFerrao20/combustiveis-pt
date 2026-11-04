@@ -406,6 +406,7 @@
   - **Lições:**
     - No Svelte, uma função chamada no template que lê variáveis reativas (aqui, as escalas do gráfico) não se repete quando elas mudam: as escalas vão como argumentos, senão o gráfico não acompanhava a largura do ecrã.
     - O `EURO` dos testes é uma expressão regular: `includes` não a aceita.
+    - Um modelo exportado para Parquet que fica vazio sai com uma linha só de nulos (o dbt-duckdb guarda assim os tipos): antes da primeira leitura das ilhas, a página recebia essa linha. O `export_islands` passou a tirá-la, com um teste.
 
 ## Plano
 
