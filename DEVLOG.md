@@ -387,12 +387,21 @@
     - Um `.sr-only` numa `<table>` não a encolhe para 1 px: a tabela escondida do gráfico alargava a página para 620 px no telemóvel. O teste novo do telemóvel apanhou-o, e a classe passou para uma `div` à volta.
     - Numa declaração reativa do Svelte, uma função que lê outra variável reativa não cria a dependência: a variável tem de ir como argumento.
 
+- **2026-11-04 (sessão cloud do Claude Code):** montra final e manutenção. O projeto fica concluído.
+  - **Feito:**
+    - **Capturas novas do README:** as três páginas leves lado a lado no telemóvel, e o resumo, os postos acompanhados e os Açores e a Madeira no computador. Fazem-se com `scripts/capturas.cjs`, para se poderem refazer.
+    - **README:** o estado ("concluído") e o link para a manutenção.
+    - **`docs/manutencao.md`:** o que corre sozinho e quando, cada aviso por email e o que fazer, o que não avisa (os agendamentos desligados ao fim de 60 dias sem atividade, a previsão a reajustar uma vez por ano, as versões fixadas) e os limites conhecidos.
+    - **Gráficos:** a primeira série desenha-se por cima, porque o posto acompanhado ficava tapado pelo "mais barato a 5 km" quando é ele o mais barato.
+  - **Decisão:** a vigilância já existe em cada fonte (o boletim no `ingest`, a DGEG no `dgeg.yml` e no trabalho `vigilancia`, as ilhas no `ilhas.yml`, o site no `verificar`). Faltava dizer o que fazer com cada aviso, e não mais um workflow.
+
 ## Plano
+
+O projeto está concluído: o que se segue é opcional ou manutenção ([docs/manutencao.md](docs/manutencao.md)).
 
 1. **Google:** registar o site no Google Search Console e enviar o `sitemap.xml`, para as páginas por concelho aparecerem nas pesquisas.
 2. **Telegram:** criar o bot no @BotFather e os segredos `TELEGRAM_BOT_TOKEN` e `TELEGRAM_SUBSCRIPTIONS` (`docs/telegram.md`); ver o primeiro envio a seguir à fotografia de segunda-feira.
-3. **Com 4 a 6 semanas de fotografias semanais:** se as marcas passam as subidas e descidas do boletim na mesma semana, e se os postos isolados demoram mais a baixar. Nos postos acompanhados, como ficam face aos concorrentes semana a semana. Com uma fotografia por semana já não se vê o dia exato da mudança.
+3. **Açores e Madeira:** depois do merge, correr o `ilhas.yml` à mão (Actions → Açores e Madeira → Run workflow) para a primeira leitura.
 4. **Ver como a previsão se sai nas próximas semanas** (a de 2/11 falhou no gasóleo: −6,4 cêntimos previstos, +1,3 nos postos; ver com o boletim de quinta-feira); voltar a correr `scripts/fit_forecast.py` daqui a uns meses.
-5. **Captura das páginas "Resumo" e "Postos acompanhados"** (agora fora do Evidence) para o README, quando os gráficos da evolução tiverem mais fotografias.
-6. **Açores e Madeira:** depois do merge, correr o `ilhas.yml` à mão (Actions → Açores e Madeira → Run workflow) para a primeira leitura; ver o primeiro aviso da vigilância, se vier.
-7. **Talvez:** tirar as análises do Evidence também (ADR 0006); avisar a Comissão dos erros nas tabelas (o resumo está nas análises de `docs/analises/`); outros países no aviso.
+5. **Com 4 a 6 semanas de fotografias semanais:** se as marcas passam as subidas e descidas do boletim na mesma semana, e se os postos isolados demoram mais a baixar.
+6. **Talvez:** tirar as análises do Evidence (o passo que falta do ADR 0006), para o site ficar todo leve e sem o DuckDB-WASM; avisar a Comissão dos erros nas tabelas.
